@@ -1,0 +1,28 @@
+{
+  "name": "frontend-boilerplate",
+  "version": "1.0.0",
+  "description": "Frontend app template for new projects",
+  "main": "server.js",
+  "scripts": {
+    "build:dev": "mkdir -p www/dist && node dev-build.js",
+    "start:dev": "live-server --port=9000 --mount=/:./www"
+  },
+  "author": "Daniel Waltrip <dwaltrip77@gmail.com> (https://danielwaltrip.com/)",
+  "license": "MIT",
+  "devDependencies": {
+    "babel-preset-es2015": "^6.9.0",
+    "babelify": "^7.3.0",
+    "browserify": "^13.1.0",
+    "colors": "^1.1.2",
+    "errorify": "git://github.com/dwaltrip/errorify.git#feature/custom-handler",
+    "node-notifier": "^4.6.1",
+    "watchify": "^3.7.0"
+  },
+  "dependencies": {
+    "express": "^4.12.3",
+    "mithril": "^0.2.5"
+  },
+  "engines": {
+    "node": "4.4.5"
+  }
+}

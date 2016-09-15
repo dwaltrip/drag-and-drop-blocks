@@ -1,0 +1,66 @@
+/* Styles for the basic layout of the app */
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+}
+
+h1.title-text {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.header-row {
+  height: 40px;
+  border-bottom: 1px solid #555;
+  background-color: #aaa;
+}
+
+.main-content {
+  height: calc(100% - 40px);
+}
+
+.header-title {
+  border-right: 1px solid #555;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 200px;
+  background-color: black;
+}
+
+.title-link {
+  text-decoration: none;
+  color: white;
+}
+
+.title-link:hover {
+  color: #bbb;
+}
+
+.header-content {
+  height: 100%;
+  width: 100%;
+  align-items: center;
+}
+
+.header-content.align-center {
+  justify-content: center;
+}
+
+.header-content.align-right {
+  justify-content: flex-end;
+}
+
+.user-status-container {
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.user-status-container .logout-button,
+.user-status-container .user-status-message {
+  margin-right: 10px;
+}

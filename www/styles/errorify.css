@@ -1,0 +1,9 @@
+
+body > .errorify {
+  white-space: pre-wrap;
+  padding: 15px;
+  color: #a21b1b;
+  background-color: #eee;
+  border: 1px solid #555;
+  margin: 15px;
+}
