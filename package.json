@@ -1,11 +1,29 @@
 {
-  "name": "frontend-boilerplate",
+  "name": "drag-n-drop-blocks",
   "version": "1.0.0",
-  "description": "Frontend app template for new projects",
+  "description": "Test app to develop a polished drag-n-drop UI as seen in Google Blockly",
   "main": "server.js",
   "scripts": {
-    "build:dev": "mkdir -p www/dist && node dev-build.js",
-    "start:dev": "live-server --port=9000 --mount=/:./www"
+    "build": "npm-run-all build:js:dev build:css build:scss",
+    "watch": "npm-run-all --parallel watch:js:dev watch:css watch:scss start:dev",
+    "start:dev": "live-server --port=9000 --mount=/:$npm_package_config_app_root",
+    "prebuild:js:dev": "shx mkdir -p $npm_package_config_build_dir",
+    "build:js:dev": "node scripts/build-js-dev.js",
+    "prewatch:js:dev": "shx mkdir -p $npm_package_config_build_dir",
+    "watch:js:dev": "node scripts/watch-js-dev.js",
+    "prebuild:css": "shx mkdir -p $npm_package_config_build_dir",
+    "build:css": "cat $npm_package_config_css_dir/*css > $npm_package_config_build_dir/styles.css",
+    "prewatch:css": "npm run build:css",
+    "watch:css": "nodemon --exec \"npm run build:css\" --watch $npm_package_config_css_dir -e css",
+    "build:scss": "node-sass $npm_package_config_scss_entry -o $npm_package_config_build_dir",
+    "prewatch:scss": "npm run build:scss",
+    "watch:scss": "node-sass -w $npm_package_config_scss_entry -o $npm_package_config_build_dir"
+  },
+  "config": {
+    "app_root": "./www",
+    "build_dir": "www/dist",
+    "css_dir": "www/styles",
+    "scss_entry": "www/styles/app.scss"
   },
   "author": "Daniel Waltrip <dwaltrip77@gmail.com> (https://danielwaltrip.com/)",
   "license": "MIT",
@@ -16,11 +34,15 @@
     "colors": "^1.1.2",
     "errorify": "git://github.com/dwaltrip/errorify.git#feature/custom-handler",
     "node-notifier": "^4.6.1",
+    "shx": "^0.1.4",
     "watchify": "^3.7.0"
   },
   "dependencies": {
     "express": "^4.12.3",
-    "mithril": "^0.2.5"
+    "mithril": "^0.2.5",
+    "node-sass": "^3.10.0",
+    "nodemon": "^1.10.2",
+    "npm-run-all": "^3.1.0"
   },
   "engines": {
     "node": "4.4.5"
