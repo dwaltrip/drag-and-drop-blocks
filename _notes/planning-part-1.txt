@@ -1,0 +1,27 @@
+
+------------------
+Main aspects of UI
+------------------
+
+1) Toolbox - here there is a list off all widgets available. To add another instance of a widget to your workspace, drag into the workspace. It will get added to your set of widgets in the workspace. The exact manner in which it is added to the set of widgets depends on where it was dropped in the workspace.
+
+2) Workspace - this holds all of your widgets. They can be rearranged, new ones can be added, etc. Widgets can have other widgets nested within them. At the top level (all widgets that are not nested), widgets are arranged in an ordered list
+
+-------------------
+Rearranging widgets
+-------------------
+
+Widgets are rearranged by dragging and dropping. Any widget dropped between two top level widgets will be inserted into the top level list of widgets (unnested) at that position. A widget dropped into an empty widget-slot in another widget will then be placed in that slot, and is considered a child widget of the containing widget. Dragging and dropping a widget into a new location into the workspace removed it from the old location completely -- the widget has been moved.
+
+--------------------------------------
+Ways of indicating new widget position
+--------------------------------------
+
+1. Drop a widget into an empty slot of another widget
+  - result: widget now positioned in the slot and is now a child widget of that widget
+
+2. Drop a widget between two widgets on the top level list OR drop a widget at the top or bottom of the list
+  - result: widget is a top level widget, and is positioned at the inidcated location in the list
+
+3. Drop a widget to the side of the list
+  - result: widget is a top level widget, and is added to the bottom of the list
