@@ -1,0 +1,23 @@
+
+---------
+# Todos #
+---------
+
+* Part 1
+  [ ] - Create a view for a very simple widget with an empty slot for another widget
+  [ ] - Hardcode some example widgets in the workspace, and ensure it renders properly
+
+* Part 2
+  [ ] - Implement drag and drop interactions for rearranging the order of widgets on the top level list
+  [ ] - Implement adding a new widget from the toolbox
+
+* Part 3
+  [ ] - Implement data model for representing all widgets in workspace (with all nesting and such)
+  [ ] - Implement rendering of nested widgets
+  [ ] - Make sure rearranging position of top level widgets in the list works as expected with nested widgets
+  [ ] - Implement drag and drop interactions for nesting and unnesting widgets
+
+* Part 4
+  [ ] - Make the widgets have a more complex DOM/layout, and ensure that everything still works
+  [ ] - Make it spiffy as fuck
+  [ ] - Consider the singifiers for each interaction and do some design/css work for each one
