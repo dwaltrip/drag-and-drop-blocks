@@ -1,7 +1,13 @@
 
 .home-container {
-  .content {
-    color: blue;
-    font-size: 20px;
+  padding: 10px;
+}
+
+.toolbox {
+  border: 1px solid #999;
+  width: 250px;
+
+  .toolbox-section {
+    padding: 10px;
   }
 }
