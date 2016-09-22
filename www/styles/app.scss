@@ -1,13 +1,50 @@
 
+$border-color: #555;
+$lighter-border-color: #999;
+
 .home-container {
   padding: 10px;
+  display: flex;
+  height: 100vh;
 }
 
 .toolbox {
-  border: 1px solid #999;
-  width: 250px;
+  border: 1px solid $border-color;
 
   .toolbox-section {
     padding: 10px;
   }
 }
+
+.workspace {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  border: 1px solid $border-color;
+  border-left: none;
+  width: 100%;
+}
+
+.widget {
+  display: inline-block;
+  margin: 5px;
+  padding: 5px;
+  border: 1px solid $lighter-border-color;
+
+  .widget-content {
+    display: flex;
+    align-items: center;
+  }
+}
+
+.widget-slot {
+  display: flex;
+  width: 50px;
+  background-color: white;
+  margin-left: 10px;
+  border: 1px solid $lighter-border-color;
+  align-self: stretch;
+}
+
+.widget-1 { background-color: #eac889; }
+.widget-2 { background-color: #89c2ea; }

@@ -12,7 +12,7 @@
     "prewatch:js:dev": "shx mkdir -p $npm_package_config_build_dir",
     "watch:js:dev": "node scripts/watch-js-dev.js",
     "prebuild:css": "shx mkdir -p $npm_package_config_build_dir",
-    "build:css": "cat $npm_package_config_css_dir/*css > $npm_package_config_build_dir/styles.css",
+    "build:css": "cat $npm_package_config_css_dir/*.css > $npm_package_config_build_dir/styles.css",
     "prewatch:css": "npm run build:css",
     "watch:css": "nodemon --exec \"npm run build:css\" --watch $npm_package_config_css_dir -e css",
     "build:scss": "node-sass $npm_package_config_scss_entry -o $npm_package_config_build_dir",

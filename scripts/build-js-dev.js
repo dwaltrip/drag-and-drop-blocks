@@ -23,11 +23,12 @@ function buildBundle(b) {
   b.bundle().pipe(fs.createWriteStream(OUTPATH));
 }
 
-// Execute the build
-var b = initBrowserify();
-setupES6Transpile(b);
-buildBundle(b);
-
+// Execute the build if this script was run directly
+if (require.main === module) {
+  var b = initBrowserify();
+  setupES6Transpile(b);
+  buildBundle(b);
+}
 
 module.exports = {
   initBrowserify: initBrowserify,
