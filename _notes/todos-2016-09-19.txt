@@ -4,12 +4,13 @@
 ---------
 
 * Part 1
-  [ ] - Create a view for a very simple widget with an empty slot for another widget
-  [ ] - Hardcode some example widgets in the workspace, and ensure it renders properly
+  [X] - Create a view for a very simple widget with an empty slot for another widget
+  [X] - Hardcode some example widgets in the workspace, and ensure it renders properly
 
 * Part 2
-  [ ] - Implement drag and drop interactions for rearranging the order of widgets on the top level list
-  [ ] - Implement adding a new widget from the toolbox
+  [/] - Implement drag and drop interactions for rearranging the order of widgets on the top level list
+  [ ] - Showcase possible widgets in toolbox
+  [ ] - Implement adding a new widget from the toolbox (by dragging and dropping)
 
 * Part 3
   [ ] - Implement data model for representing all widgets in workspace (with all nesting and such)

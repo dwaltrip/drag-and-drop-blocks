@@ -14,10 +14,19 @@ export default {
     var workspace = controller.workspace;
     window.workspace = workspace;
 
+    var widgets = workspace.widgets.concat();
+    widgets.sort((a,b) => a.pos() - b.pos());
+
+    var isDraggingClass = controller.isDragging ? '.is-dragging' : '';
+
     return m('.home-container', [
       m(Toolbox),
-      m('.workspace', workspace.widgets.map(widget => {
-        return m(lookupWidgetComponent(widget.name()), { widget });
+      m('.workspace' + isDraggingClass, widgets.map(widget => {
+        return m(lookupWidgetComponent(widget.name()), {
+          widget,
+          ondragstart: function() { controller.isDragging = true; },
+          ondragend: function() { controller.isDragging = false; }
+        });
       }))
     ]);
   }
@@ -36,3 +45,13 @@ var Workspace = {
     widgets: null
   }
 };
+
+// for development purposes only
+function createWidgets(n) {
+  for(var i=0; i<n; i++) {
+    var name = Math.random() < 0.5 ? 'widget1' : 'widget2';
+    var widget = Widget.create({ name, data: 'lol', pos: 0 });
+    widget.save();
+  }
+}
+window.createWidgets = createWidgets;

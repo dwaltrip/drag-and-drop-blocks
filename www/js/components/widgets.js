@@ -1,57 +1,75 @@
 import m from 'mithril';
 
+import on from 'lib/m-utils/on';
+import doAll from 'lib/m-utils/do-all';
+
+function configDropzone(el, isInitialized, context) {
+  if (isInitialized) { return; }
+
+  var dropzone = new Dragster(el);
+  context.onunload = () => dropzone.removeListeners();
+};
 
 var Widget1 = {
-  controller: function() {
-    this.ghostImages = [];
-  },
-  view: function(controller) {
-    return widgetLayout(controller, 'Widget 1', { classes: '.widget-1' });
-  }
+  controller: widgetControllerBuilder(),
+  view: widgetViewBuilder('Widget 1', '.widget-1')
 };
 
 var Widget2 = {
-  controller: function() {
-    this.ghostImages = [];
-  },
-  view: function(controller) {
-    return widgetLayout(controller, 'Widget 2', { classes: '.widget-2' });
-  }
+  controller: widgetControllerBuilder(),
+  view: widgetViewBuilder('Widget 2', '.widget-2')
 };
 
-function widgetLayout(controller, content, params) {
-  var params = params || {};
+function widgetControllerBuilder() {
+  return function(params) {
+    this.dragImages = [];
+    this.widget = params.widget;
+  };
+}
 
-  var isDraggingClass = controller.isDragging ? '.is-dragging' : '';
-  var classes = (params.classes || '') + isDraggingClass;
+function widgetViewBuilder(title, className) {
+  var className = className || '';
+  return function(controller, params) {
+    var params = params || {};
 
-  return m('.widget' + classes, [
-    m('.widget-content', {
-      draggable: true,
-      ondragstart: function(event) {
-        controller.isDragging = true;
-        // var ghost = createDiv();
-        // document.body.appendChild(ghost);
-        // controller.ghostImages.push(ghost);
-        // event.dataTransfer.setDragImage(ghost, 0, 0);
+    var isDraggingClass = controller.isDragging ? '.is-dragging' : '';
+    var classList = (className || '') + isDraggingClass;
+    var isDraggingOverClass = controller.isHovering ? '.is-dragging-over' : '';
 
-        var ghost = findAncestorWithClass(this, 'widget').cloneNode(true);
-        ghost.classList.add('is-drag-image')
-        document.body.appendChild(ghost);
-        pushOffScreen(ghost);
-        controller.ghostImages.push(ghost);
-        event.dataTransfer.setDragImage(ghost, 0, 0)
-        event.dataTransfer.setData('text/plain', 'This text may be dragged');
-      },
-      ondragend: function() {
-        controller.ghostImages.forEach(ghost => ghost.remove());
-        controller.ghostImages = [];
-        controller.isDragging = false;
-      }
-    }, content),
-    m('.widget-slot')
-  ]);
-};
+    return m('.widget-row' + isDraggingOverClass, {
+      key: controller.widget.uid(),
+      config: doAll(
+        configDropzone,
+        on({
+          'dragster:enter': () => controller.isHovering = true,
+          'dragster:leave': () => controller.isHovering = false
+        })
+      ),
+    }, m('.widget' + classList, [
+      m('.widget-title', {
+        draggable: true,
+        ondragstart: function(event) {
+          controller.isDragging = true;
+          var dragImage = findAncestorWithClass(this, 'widget').cloneNode(true);
+          dragImage.classList.add('is-drag-image')
+          document.body.appendChild(dragImage);
+          pushOffScreen(dragImage);
+          controller.dragImages.push(dragImage);
+          event.dataTransfer.setDragImage(dragImage, 0, 0)
+          event.dataTransfer.setData('text/plain', 'This text may be dragged');
+          params.ondragstart();
+        },
+        ondragend: function() {
+          controller.dragImages.forEach(dragImage => dragImage.remove());
+          controller.dragImages = [];
+          controller.isDragging = false;
+          params.ondragend();
+        }
+      }, title),
+      m('.widget-slot')
+    ]));
+  };
+}
 
 
 var Widgets = [
@@ -73,14 +91,6 @@ var lookupWidgetComponent = (function() {
 
 export { Widget1, Widget2, Widgets, lookupWidgetComponent };
 
-function createDiv() {
-  var div = document.createElement('div');
-  div.style.height = '20px';
-  div.style.width = '40px';
-  div.style.backgroundColor = 'green';
-  pushOffScreen(div);
-  return div;
-}
 
 function pushOffScreen(el) {
   el.style.position = 'absolute';
