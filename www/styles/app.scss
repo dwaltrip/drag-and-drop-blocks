@@ -19,21 +19,37 @@ $lighter-border-color: #999;
 .workspace {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   padding: 10px;
   border: 1px solid $border-color;
   border-left: none;
   width: 100%;
+  overflow: auto;
 }
 
 .widget {
-  display: inline-block;
-  margin: 5px;
+  display: flex;
+  flex-shrink: 0;
   padding: 5px;
+  margin: 5px;
   border: 1px solid $lighter-border-color;
+  border-radius: 5px;
 
   .widget-content {
     display: flex;
     align-items: center;
+
+    &:hover {
+      cursor: move;
+    }
+  }
+
+  &.is-dragging {
+    opacity: 0.01;
+  }
+
+  &.is-drag-image {
+    border: 3px solid #ffd639;
   }
 }
 
@@ -46,5 +62,5 @@ $lighter-border-color: #999;
   align-self: stretch;
 }
 
-.widget-1 { background-color: #eac889; }
+.widget-1 { background-color: #7bd887; }
 .widget-2 { background-color: #89c2ea; }
