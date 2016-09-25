@@ -6,8 +6,6 @@ import { default as db, setupDB } from 'db';
 // setup DB
 setupDB(db);
 
-console.log('-------------------');
-console.log('-- starting app! --');
-console.log('-------------------');
+console.log('==== starting app! ====');
 // start app
 m.route(document.getElementById('app'), '/', routes);

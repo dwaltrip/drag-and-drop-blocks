@@ -1,6 +1,7 @@
 import m from 'mithril';
 
 import Widget from 'models/widget';
+import db from 'db';
 
 import Toolbox from 'components/toolbox';
 import { lookupWidgetComponent } from 'components/widgets';
@@ -8,6 +9,7 @@ import { lookupWidgetComponent } from 'components/widgets';
 export default {
   controller: function() {
     this.workspace = Workspace.create();
+    this.widgetToMove = m.prop();
   },
 
   view: function(controller) {
@@ -15,17 +17,23 @@ export default {
     window.workspace = workspace;
 
     var widgets = workspace.widgets.concat();
+    // TODO: don't sort everytime view changes
     widgets.sort((a,b) => a.pos() - b.pos());
 
-    var isDraggingClass = controller.isDragging ? '.is-dragging' : '';
+    var isDraggingClass = controller.widgetToMove() ? '.is-dragging' : '';
 
     return m('.home-container', [
       m(Toolbox),
       m('.workspace' + isDraggingClass, widgets.map(widget => {
         return m(lookupWidgetComponent(widget.name()), {
+          key: widget.uid(),
           widget,
-          ondragstart: function() { controller.isDragging = true; },
-          ondragend: function() { controller.isDragging = false; }
+          widgetToMove: controller.widgetToMove,
+          saveWidgets: () => {
+            // TODO: this is not ideal
+            widgets.forEach(widget => widget.save({ isBatch: true }));
+            db.commit();
+          }
         });
       }))
     ]);

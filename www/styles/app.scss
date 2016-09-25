@@ -33,6 +33,19 @@ $lighter-border-color: #999;
 
 .widget-row {
   display: flex;
+  position: relative;
+
+  &::after {
+    content: '';
+    display: block;
+    position: absolute;
+    left: 20px;
+    bottom: -5px;
+    height: 10px;
+    width: 2px;
+    background: #555;
+  }
+
 }
 
 .widget {

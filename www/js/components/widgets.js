@@ -31,18 +31,32 @@ function widgetViewBuilder(title, className) {
   var className = className || '';
   return function(controller, params) {
     var params = params || {};
+    var widget = controller.widget;
+    var widgetToMoveProp = params.widgetToMove;
 
     var isDraggingClass = controller.isDragging ? '.is-dragging' : '';
     var classList = (className || '') + isDraggingClass;
     var isDraggingOverClass = controller.isHovering ? '.is-dragging-over' : '';
 
     return m('.widget-row' + isDraggingOverClass, {
-      key: controller.widget.uid(),
+      key: widget.uid(),
       config: doAll(
         configDropzone,
         on({
-          'dragster:enter': () => controller.isHovering = true,
-          'dragster:leave': () => controller.isHovering = false
+          'dragster:enter': () => {
+            if (widgetToMoveProp().uid() !== widget.uid()) {
+              // TODO: this only works in the naive case where the user drags directly up and down the list
+              // It doesn't work properly when the user drags out of the list and re-enters at a different point
+              // :(
+              var tmp = widgetToMoveProp().pos();
+              widgetToMoveProp().pos(widget.pos());
+              widget.pos(tmp);
+            }
+            controller.isHovering = true;
+          },
+          'dragster:leave': () => {
+            controller.isHovering = false;
+          }
         })
       ),
     }, m('.widget' + classList, [
@@ -57,15 +71,16 @@ function widgetViewBuilder(title, className) {
           controller.dragImages.push(dragImage);
           event.dataTransfer.setDragImage(dragImage, 0, 0)
           event.dataTransfer.setData('text/plain', 'This text may be dragged');
-          params.ondragstart();
+          widgetToMoveProp(controller.widget);
         },
         ondragend: function() {
           controller.dragImages.forEach(dragImage => dragImage.remove());
           controller.dragImages = [];
           controller.isDragging = false;
-          params.ondragend();
+          widgetToMoveProp(null);
+          params.saveWidgets();
         }
-      }, title),
+      }, `${title} -- ${widget.uid()} -- ${widget.pos()}`),
       m('.widget-slot')
     ]));
   };

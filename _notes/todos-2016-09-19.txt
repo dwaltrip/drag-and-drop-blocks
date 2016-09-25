@@ -8,7 +8,7 @@
   [X] - Hardcode some example widgets in the workspace, and ensure it renders properly
 
 * Part 2
-  [/] - Implement drag and drop interactions for rearranging the order of widgets on the top level list
+  [X] - Implement drag and drop interactions for rearranging the order of widgets on the top level list
   [ ] - Showcase possible widgets in toolbox
   [ ] - Implement adding a new widget from the toolbox (by dragging and dropping)
 
