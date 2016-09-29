@@ -1,7 +1,10 @@
-import Widget from 'models/widget';
+import { TABLES, COMMON_FIELDS } from 'models/db-schema';
 
 // 'localStorageDB' is a global from a vendor lib
-var DB = localStorageDB('mainDB');
+var db = localStorageDB('mainDB');
+setupDB(db);
+
+export default db;
 
 function setupDB(db) {
   var dbNeedsToBeSetup = db.isNew() || db.tableCount() === 0;
@@ -9,8 +12,8 @@ function setupDB(db) {
   // for debugging
   window.db = db;
 
-  var modelFields = Widget.getFields();
-  var tableName = Widget.tableName;
+  var modelFields = COMMON_FIELDS.concat(TABLES.Widget.fields);
+  var tableName = TABLES.Widget.name;
 
   if (dbNeedsToBeSetup) {
     console.log(`-- creating table ${tableName} with columns "${modelFields.join(', ')}"`);
@@ -40,5 +43,3 @@ function setupDB(db) {
     }
   }
 }
-
-export { DB as default, setupDB };

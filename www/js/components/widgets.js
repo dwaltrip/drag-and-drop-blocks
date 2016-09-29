@@ -2,6 +2,7 @@ import m from 'mithril';
 
 import on from 'lib/m-utils/on';
 import doAll from 'lib/m-utils/do-all';
+import { WidgetNames } from 'models/widget'
 
 function configDropzone(el, isInitialized, context) {
   if (isInitialized) { return; }
@@ -20,10 +21,20 @@ var Widget2 = {
   view: widgetViewBuilder('Widget 2', '.widget-2')
 };
 
+var Widget3 = {
+  controller: widgetControllerBuilder(),
+  view: widgetViewBuilder('Widget 3', '.widget-3')
+};
+
 function widgetControllerBuilder() {
   return function(params) {
+    var params = params || {};
     this.dragImages = [];
-    this.widget = params.widget;
+    this.widget = params.widget || {
+      uid: m.prop(null),
+      pos: m.prop(null),
+      name: m.prop('blank')
+    };
   };
 }
 
@@ -86,25 +97,18 @@ function widgetViewBuilder(title, className) {
   };
 }
 
+var WidgetComponents = {
+  [WidgetNames.WIDGET1]: Widget1,
+  [WidgetNames.WIDGET2]: Widget2,
+  [WidgetNames.WIDGET3]: Widget3
+};
 
-var Widgets = [
-  { name: 'widget1', component: Widget1 },
-  { name: 'widget2', component: Widget2 }
-];
-
-var lookupWidgetComponent = (function() {
-  var widgetHash = Widgets.reduce((memo, widget) => {
-    memo[widget.name] = widget;
-    return memo;
-  }, {});
-
-  return function(name) {
-    return widgetHash[name].component;
-  };
-})();
+function lookupWidgetComponent(name) {
+  return WidgetComponents[name];
+}
 
 
-export { Widget1, Widget2, Widgets, lookupWidgetComponent };
+export { lookupWidgetComponent, WidgetComponents };
 
 
 function pushOffScreen(el) {

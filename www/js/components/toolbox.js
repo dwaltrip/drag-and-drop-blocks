@@ -1,13 +1,15 @@
 import m from 'mithril';
 
+import { WidgetComponents } from 'components/widgets';
+
 export default {
   controller: function() {
   },
   view: function() {
-    return m('.toolbox', [
-      m('.toolbox-section', 'toolbox section 1'),
-      m('.toolbox-section', 'toolbox section 2'),
-      m('.toolbox-section', 'toolbox section 3')
-    ]);
+    var components = Object.keys(WidgetComponents).map(key => WidgetComponents[key]);
+
+    return m('.toolbox', components.map(c => {
+      return m('.toolbox-section', m(c));
+    }));
   }
 };

@@ -1,10 +1,7 @@
 import m from 'mithril';
+import db from 'db';
 import routes from 'routes';
 
-import { default as db, setupDB } from 'db';
-
-// setup DB
-setupDB(db);
 
 console.log('==== starting app! ====');
 // start app

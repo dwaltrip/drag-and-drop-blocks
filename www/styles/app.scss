@@ -18,24 +18,19 @@ $lighter-border-color: #999;
 
 .workspace {
   display: flex;
+  flex-grow: 1;
   flex-direction: column;
   //align-items: flex-start;
   padding: 10px;
   border: 1px solid $border-color;
   border-left: none;
-  width: 100%;
   overflow: auto;
 
   &.is-dragging .widget-row.is-dragging-over {
     border: 1px solid black;
   }
-}
-
-.widget-row {
-  display: flex;
-  position: relative;
-
-  &::after {
+  
+  .widget-row::after {
     content: '';
     display: block;
     position: absolute;
@@ -45,7 +40,11 @@ $lighter-border-color: #999;
     width: 2px;
     background: #555;
   }
+}
 
+.widget-row {
+  display: flex;
+  position: relative;
 }
 
 .widget {
@@ -85,3 +84,4 @@ $lighter-border-color: #999;
 
 .widget-1 { background-color: #7bd887; }
 .widget-2 { background-color: #89c2ea; }
+.widget-3 { background-color: #e8a28d; }

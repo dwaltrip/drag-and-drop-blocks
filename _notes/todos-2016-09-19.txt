@@ -12,6 +12,9 @@
   [ ] - Showcase possible widgets in toolbox
   [ ] - Implement adding a new widget from the toolbox (by dragging and dropping)
 
+* Part 2b
+  [ ] - Update drag and drop for re-ordering so that widgets following the selected widget are included as well
+
 * Part 3
   [ ] - Implement data model for representing all widgets in workspace (with all nesting and such)
   [ ] - Implement rendering of nested widgets

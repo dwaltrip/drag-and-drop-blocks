@@ -55,11 +55,16 @@ var Workspace = {
 };
 
 // for development purposes only
+var WidgetNames = Object.keys(Widget.NAMES).map(key => Widget.NAMES[key]);
 function createWidgets(n) {
   for(var i=0; i<n; i++) {
-    var name = Math.random() < 0.5 ? 'widget1' : 'widget2';
-    var widget = Widget.create({ name, data: 'lol', pos: 0 });
+    var name = WidgetNames[getRandomInt(0, WidgetNames.length + 1)];
+    var widget = Widget.create({ name, data: 'lol', pos: (Widget.maxPos + 1) });
     widget.save();
   }
 }
 window.createWidgets = createWidgets;
+function getRandomInt(min, max) {
+  min = Math.ceil(min); max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min)) + min;
+}
