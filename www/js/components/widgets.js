@@ -3,6 +3,7 @@ import m from 'mithril';
 import on from 'lib/m-utils/on';
 import doAll from 'lib/m-utils/do-all';
 import { WidgetNames } from 'models/widget'
+import DragWithImage from 'lib/drag-with-image';
 
 function configDropzone(el, isInitialized, context) {
   if (isInitialized) { return; }
@@ -29,7 +30,9 @@ var Widget3 = {
 function widgetControllerBuilder() {
   return function(params) {
     var params = params || {};
-    this.dragImages = [];
+    this.dragWithImage = DragWithImage.create({
+      findElementForDragImage: element => findAncestorWithClass(element, 'widget')
+    });
     this.widget = params.widget || {
       uid: m.prop(null),
       pos: m.prop(null),
@@ -75,19 +78,15 @@ function widgetViewBuilder(title, className) {
         draggable: true,
         ondragstart: function(event) {
           controller.isDragging = true;
-          var dragImage = findAncestorWithClass(this, 'widget').cloneNode(true);
+          var dragImage = controller.dragWithImage.prepImage(this);
+          event.dataTransfer.setDragImage(dragImage, 0, 0);
           dragImage.classList.add('is-drag-image')
-          document.body.appendChild(dragImage);
-          pushOffScreen(dragImage);
-          controller.dragImages.push(dragImage);
-          event.dataTransfer.setDragImage(dragImage, 0, 0)
           event.dataTransfer.setData('text/plain', 'This text may be dragged');
           widgetToMoveProp(controller.widget);
         },
         ondragend: function() {
-          controller.dragImages.forEach(dragImage => dragImage.remove());
-          controller.dragImages = [];
           controller.isDragging = false;
+          controller.dragWithImage.cleanup();
           widgetToMoveProp(null);
           params.saveWidgets();
         }
@@ -107,17 +106,10 @@ function lookupWidgetComponent(name) {
   return WidgetComponents[name];
 }
 
-
-export { lookupWidgetComponent, WidgetComponents };
-
-
-function pushOffScreen(el) {
-  el.style.position = 'absolute';
-  el.style.top = `-${el.offsetHeight}px`;
-  el.style.left = `-${el.offsetWidth}px`;
-}
-
 function findAncestorWithClass(el, cls) {
   while ((el = el.parentElement) && !el.classList.contains(cls));
   return el;
 }
+
+
+export { lookupWidgetComponent, WidgetComponents };
