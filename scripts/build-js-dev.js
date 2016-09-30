@@ -11,6 +11,7 @@ var OUTPATH = path.join(ROOT_DIR, '/www/dist/bundle.js');
 function initBrowserify(options) {
   var options = options || {};
   options.paths = [path.join(ROOT_DIR, 'www/js')];
+  options.debug = true;
   return browserify(path.join(ROOT_DIR, 'www/js/init.js'), options);
 }
 

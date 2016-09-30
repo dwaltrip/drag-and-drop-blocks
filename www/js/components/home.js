@@ -58,7 +58,7 @@ var Workspace = {
 var WidgetNames = Object.keys(Widget.NAMES).map(key => Widget.NAMES[key]);
 function createWidgets(n) {
   for(var i=0; i<n; i++) {
-    var name = WidgetNames[getRandomInt(0, WidgetNames.length + 1)];
+    var name = WidgetNames[getRandomInt(0, WidgetNames.length)];
     var widget = Widget.create({ name, data: 'lol', pos: (Widget.maxPos + 1) });
     widget.save();
   }

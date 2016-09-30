@@ -64,13 +64,17 @@ $lighter-border-color: #999;
     }
   }
 
-  &.is-dragging {
-    opacity: 0.2;
-  }
-
   &.is-drag-image {
     border: 3px solid #ffd639;
   }
+
+  &.is-new-drag-image {
+    border: 5px solid black;
+  }
+}
+
+.workspace .widget.is-dragging {
+  opacity: 0.2;
 }
 
 .widget-slot {
