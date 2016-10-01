@@ -3,13 +3,24 @@ import m from 'mithril';
 import Widget from 'models/widget';
 import db from 'db';
 
-import Toolbox from 'components/toolbox';
+import Toolbox from 'components/toolbox'
 import { lookupWidgetComponent } from 'components/widgets';
+
+import MetalDragon from 'metal-dragon';
 
 export default {
   controller: function() {
     this.workspace = Workspace.create();
     this.widgetToMove = m.prop();
+
+    window.metalDragon = this.metalDragon = MetalDragon.create();
+    this.createDragItem = (opts) => {
+      return this.metalDragon.createDragItem({
+        findElementForDragImage: element => findAncestorWithClass(element, 'widget'),
+        onDragend: opts.onDragend,
+        group: 'widgets'
+      });
+    };
   },
 
   view: function(controller) {
@@ -23,7 +34,7 @@ export default {
     var isDraggingClass = controller.widgetToMove() ? '.is-dragging' : '';
 
     return m('.home-container', [
-      m(Toolbox),
+      m(Toolbox, { createDragItem: controller.createDragItem }),
       m('.workspace' + isDraggingClass, widgets.map(widget => {
         return m(lookupWidgetComponent(widget.name()), {
           key: widget.uid(),
@@ -33,7 +44,8 @@ export default {
             // TODO: this is not ideal
             widgets.forEach(widget => widget.save({ isBatch: true }));
             db.commit();
-          }
+          },
+          createDragItem: controller.createDragItem
         });
       }))
     ]);
@@ -53,6 +65,11 @@ var Workspace = {
     widgets: null
   }
 };
+
+function findAncestorWithClass(el, cls) {
+  while ((el = el.parentElement) && !el.classList.contains(cls));
+  return el;
+}
 
 // for development purposes only
 var WidgetNames = Object.keys(Widget.NAMES).map(key => Widget.NAMES[key]);

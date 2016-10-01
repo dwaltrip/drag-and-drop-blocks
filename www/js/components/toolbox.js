@@ -3,13 +3,16 @@ import m from 'mithril';
 import { WidgetComponents } from 'components/widgets';
 
 export default {
-  controller: function() {
+  controller: function(params) {
+    this.createDragItem = params.createDragItem;
   },
-  view: function() {
+  view: function(controller) {
     var components = Object.keys(WidgetComponents).map(key => WidgetComponents[key]);
 
-    return m('.toolbox', components.map(c => {
-      return m('.toolbox-section', m(c));
+    return m('.toolbox', components.map(Component => {
+      return m('.toolbox-section', m(Component, {
+        createDragItem: controller.createDragItem
+      }));
     }));
   }
 };

@@ -64,12 +64,8 @@ $lighter-border-color: #999;
     }
   }
 
-  &.is-drag-image {
+  &.drag-image {
     border: 3px solid #ffd639;
-  }
-
-  &.is-new-drag-image {
-    border: 5px solid black;
   }
 }
 

@@ -5,7 +5,8 @@
   Source:
   https://gist.github.com/barneycarroll/f58f1be86ad75f09775c206db2bccbdd
 */
-import m from 'mithril';
+
+import handleWithRedraw from 'lib/m-utils/handle-with-redraw';
 
 export default (nameOrHash, handler) => {
   return function config(el, isInitialized, context) {
@@ -15,7 +16,7 @@ export default (nameOrHash, handler) => {
 
     for (let name in eventsHash) {
       if (eventsHash.hasOwnProperty(name)) {
-        el.addEventListener(name, handlerWithRedraw(eventsHash[name]));
+        el.addEventListener(name, handleWithRedraw(eventsHash[name]));
       }
     }
 
@@ -28,15 +29,3 @@ export default (nameOrHash, handler) => {
     }
   };
 };
-
-// this was largely copied from mithril's internal 'autoredraw' function
-function handlerWithRedraw(callback) {
-  return function(event) {
-    m.startComputation();
-    try {
-      return callback.call(this, event);
-    } finally {
-      m.endComputation();
-    }
-  };
-}
