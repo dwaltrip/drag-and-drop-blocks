@@ -2,9 +2,14 @@
 
 [X] - Show UI indication of dropzones (black borders around widget rows if fine for now)
 [X] - Get the naive re-ordering of workspace widgts working again
-[ ] - Add movement constraints to workspace widgets inside of workspace while dragging
+[X] - Add movement constraints to workspace widgets inside of workspace while dragging
 
-[ ] - Test on Firefox
-[ ] - Test on Safari
+[X] - Test on Firefox
+[X] - Test on Safari
 
 [ ] - Get back to working on previous todo list
+
+
+## Less important:
+
+[ ] -  fix selection bug on Safari

@@ -82,8 +82,9 @@ function widgetViewBuilder(title, className) {
     }, m('.widget' + classList, [
       m('.widget-title', {
         onmousedown: function(event) {
-          controller.isDragging = true;
           controller.dragItem.startDrag(event);
+          // TODO: The rest of this callback should only occur once we start dragging (the mouse has moved a bit)
+          controller.isDragging = true;
           // TODO: toolbox widgets don't have this!!!
           // we need to create a widget to be added when we drag from the toolbox
           widgetToMoveProp(controller.widget);

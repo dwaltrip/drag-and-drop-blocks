@@ -1,6 +1,4 @@
 
-import handleWithRedraw from 'lib/m-utils/handle-with-redraw';
-
 const DEFAULT_GROUP = '_DEFAULT_GROUP_';
 
 export default {
@@ -18,14 +16,24 @@ export default {
     instance._dragImages = [];
     instance.dragImageClass = opts.dragImageClass || 'drag-image';
 
+    if (opts.eventHandlerDecorator) {
+      var decorator = opts.eventHandlerDecorator;
+      instance._onMousemove = decorator('mousemove', instance._onMousemove);
+      instance._onMouseup = decorator('mouseup', instance._onMouseup);
+    }
+
     instance._eventListeners = null;
     instance.userEvents = {
       onDragend: opts.onDragend
     };
 
-    // TODO: implement the option to specify a container
-    // in which the element cannot be dragged outside of
     instance.isMovementConstrained = false;
+    if (opts.constraints) {
+      instance.isMovementConstrained = true;
+      if (opts.constraints.getBoundingElement) {
+        instance.getBoundingElement = opts.constraints.getBoundingElement;
+      }
+    }
 
     return instance;
   },
@@ -41,21 +49,27 @@ export default {
         y: event.clientY - rect.top
       };
 
-      // with mousemove events, only allow mithril to redraw every 100 milliseconds
-      // we still redraw the dragImage on every mousemove (it is not controlled by mithril)
-      // TODO: how can we make it so 'MetalDragon' doesn't need to know aobut mithril here
-      var onMousemove = handleWithRedraw(function mousemoveHandler(event) {
-        self._onMousemove(event)
-      }, { throttleDelayAmount: 100 });
-      var onMouseup = handleWithRedraw(event => this._onMouseup(event), { verbose: true })
+      // TODO: this works, however if I move the mouse up and down outside of the bounding container,
+      // the widget dragging doesn't get re-ordered (even though the y-pos of my mouse is going thrugh
+      // different widget rows)
+      if (this.isMovementConstrained) {
+        var container = this.getBoundingElement(element);
+        this._boundingRect = container.getBoundingClientRect();
+      }
 
+      // NOTE: this gives us a reference to the listeners, so we can call 'removeEventListener' later
+      // This also lets us ensure that _onMousemove and _onMouseup are called with the correct 'this' context
       this._eventListeners = [
-        { target: document, name: 'mousemove', fn: onMousemove },
-        { target: document, name: 'mouseup', fn: onMouseup }
+        { target: document, name: 'mousemove', fn: (event) => this._onMousemove(event) },
+        { target: document, name: 'mouseup', fn: (event) => this._onMouseup(event) }
       ];
       this._eventListeners.forEach(listener => {
         listener.target.addEventListener(listener.name, listener.fn, false);
-      })
+      });
+    },
+
+    getBoundingElement: function() {
+      throw new Error(`-- drag-item -- getBoundingElement must be specified in 'contraints' hash.`);
     },
 
     _setupDragImage: function(element) {
@@ -80,18 +94,17 @@ export default {
         document.documentElement.style.cursor = 'move';
       }
 
-      var left = event.clientX - this.initialCursorOffset.x;
-      var top = event.clientY - this.initialCursorOffset.y;
+      var newPosition = {
+        left: event.clientX - this.initialCursorOffset.x,
+        top: event.clientY - this.initialCursorOffset.y
+      };
 
       if (this.isMovementConstrained) {
-        throw new Error('NOT YET IMPLEMENTED');
-        var boundingRect = this._getBoundingRect();
-        var left = clamp(left, boundingRect.left, boundingRect.right);
-        var top = clamp(top, boundingRect.top, boundingRect.bottom);
+        newPosition = this._constrainDragElement(newPosition);
       }
 
-      this.dragImage.style.left = `${left}px`;
-      this.dragImage.style.top = `${top}px`;
+      this.dragImage.style.left = `${newPosition.left}px`;
+      this.dragImage.style.top = `${newPosition.top}px`;
     },
 
     _onMouseup: function(event) {
@@ -112,6 +125,10 @@ export default {
       });
       this._eventListeners = null;
 
+      if (this.isMovementConstrained) {
+        this._boundingRect = null;
+      }
+
       document.documentElement.style.cursor = '';
     },
 
@@ -120,7 +137,16 @@ export default {
       return event.target;
     },
 
-    // TODO: implement this
-    _getBoundingRect: function() {}
+    _constrainDragElement: function(elementPosition) {
+      var rect = this._boundingRect;
+      return {
+        left: clamp(elementPosition.left, rect.left, rect.right),
+        top: clamp(elementPosition.top, rect.top, rect.bottom)
+      }
+    }
   }
 };
+
+function clamp(numberToClamp, min, max) {
+  return Math.max(min, Math.min(numberToClamp, max));
+}

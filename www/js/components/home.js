@@ -3,6 +3,7 @@ import m from 'mithril';
 import Widget from 'models/widget';
 import db from 'db';
 
+import handleWithRedraw from 'lib/m-utils/handle-with-redraw';
 import Toolbox from 'components/toolbox'
 import { lookupWidgetComponent } from 'components/widgets';
 
@@ -14,13 +15,29 @@ export default {
     this.widgetToMove = m.prop();
 
     window.metalDragon = this.metalDragon = MetalDragon.create();
-    this.createDragItem = (opts) => {
+    this.createDraggableToolboxWidget = (opts) => {
       return this.metalDragon.createDragItem({
         findElementForDragImage: element => findAncestorWithClass(element, 'widget'),
         onDragend: opts.onDragend,
-        group: 'widgets'
+        group: 'widgets',
+        eventHandlerDecorator: mouseEventHandlerDecorator
       });
     };
+
+    this.createDraggableWorkspaceWidget = (opts) => {
+      return this.metalDragon.createDragItem({
+        findElementForDragImage: element => findAncestorWithClass(element, 'widget'),
+        onDragend: opts.onDragend,
+        group: 'widgets',
+        eventHandlerDecorator: mouseEventHandlerDecorator,
+        constraints: {
+          getBoundingElement: function(element) {
+            return findAncestorWithClass(element, 'workspace')
+          }
+        }
+      });
+    };
+
   },
 
   view: function(controller) {
@@ -35,7 +52,7 @@ export default {
     var isDraggingClass = isDraggingAWidget ? '.is-dragging' : '';
 
     return m('.home-container', [
-      m(Toolbox, { createDragItem: controller.createDragItem }),
+      m(Toolbox, { createDragItem: controller.createDraggableToolboxWidget }),
       m('.workspace' + isDraggingClass, widgets.map(widget => {
         return m(lookupWidgetComponent(widget.name()), {
           key: widget.uid(),
@@ -48,7 +65,7 @@ export default {
             widgets.forEach(widget => widget.save({ isBatch: true }));
             db.commit();
           },
-          createDragItem: controller.createDragItem
+          createDragItem: controller.createDraggableWorkspaceWidget
         });
       }))
     ]);
@@ -87,4 +104,15 @@ window.createWidgets = createWidgets;
 function getRandomInt(min, max) {
   min = Math.ceil(min); max = Math.floor(max);
   return Math.floor(Math.random() * (max - min)) + min;
+}
+
+// TODO: this still isn't ideal, as it requires that the user of metal-dragon
+// knows how the library implementation makes use 'mousemove' and 'mouseup'.
+// Perhaps just renaming to 'dragmove' and 'dragend' would work?
+function mouseEventHandlerDecorator(eventName, handler) {
+  if (eventName == 'mouseup') {
+    return handleWithRedraw(handler);
+  } else if (eventName === 'mousemove') {
+    return handleWithRedraw(handler, { throttleDelayAmount: 100 });
+  }
 }
