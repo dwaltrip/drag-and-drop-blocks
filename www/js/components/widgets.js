@@ -18,7 +18,6 @@ function buildWidgetComponent(title, className) {
     controller: function(params) {
       var self = this;
       var params = params || {};
-      this.isDragging = false;
       this.widgetToMoveProp = params.widgetToMove;
       this.isInWorkspace = params.isInWorkspace;
 
@@ -30,7 +29,6 @@ function buildWidgetComponent(title, className) {
 
       this.dragItem = params.createDragItem({
         onDragend: ()=> {
-          this.isDragging = false;
           this.widgetToMoveProp(null);
           params.saveWidgets();
         }
@@ -58,10 +56,12 @@ function buildWidgetComponent(title, className) {
       var widget = controller.widget;
       var widgetToMoveProp = params.widgetToMove;
 
-      var isDraggingClass = controller.isDragging ? '.is-dragging' : '';
+      var isDragging = controller.dragItem.isDragging();
+
+      var isDraggingClass = isDragging ? '.is-dragging' : '';
       var classList = (className || '') + isDraggingClass;
       var isDraggingOverClass = controller.isHovering ? '.is-dragging-over' : '';
-      var isReadyForDrop = params.isDraggingAWidget && controller.isInWorkspace && !controller.isDragging;
+      var isReadyForDrop = params.isDraggingAWidget && controller.isInWorkspace && !isDragging;
 
       return m('.widget-row' + isDraggingOverClass, {
         key: widget.uid(),
@@ -72,7 +72,6 @@ function buildWidgetComponent(title, className) {
           onmousedown: function(event) {
             controller.dragItem.startDrag(event);
             // TODO: The rest of this callback should only occur once we start dragging (the mouse has moved a bit)
-            controller.isDragging = true;
             // TODO: toolbox widgets don't have this!!!
             // we need to create a widget to be added when we drag from the toolbox
             widgetToMoveProp(controller.widget);

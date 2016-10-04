@@ -2,9 +2,10 @@
 const DEFAULT_GROUP = '_DEFAULT_GROUP_';
 
 export default {
-  create: function(opts) {
+  create: function(manager, opts) {
     var instance = Object.create(this.instance);
 
+    instance.manager = manager;
     instance.group = opts.group || DEFAULT_GROUP;
 
     var findNodeForImg = opts.findElementForDragImage;
@@ -39,6 +40,12 @@ export default {
   },
 
   instance: {
+    manager: null,
+
+    isDragging: function() {
+      return this === this.manager.activeDragItem;
+    },
+
     startDrag: function(event) {
       var self = this;
       var element = this._getTargetElement(event);
@@ -89,8 +96,8 @@ export default {
     },
 
     _onMousemove: function(event) {
-      if (!this.isDragging) {
-        this.isDragging = true;
+      if (!this.manager.isDragging()) {
+        this.manager._startDrag(this);
         document.documentElement.style.cursor = 'move';
       }
 
@@ -108,15 +115,14 @@ export default {
     },
 
     _onMouseup: function(event) {
-      this.isDragging = false;
-      this._cleanup();
+      this._postDragCleanup();
 
       if (this.userEvents.onDragend) {
         this.userEvents.onDragend();
       }
     },
 
-    _cleanup: function() {
+    _postDragCleanup: function() {
       this._dragImages.forEach(node => node.remove());
       this._dragImages = [];
 
@@ -128,6 +134,8 @@ export default {
       if (this.isMovementConstrained) {
         this._boundingRect = null;
       }
+
+      this.manager._postDragCleanup();
 
       document.documentElement.style.cursor = '';
     },

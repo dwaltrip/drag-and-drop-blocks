@@ -13,12 +13,16 @@ export default {
   },
 
   instance: {
-    dragItems: null,
-    dropzones: null,
+    dragItemGroups: null,
+    dropzoneGroups: null,
 
-    createDragItem: function() {
-      var newDragItem = DragItem.create.apply(DragItem, arguments);
-      newDragItem.manager = this;
+    activeDragItem: null,
+    _isDragging: false,
+
+    isDragging: function() { return this._isDragging; },
+
+    createDragItem: function(opts) {
+      var newDragItem = DragItem.create(this, opts);
 
       var group = newDragItem.group;
       if (!(group in this.dragItemGroups)) {
@@ -40,6 +44,16 @@ export default {
       this.dropzoneGroups[group].push(newDragItem);
 
       return newDropzone;
-    }
+    },
+
+    _startDrag: function(dragItem) {
+      this._isDragging = true;
+      this.activeDragItem = dragItem;
+    },
+
+    _postDragCleanup: function() {
+      this.activeDragItem = null;
+      this._isDragging = false;
+    },
   }
 };

@@ -14,12 +14,12 @@ export default {
     this.workspace = Workspace.create();
     this.widgetToMove = m.prop();
 
-    window.metalDragon = this.metalDragon = MetalDragon.create();
+    this.metalDragon = MetalDragon.create();
     this.createDraggableToolboxWidget = (opts) => {
       return this.metalDragon.createDragItem({
         findElementForDragImage: element => findAncestorWithClass(element, 'widget'),
         onDragend: opts.onDragend,
-        group: 'widgets',
+        group: 'toolbox-widgets',
         eventHandlerDecorator: mouseEventHandlerDecorator
       });
     };
@@ -28,7 +28,7 @@ export default {
       return this.metalDragon.createDragItem({
         findElementForDragImage: element => findAncestorWithClass(element, 'widget'),
         onDragend: opts.onDragend,
-        group: 'widgets',
+        group: 'workspace-widgets',
         eventHandlerDecorator: mouseEventHandlerDecorator,
         constraints: {
           getBoundingElement: function(element) {
@@ -48,17 +48,16 @@ export default {
     // TODO: don't sort everytime view changes
     widgets.sort((a,b) => a.pos() - b.pos());
 
-    var isDraggingAWidget = !!controller.widgetToMove();
-    var isDraggingClass = isDraggingAWidget ? '.is-dragging' : '';
+    var isDragging = controller.metalDragon.isDragging();
 
     return m('.home-container', [
       m(Toolbox, { createDragItem: controller.createDraggableToolboxWidget }),
-      m('.workspace' + isDraggingClass, widgets.map(widget => {
+      m('.workspace' + (isDragging ? '.is-dragging' : ''), widgets.map(widget => {
         return m(lookupWidgetComponent(widget.name()), {
           key: widget.uid(),
           widget,
           widgetToMove: controller.widgetToMove,
-          isDraggingAWidget,
+          isDraggingAWidget: isDragging,
           isInWorkspace: true,
           saveWidgets: () => {
             // TODO: this is not ideal
