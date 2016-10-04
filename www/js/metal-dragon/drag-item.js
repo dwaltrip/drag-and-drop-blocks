@@ -46,7 +46,7 @@ export default {
       // TODO: how can we make it so 'MetalDragon' doesn't need to know aobut mithril here
       var onMousemove = handleWithRedraw(function mousemoveHandler(event) {
         self._onMousemove(event)
-      }, { redrawThrottle: 300 });
+      }, { throttleDelayAmount: 100 });
       var onMouseup = handleWithRedraw(event => this._onMouseup(event), { verbose: true })
 
       this._eventListeners = [
@@ -66,6 +66,7 @@ export default {
       var rect = element.getBoundingClientRect();
       dragImage.style.left = `-${rect.left}px`;
       dragImage.style.top = `-${rect.top}px`;
+      dragImage.style.pointerEvents = 'none';
 
       dragImage.classList.add(this.dragImageClass);
       document.body.appendChild(dragImage);
@@ -75,7 +76,7 @@ export default {
 
     _onMousemove: function(event) {
       if (!this.isDragging) {
-        this.isDragging = true; 
+        this.isDragging = true;
         document.documentElement.style.cursor = 'move';
       }
 
@@ -94,7 +95,7 @@ export default {
     },
 
     _onMouseup: function(event) {
-      this.isDragging = false; 
+      this.isDragging = false;
       this._cleanup();
 
       if (this.userEvents.onDragend) {

@@ -5,56 +5,30 @@
 
 import m from 'mithril';
 
-var counts = { start: 0, end: 0 };
-
 // this is based off of mithril's internal 'autoredraw' function
 export default function handleWithRedraw(callback, opts) {
-  var isWaitingForRedraw = false;
-  var isThrottled = !!opts.redrawThrottle;
   var opts = opts || {};
+  var isThrottled = !!opts.throttleDelayAmount;
+  var isWaitingForRedraw = false;
 
   var redraw = function() {
     m.endComputation();
-    counts.end = counts.end + 1;
-    console.log('--- redraw -- isWaitingForRedraw:', isWaitingForRedraw, '-- fn.name:', callback.name,
-      `-- start: ${counts.start}, end: ${counts.end}`);
-    if (opts.verbose) {
-      console.log(`--- redraw --`);
-    }
     isWaitingForRedraw = false;
   };
-
-  if (isThrottled) {
-    var throttledRedraw = throttle(redraw, opts.redrawThrottle);
-  }
+  redraw = isThrottled ? throttle(redraw, opts.throttleDelayAmount) : redraw;
 
   return function(event) {
-    console.log('--- isWaitingForRedraw:', isWaitingForRedraw, '-- fn.name', callback.name,
-      `-- counts -- start: ${counts.start}, end: ${counts.end}`);
     if (!isWaitingForRedraw) {
-      if (opts.verbose) { console.log('--- startComputation'); }
-      counts.start = counts.start + 1;
       m.startComputation();
       isWaitingForRedraw = true;
     }
     try {
       return callback.call(this, event);
     } finally {
-      if (isThrottled) {
-        throttledRedraw();
-      } else {
-        redraw();
-      }
+      redraw();
     }
   };
 }
-
-// FIX ME 
-// FIX ME 
-// FIX ME 
-// FIX ME 
-// FIX ME 
-// TODO: throttle isnt working?
 
 function throttle(fn, delay, scope) {
   var delay = delay || 250;
@@ -68,14 +42,20 @@ function throttle(fn, delay, scope) {
     var context = scope || this;
 
     if (isFirstCall || isThrottleDelayFinished) {
-      if (timerId) { clearTimeout(timerId); }
+      if (timerId) {
+        clearTimeout(timerId);
+        timerId = null;
+      }
       lastCalledAt = now;
       fn.apply(context, arguments);
     } else {
-      timerId = setTimeout(function() {
-        lastCalledAt = now;
-        fn.apply(context, arguments);
-      }, delay);
+      if (!timerId) {
+        timerId = setTimeout(function() {
+          lastCalledAt = (new Date()).getTime();
+          timerId = null;
+          fn.apply(context, arguments);
+        }, delay - (now - lastCalledAt));
+      }
     }
   };
 }

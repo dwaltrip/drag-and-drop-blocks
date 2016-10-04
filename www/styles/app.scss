@@ -25,11 +25,15 @@ $lighter-border-color: #999;
   border: 1px solid $border-color;
   border-left: none;
   overflow: auto;
+  user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
 
-  &.is-dragging .widget-row.is-dragging-over {
-    border: 1px solid black;
-  }
-  
+  // &.is-dragging .widget-row.is-dragging-over {
+  //   border: 1px solid black;
+  // }
+
   .widget-row::after {
     content: '';
     display: block;

@@ -31,7 +31,8 @@ export default {
     // TODO: don't sort everytime view changes
     widgets.sort((a,b) => a.pos() - b.pos());
 
-    var isDraggingClass = controller.widgetToMove() ? '.is-dragging' : '';
+    var isDraggingAWidget = !!controller.widgetToMove();
+    var isDraggingClass = isDraggingAWidget ? '.is-dragging' : '';
 
     return m('.home-container', [
       m(Toolbox, { createDragItem: controller.createDragItem }),
@@ -40,6 +41,8 @@ export default {
           key: widget.uid(),
           widget,
           widgetToMove: controller.widgetToMove,
+          isDraggingAWidget,
+          isInWorkspace: true,
           saveWidgets: () => {
             // TODO: this is not ideal
             widgets.forEach(widget => widget.save({ isBatch: true }));
