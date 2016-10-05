@@ -19,7 +19,7 @@ function buildWidgetComponent(title, className) {
       var self = this;
       var params = params || {};
       this.widgetToMoveProp = params.widgetToMove;
-      this.isInWorkspace = params.isInWorkspace;
+      var isInWorkspace = this.isInWorkspace = params.isInWorkspace;
 
       var widget = this.widget = params.widget || {
         uid: m.prop(null),
@@ -34,39 +34,42 @@ function buildWidgetComponent(title, className) {
         }
       });
 
-      this.onMouseEnterDuringDrag = ()=> {
-        if (this.widgetToMoveProp().uid() !== widget.uid()) {
-          // TODO: this only works in the naive case where the user drags directly up and down the list
-          // It doesn't work properly when the user drags out of the list and re-enters at a different point
-          // :(
-          var tmp = this.widgetToMoveProp().pos();
-          this.widgetToMoveProp().pos(widget.pos());
-          widget.pos(tmp);
-        }
-        self.isHovering = true;
-      };
-      // FIXME: if we end the current drag before leaving this widget row,
-      // then the mouseleave event will not fire and this widget gets stuck in 'isHovering' mode
-      this.onMouseLeaveDuringDrag = ()=> {
-        self.isHovering = false;
+      if (isInWorkspace) {
+        this.dropzone = params.createDropzone({
+          onMouseenter: ()=> {
+            if (this.widgetToMoveProp().uid() !== widget.uid()) {
+              // TODO: this only works in the naive case where the user drags directly up and down the list
+              // It doesn't work properly when the user drags out of the list and re-enters at a different point :(
+              var tmp = this.widgetToMoveProp().pos();
+              this.widgetToMoveProp().pos(widget.pos());
+              widget.pos(tmp);
+            }
+          }
+        });
       }
+
+      this.configDropzone = (element, isInitialized, context) => {
+        if (isInitialized || !isInWorkspace) { return; }
+        this.dropzone.attachToElement(element);
+      };
     },
+
     view: function(controller, params) {
       var params = params || {};
       var widget = controller.widget;
+      var isInWorkspace = controller.isInWorkspace;
       var widgetToMoveProp = params.widgetToMove;
 
       var isDragging = controller.dragItem.isDragging();
 
       var isDraggingClass = isDragging ? '.is-dragging' : '';
       var classList = (className || '') + isDraggingClass;
-      var isDraggingOverClass = controller.isHovering ? '.is-dragging-over' : '';
-      var isReadyForDrop = params.isDraggingAWidget && controller.isInWorkspace && !isDragging;
+      var isDraggingOverClass = isInWorkspace && controller.dropzone.isDraggingOver() ?
+        '.is-dragging-over' : '';
 
       return m('.widget-row' + isDraggingOverClass, {
         key: widget.uid(),
-        onmouseenter: isReadyForDrop ? controller.onMouseEnterDuringDrag : null,
-        onmouseleave: isReadyForDrop ? controller.onMouseLeaveDuringDrag : null
+        config: controller.configDropzone
       }, m('.widget' + classList, [
         m('.widget-title', {
           onmousedown: function(event) {

@@ -4,23 +4,27 @@ import Widget from 'models/widget';
 import db from 'db';
 
 import handleWithRedraw from 'lib/m-utils/handle-with-redraw';
-import Toolbox from 'components/toolbox'
+import Toolbox from 'components/toolbox';
 import { lookupWidgetComponent } from 'components/widgets';
 
 import MetalDragon from 'metal-dragon';
+
+var TOOLBOX_WIDGET_GROUP = 'toolbox-widgets';
+var WORKSPACE_WIDGET_GROUP = 'workspace-widgets';
 
 export default {
   controller: function() {
     this.workspace = Workspace.create();
     this.widgetToMove = m.prop();
 
-    this.metalDragon = MetalDragon.create();
+    this.metalDragon = MetalDragon.create({ eventHandlerDecorator });
     this.createDraggableToolboxWidget = (opts) => {
       return this.metalDragon.createDragItem({
+        // TODO: switch API to use 'classOfDragImageSource'
+        // classOfDragImageSource: 'widget',
         findElementForDragImage: element => findAncestorWithClass(element, 'widget'),
         onDragend: opts.onDragend,
-        group: 'toolbox-widgets',
-        eventHandlerDecorator: mouseEventHandlerDecorator
+        group: TOOLBOX_WIDGET_GROUP
       });
     };
 
@@ -28,8 +32,7 @@ export default {
       return this.metalDragon.createDragItem({
         findElementForDragImage: element => findAncestorWithClass(element, 'widget'),
         onDragend: opts.onDragend,
-        group: 'workspace-widgets',
-        eventHandlerDecorator: mouseEventHandlerDecorator,
+        group: WORKSPACE_WIDGET_GROUP,
         constraints: {
           getBoundingElement: function(element) {
             return findAncestorWithClass(element, 'workspace')
@@ -38,6 +41,12 @@ export default {
       });
     };
 
+    this.createDropzoneWidget = (opts) => {
+      return this.metalDragon.createDropzone({
+        accepts: [TOOLBOX_WIDGET_GROUP, WORKSPACE_WIDGET_GROUP],
+        onMouseenter: opts.onMouseenter
+      })
+    }
   },
 
   view: function(controller) {
@@ -48,22 +57,22 @@ export default {
     // TODO: don't sort everytime view changes
     widgets.sort((a,b) => a.pos() - b.pos());
 
-    var isDragging = controller.metalDragon.isDragging();
+    var isDraggingClass = (controller.metalDragon.isDragging() ? '.is-dragging' : '')
 
     return m('.home-container', [
       m(Toolbox, { createDragItem: controller.createDraggableToolboxWidget }),
-      m('.workspace' + (isDragging ? '.is-dragging' : ''), widgets.map(widget => {
+      m('.workspace' + isDraggingClass, widgets.map(widget => {
         return m(lookupWidgetComponent(widget.name()), {
           key: widget.uid(),
           widget,
           widgetToMove: controller.widgetToMove,
-          isDraggingAWidget: isDragging,
           isInWorkspace: true,
           saveWidgets: () => {
             // TODO: this is not ideal
             widgets.forEach(widget => widget.save({ isBatch: true }));
             db.commit();
           },
+          createDropzone: controller.createDropzoneWidget,
           createDragItem: controller.createDraggableWorkspaceWidget
         });
       }))
@@ -106,12 +115,14 @@ function getRandomInt(min, max) {
 }
 
 // TODO: this still isn't ideal, as it requires that the user of metal-dragon
-// knows how the library implementation makes use 'mousemove' and 'mouseup'.
-// Perhaps just renaming to 'dragmove' and 'dragend' would work?
-function mouseEventHandlerDecorator(eventName, handler) {
-  if (eventName == 'mouseup') {
+// knows how the library implementation makes use of the low level mouse events.
+// Perhaps creating higher level names like 'dragmove', 'dragover', 'dragend', etc would solve this?
+function eventHandlerDecorator(eventName, handler) {
+  if (['mouseup', 'mouseenter', 'mouseleave'].indexOf(eventName) > -1) {
     return handleWithRedraw(handler);
   } else if (eventName === 'mousemove') {
     return handleWithRedraw(handler, { throttleDelayAmount: 100 });
+  } else {
+    throw new Error('mouseEventHandlerDecorator -- invalid event:', eventName)
   }
 }

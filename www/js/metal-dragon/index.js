@@ -1,20 +1,30 @@
 
 import DragItem from './drag-item';
-//import Dropzone from './dropzone';
+import Dropzone from './dropzone';
+
+const ACCEPT_ALL = '_ACCEPT_ALL_';
 
 export default {
-  create: function() {
+  create: function(opts) {
     var instance = Object.create(this.instance);
 
     instance.dragItemGroups = {};
-    instance.dropzoneGroups = {};
+    instance.dropzonesByAcceptType = { [ACCEPT_ALL]: [] };
+
+    if (opts.eventHandlerDecorator) {
+      instance.eventHandlerDecorator = opts.eventHandlerDecorator;
+    }
 
     return instance;
   },
 
+  DEFAULT_GROUP: '_DEFAULT_GROUP_',
+  ACCEPT_ALL: ACCEPT_ALL,
+
   instance: {
     dragItemGroups: null,
-    dropzoneGroups: null,
+    dropzonesByAcceptType: null,
+    eventHandlerDecorator: null,
 
     activeDragItem: null,
     _isDragging: false,
@@ -33,15 +43,19 @@ export default {
       return newDragItem;
     },
 
-    createDropzone: function() {
-      var newDropzone = Dropzone.create.apply(Dropzone, arguments);
-      newDropzone.manager = this;
+    createDropzone: function(opts) {
+      var newDropzone = Dropzone.create(this, opts);
 
-      var group = newDropzone.group;
-      if (!(group in this.dropzoneGroups)) {
-        this.dropzoneGroups[group] = [];
+      if (newDropzone.doesAcceptAll()) {
+        this.dropzonesByAcceptType[ACCEPT_ALL].push(newDropzone);
+      } else {
+        newDropzone.accepts.forEach(group => {
+          if (!(group in this.dropzonesByAcceptType)) {
+            this.dropzonesByAcceptType[group] = [];
+          }
+          this.dropzonesByAcceptType[group].push(newDropzone);
+        });
       }
-      this.dropzoneGroups[group].push(newDragItem);
 
       return newDropzone;
     },
@@ -49,11 +63,26 @@ export default {
     _startDrag: function(dragItem) {
       this._isDragging = true;
       this.activeDragItem = dragItem;
+
+      this._activeDropzones = [];
+      // prep dropzones
+      var dropzones = this.dropzonesByAcceptType[ACCEPT_ALL].concat(
+        this.dropzonesByAcceptType[dragItem.group] || []
+      );
+      dropzones.forEach(dropzone => this._prepDropzone(dropzone));
+    },
+
+    _prepDropzone: function(dropzone) {
+      dropzone._prep();
+      this._activeDropzones.push(dropzone);
     },
 
     _postDragCleanup: function() {
       this.activeDragItem = null;
       this._isDragging = false;
+
+      this._activeDropzones.forEach(dropzone => dropzone._cleanup());
+      this._activeDropzones = [];
     },
   }
 };

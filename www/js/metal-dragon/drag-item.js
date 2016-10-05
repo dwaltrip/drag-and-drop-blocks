@@ -1,12 +1,10 @@
 
-const DEFAULT_GROUP = '_DEFAULT_GROUP_';
-
 export default {
   create: function(manager, opts) {
     var instance = Object.create(this.instance);
 
     instance.manager = manager;
-    instance.group = opts.group || DEFAULT_GROUP;
+    instance.group = opts.group || manager.DEFAULT_GROUP;
 
     var findNodeForImg = opts.findElementForDragImage;
     if (!findNodeForImg || !(typeof findNodeForImg === 'function')) {
@@ -17,8 +15,8 @@ export default {
     instance._dragImages = [];
     instance.dragImageClass = opts.dragImageClass || 'drag-image';
 
-    if (opts.eventHandlerDecorator) {
-      var decorator = opts.eventHandlerDecorator;
+    if (manager.eventHandlerDecorator) {
+      var decorator = manager.eventHandlerDecorator;
       instance._onMousemove = decorator('mousemove', instance._onMousemove);
       instance._onMouseup = decorator('mouseup', instance._onMouseup);
     }
@@ -114,6 +112,7 @@ export default {
       this.dragImage.style.top = `${newPosition.top}px`;
     },
 
+    // TODO: should this be here, in DragItem? or should it be in the manager class?
     _onMouseup: function(event) {
       this._postDragCleanup();
 
