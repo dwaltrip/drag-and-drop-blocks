@@ -9,19 +9,20 @@
 
 * Part 2
   [X] - Implement drag and drop interactions for rearranging the order of widgets on the top level list
-  [ ] - Showcase possible widgets in toolbox
-  [ ] - Implement adding a new widget from the toolbox (by dragging and dropping)
-
-* Part 2b
-  [ ] - Update drag and drop for re-ordering so that widgets following the selected widget are included as well
+  [ ] - Implement trashing a widget by dragging into the trashcan or toolbox
 
 * Part 3
+  [ ] - Showcase possible widgets in toolbox
+  [ ] - Implement adding a new widget from the toolbox (by dragging and dropping)
+  [ ] - Update drag and drop for re-ordering so that widgets following the selected widget are included as well
+
+* Part 4
   [ ] - Implement data model for representing all widgets in workspace (with all nesting and such)
   [ ] - Implement rendering of nested widgets
   [ ] - Make sure rearranging position of top level widgets in the list works as expected with nested widgets
   [ ] - Implement drag and drop interactions for nesting and unnesting widgets
 
-* Part 4
+* Part 5
   [ ] - Make the widgets have a more complex DOM/layout, and ensure that everything still works
   [ ] - Make it spiffy as fuck
   [ ] - Consider the singifiers for each interaction and do some design/css work for each one
