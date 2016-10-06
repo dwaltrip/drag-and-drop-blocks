@@ -29,6 +29,8 @@ var Widget = extend(Base, {
   })
 });
 
-Widget.maxPos = Math.max.apply(Math, [0].concat(Widget.query().map(widget => widget.pos)));
+var widgetPosList = Widget.query().map(widget => widget.pos());
+// concat with 0 in case the list is empty
+Widget.maxPos = Math.max.apply(Math, widgetPosList.concat([0]));
 
 export { Widget as default, WidgetNames };

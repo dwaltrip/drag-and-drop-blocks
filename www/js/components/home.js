@@ -6,11 +6,19 @@ import db from 'db';
 import handleWithRedraw from 'lib/m-utils/handle-with-redraw';
 import Toolbox from 'components/toolbox';
 import { lookupWidgetComponent } from 'components/widgets';
+import unicode from 'lib/unicode-characters';
 
+import { configForDropzone } from 'lib/m-utils/metal-dragon-helpers';
 import MetalDragon from 'metal-dragon';
 
 var TOOLBOX_WIDGET_GROUP = 'toolbox-widgets';
 var WORKSPACE_WIDGET_GROUP = 'workspace-widgets';
+
+/* ---------------------------------------------------------------
+  TODO:
+    The next commit should allow for deleting a widget by dragging
+    from the worksapce to the trashcan or to the toolbox.
+--------------------------------------------------------------- */
 
 export default {
   controller: function() {
@@ -41,7 +49,24 @@ export default {
         accepts: [TOOLBOX_WIDGET_GROUP, WORKSPACE_WIDGET_GROUP],
         onDragEnter: opts.onDragEnter
       })
-    }
+    };
+
+    this.trashcanDropzone = this.metalDragon.createDropzone({
+      accepts: WORKSPACE_WIDGET_GROUP,
+      group: 'trashcan',
+      onDrop: (dragItem) => {
+        var widget = dragItem.getDragData('widget');
+        this.workspace.removeWidget(widget);
+        // TODO: this line ('reverting' each widget) is not the best. It fixes the bug where
+        // when we delete a widget, the widgets we passed over to do so show the swapped pos,
+        // even though we never save the swapped pos to the db
+        // Another fix would be to save the two widgets that swap positions after each position swap,
+        // and then do nothing extra here.
+        this.workspace.widgets.forEach(widget => widget.revert());
+      }
+    });
+
+    this.configTrashcanDropzone = configForDropzone(this.trashcanDropzone);
   },
 
   view: function(controller) {
@@ -52,24 +77,39 @@ export default {
     // TODO: don't sort everytime view changes
     widgets.sort((a,b) => a.pos() - b.pos());
 
-    var isDraggingClass = (controller.metalDragon.isDragging() ? '.is-dragging' : '')
+    var isDragging = controller.metalDragon.isDragging();
+    var isTrashcanActive = controller.trashcanDropzone.isUnderDragItem();
 
-    return m('.widget-editor', [
+    var widgetEditorClassList = [
+      (isDragging ? '.is-dragging' : ''),
+      (isTrashcanActive ? '.is-dragging-over-trashcan' : '')
+    ].join('')
+
+    return m('.widget-editor' + widgetEditorClassList, [
       m(Toolbox, { createDragItem: controller.createDraggableToolboxWidget }),
-      m('.workspace' + isDraggingClass, widgets.map(widget => {
-        return m(lookupWidgetComponent(widget.name()), {
-          key: widget.uid(),
-          widget,
-          widgetToMove: controller.widgetToMove,
-          saveWidgets: () => {
-            // TODO: this is not ideal
-            widgets.forEach(widget => widget.save({ isBatch: true }));
-            db.commit();
-          },
-          createDropzone: controller.createDropzoneWidget,
-          createDragItem: controller.createDraggableWorkspaceWidget
-        });
-      }))
+      m('.workspace', [
+        m('.widget-list', widgets.map(widget => {
+          return m(lookupWidgetComponent(widget.name()), {
+            key: widget.uid(),
+            widget,
+            widgetToMove: controller.widgetToMove,
+            saveWidgets: ()=> {
+              // TODO: this is not ideal
+              workspace.widgets.forEach(widget => widget.save({ isBatch: true }));
+              db.commit();
+            },
+            createDropzone: controller.createDropzoneWidget,
+            createDragItem: controller.createDraggableWorkspaceWidget
+          });
+        })),
+        m('.trashcan', {
+          config: controller.configTrashcanDropzone
+        }, [
+          m('.arrow', m.trust(unicode.rightArrowWhite)),
+          m('.text', m.trust(`${unicode.wasteBasket} Remove`)),
+          m('.arrow', m.trust(unicode.leftArrowWhite))
+        ])
+      ])
     ]);
   }
 };
@@ -84,7 +124,12 @@ var Workspace = {
   },
 
   instance: {
-    widgets: null
+    widgets: null,
+
+    removeWidget: function(widgetToDelete) {
+      this.widgets = this.widgets.filter(w => w !== widgetToDelete);
+      widgetToDelete.delete();
+    }
   }
 };
 

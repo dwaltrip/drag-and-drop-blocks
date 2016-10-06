@@ -3,7 +3,7 @@ import DragItem from './drag-item';
 import Dropzone from './dropzone';
 
 import { ACCEPT_ALL, DEFAULT_GROUP, DRAG_HANDLE_CSS_CLASS } from './constants';
-import { addStylesheetRules } from './utils';
+import { addStylesheetRules, removeFromArray } from './utils';
 
 export default {
   create: function(opts) {
@@ -16,9 +16,7 @@ export default {
       instance.eventHandlerDecorator = opts.eventHandlerDecorator;
     }
 
-    addStylesheetRules([
-      `.${DRAG_HANDLE_CSS_CLASS}:hover { cursor: move; }`
-    ]);
+    addStylesheetRules([`.${DRAG_HANDLE_CSS_CLASS}:hover { cursor: move; }`]);
 
     return instance;
   },
@@ -72,6 +70,42 @@ export default {
       return newDropzone;
     },
 
+    removeDragItem: function(dragItem) {
+      removeFromArray(this.dragItemGroups[dragItem.group], dragItem);
+    },
+
+    removeDropzone: function(dropzone) {
+      if (dropzone.doesAcceptAll()) {
+        removeFromArray(this.dropzonesByAcceptType[ACCEPT_ALL], dropzone);
+      } else {
+        dropzone.accepts.forEach(group => {
+          removeFromArray(this.dropzonesByAcceptType[group], dropzone);
+        });
+      }
+    },
+
+    onDrop: function() {
+      this.activeDropzones.forEach(dropzone => {
+        if (dropzone.userEvents.onDrop) {
+          dropzone.userEvents.onDrop(this.activeDragItem);
+        }
+      });
+    },
+
+    onDragEnter: function(dropzone) {
+      this.activeDropzones.push(dropzone);
+      var dragOverClass = getDragOverClass(dropzone);
+      this.activeDragItem.dragImage.classList.add(dragOverClass);
+    },
+
+    onDragLeave: function(dropzone) {
+      var wasRemoved = removeFromArray(this.activeDropzones, dropzone);
+      if (!wasRemoved) {
+        throw new Error('onmouseleave -- wtf, dropzone not in activeDropzones list');
+      }
+      this.activeDragItem.dragImage.classList.remove(getDragOverClass(dropzone));
+    },
+
     _startDrag: function(dragItem) {
       this._isDragging = true;
       this.activeDragItem = dragItem;
@@ -98,3 +132,7 @@ export default {
     },
   }
 };
+
+function getDragOverClass(dropzone) {
+  return `drag-over--${dropzone.group}`;
+}

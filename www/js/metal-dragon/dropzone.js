@@ -53,8 +53,12 @@ export default {
       this._element = element;
     },
 
-    disable:  function() { this._isEnabled = false; },
+    disable:  function() {this._isEnabled = false; },
     enable:   function() { this._isEnabled = true; },
+
+    destroy: function() {
+      this.manager.removeDropzone(this);
+    },
 
     _prepForDrag: function(dragItem) {
       this._isReadyForDrop = true;
@@ -73,7 +77,7 @@ export default {
     _onMouseenter: function(event) {
       if (this._isEnabled) {
         this._isDraggingOver = true;
-        this.manager.activeDropzones.push(this);
+        this.manager.onDragEnter(this);
 
         if (this.userEvents.onDragEnter) {
           this.userEvents.onDragEnter(event, this.manager.activeDragItem);
@@ -84,13 +88,7 @@ export default {
     _onMouseleave: function(event) {
       if (this._isEnabled) {
         this._isDraggingOver = false;
-
-        var index = this.manager.activeDropzones.indexOf(this);
-        if (index > -1) {
-          this.manager.activeDropzones.splice(index, 1);
-        } else {
-          throw new Error('onmouseleave -- wtf, dropzone not in manger.activeDropzones list');
-        }
+        this.manager.onDragLeave(this);
       }
     },
 

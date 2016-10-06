@@ -46,11 +46,35 @@ export default {
   instance: {
     manager: null,
     dragImage: null,
+    _dragData: null,
     _element: null,
     _boundEventListeners: null,
 
     isDragging: function() {
       return this === this.manager.activeDragItem;
+    },
+
+    setDragData: function(key, value) {
+      this._dragData[key] = value;
+    },
+
+    getDragData: function(key, value) {
+      if (!(key in this._dragData)) {
+        var errorMsg = [
+          `DragItem ${this.id} has no dragData for key: ${key}.`,
+          `Existing keys: ${Object.keys(this._dragData)}`
+        ].join(' ');
+        throw new Error(errorMsg);
+      }
+      return this._dragData[key];
+    },
+
+    isAboveGroup: function(group) {
+      return !!this.manager.activeDropzones.find(dz => dz.group === group);
+    },
+
+    destroy: function() {
+      this.manager.removeDragItem(this);
     },
 
     _prepForDrag: function(event) {
@@ -62,6 +86,8 @@ export default {
         x: event.clientX - rect.left,
         y: event.clientY - rect.top
       };
+
+      this._dragData = {};
 
       // TODO: this works, however if I move the mouse up and down outside of the bounding container,
       // the widget dragging doesn't get re-ordered (even though the y-pos of my mouse is going thrugh
@@ -157,16 +183,20 @@ export default {
 
     // TODO: should this be here, in DragItem? or should it be in the manager class?
     _onMouseup: function(event) {
-      this._postDragCleanup();
-
-      if (this.userEvents.onDrop) {
-        this.userEvents.onDrop(event);
+      if (this.manager.isDragging()) {
+        this.manager.onDrop();
+        if (this.userEvents.onDrop) {
+          this.userEvents.onDrop(event);
+        }
       }
+
+      this._postDragCleanup();
     },
 
     _postDragCleanup: function() {
       this.dragImage.remove();
       this.dragImage = null;
+      this._dragData = {};
 
       document.removeEventListener('mousemove', this._boundEventListeners.onmousemove)
       document.removeEventListener('mouseup', this._boundEventListeners.onmouseup)

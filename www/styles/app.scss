@@ -60,10 +60,10 @@ $lighter-border-color: #999;
     border-top: 1px solid #555;
     justify-content: space-around;
     align-items: center;
+  }
 
-    &.is-active {
-      background-color: #f3a2a2;
-    }
+  &.is-dragging-over-trashcan .trashcan {
+    background-color: #f3a2a2;
   }
 }
 
@@ -89,10 +89,21 @@ $lighter-border-color: #999;
   &.drag-image {
     border: 3px solid #ffd639;
   }
+
+  &.drag-image.drag-over--trashcan {
+    border: 1px solid $lighter-border-color;
+    opacity: 0.8;
+  }
 }
 
-.workspace .widget.is-dragging {
-  opacity: 0.2;
+.widget-editor {
+  .widget.is-dragging {
+    opacity: 0.2;
+  }
+
+  &.is-dragging-over-trashcan .widget.is-dragging {
+    opacity: 0;
+  }
 }
 
 .widget-slot {

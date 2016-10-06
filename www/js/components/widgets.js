@@ -25,17 +25,21 @@ function buildWidgetComponent(title, className) {
 
       this.dragItem = params.createDragItem({
         onDragStart: ()=> {
+          this.dragItem.setDragData('widget', widget);
           this.widgetToMoveProp(widget);
           this.dropzone.disable();
         },
         onDrop: ()=> {
-          this.widgetToMoveProp(null);
-          params.saveWidgets();
-          this.dropzone.enable();
+          if (!this.dragItem.isAboveGroup('trashcan')) {
+            this.widgetToMoveProp(null);
+            params.saveWidgets();
+            this.dropzone.enable();
+          }
         }
       });
 
       this.dropzone = params.createDropzone({
+        group: 'widget-row',
         onDragEnter: (event, dragItem)=> {
           if (this.widgetToMoveProp().uid() !== widget.uid()) {
             // TODO: this only works in the naive case where the user drags directly up and down the list
@@ -49,6 +53,11 @@ function buildWidgetComponent(title, className) {
 
       this.configDragItem = configForDragItem(this.dragItem);
       this.configDropzone = configForDropzone(this.dropzone);
+
+      this.onunload = ()=> {
+        this.dragItem.destroy();
+        this.dropzone.destroy();
+      };
     },
 
     view: function(controller, params) {
