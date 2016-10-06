@@ -2,7 +2,8 @@
 import DragItem from './drag-item';
 import Dropzone from './dropzone';
 
-const ACCEPT_ALL = '_ACCEPT_ALL_';
+import { ACCEPT_ALL, DEFAULT_GROUP, DRAG_HANDLE_CSS_CLASS } from './constants';
+import { addStylesheetRules } from './utils';
 
 export default {
   create: function(opts) {
@@ -15,11 +16,12 @@ export default {
       instance.eventHandlerDecorator = opts.eventHandlerDecorator;
     }
 
+    addStylesheetRules([
+      `.${DRAG_HANDLE_CSS_CLASS}:hover { cursor: move; }`
+    ]);
+
     return instance;
   },
-
-  DEFAULT_GROUP: '_DEFAULT_GROUP_',
-  ACCEPT_ALL: ACCEPT_ALL,
 
   instance: {
     dragItemGroups: null,
@@ -27,6 +29,9 @@ export default {
     eventHandlerDecorator: null,
 
     activeDragItem: null,
+    activeDropzones: null,
+
+    _potentialDropzones: null,
     _isDragging: false,
 
     dropzoneCount: 0,
@@ -70,24 +75,26 @@ export default {
     _startDrag: function(dragItem) {
       this._isDragging = true;
       this.activeDragItem = dragItem;
+      this.activeDropzones = [];
 
-      this._activeDropzones = [];
+      this._potentialDropzones = [];
       // prep dropzones
       var dropzones = this.dropzonesByAcceptType[ACCEPT_ALL].concat(
         this.dropzonesByAcceptType[dragItem.group] || []
       );
       dropzones.forEach(dropzone => {
         dropzone._prepForDrag();
-        this._activeDropzones.push(dropzone);
+        this._potentialDropzones.push(dropzone);
       });
     },
 
     _postDragCleanup: function() {
       this.activeDragItem = null;
-      this._isDragging = false;
+      this.activeDropzones = [];
 
-      this._activeDropzones.forEach(dropzone => dropzone._postDragCleanup());
-      this._activeDropzones = [];
+      this._isDragging = false;
+      this._potentialDropzones.forEach(dropzone => dropzone._postDragCleanup());
+      this._potentialDropzones = [];
     },
   }
 };

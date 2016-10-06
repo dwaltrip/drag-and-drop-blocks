@@ -26,3 +26,20 @@
   [ ] - Make the widgets have a more complex DOM/layout, and ensure that everything still works
   [ ] - Make it spiffy as fuck
   [ ] - Consider the singifiers for each interaction and do some design/css work for each one
+
+
+---------
+# NOTES #
+---------
+
+For creating new widgets by dragging from the toolbox:
+
+Once we 'dragenter' the workspace, the widget becomes a real widget.
+
+While still dragging within the toolbox, it's a toolbox widget.
+
+Any widget that is dropped in the toolbox is removed.
+
+Any widget that is dropped in the workspace is a workspace widget.
+
+If we drag from the toolbox straight to the trashcan, it should be removed.

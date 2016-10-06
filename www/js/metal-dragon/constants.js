@@ -1,0 +1,12 @@
+
+const ACCEPT_ALL = '_ACCEPT_ALL_';
+
+const DEFAULT_GROUP = '_DEFAULT_GROUP_';
+
+const DRAG_HANDLE_CSS_CLASS = 'md--drag-handle';
+
+export {
+  ACCEPT_ALL,
+  DEFAULT_GROUP,
+  DRAG_HANDLE_CSS_CLASS
+};

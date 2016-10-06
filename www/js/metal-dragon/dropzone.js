@@ -1,13 +1,16 @@
 
+import { DEFAULT_GROUP } from './constants';
+
 export default {
   create: function(manager, opts) {
     var instance = Object.create(this.instance);
 
     instance.manager = manager;
-    instance.group = opts.group || manager.DEFAULT_GROUP;
+    instance.group = opts.group || DEFAULT_GROUP;
 
     instance.userEvents = {
-      onDragEnter: opts.onDragEnter
+      onDragEnter: opts.onDragEnter,
+      onDrop: opts.onDrop
     };
 
     if (manager.eventHandlerDecorator) {
@@ -39,15 +42,19 @@ export default {
     _isReadyForDrop: false,
     _element: null, 
     _boundEventListeners: null,
+    _isEnabled: true,
 
     hasElement:       function() { return !!this._element; },
-    isDraggingOver:   function() { return this._isDraggingOver; },
+    isUnderDragItem:  function() { return this._isDraggingOver; },
     isReadyForDrop:   function() { return this._isReadyForDrop; },
     doesAcceptAll:    function() { return !this._restrictDropTypes; },
 
     attachToElement: function(element) {
       this._element = element;
     },
+
+    disable:  function() { this._isEnabled = false; },
+    enable:   function() { this._isEnabled = true; },
 
     _prepForDrag: function(dragItem) {
       this._isReadyForDrop = true;
@@ -64,15 +71,27 @@ export default {
     },
 
     _onMouseenter: function(event) {
-      this._isDraggingOver = true;
+      if (this._isEnabled) {
+        this._isDraggingOver = true;
+        this.manager.activeDropzones.push(this);
 
-      if (this.userEvents.onDragEnter) {
-        this.userEvents.onDragEnter(event, this.manager.activeDragItem);
+        if (this.userEvents.onDragEnter) {
+          this.userEvents.onDragEnter(event, this.manager.activeDragItem);
+        }
       }
     },
 
     _onMouseleave: function(event) {
-      this._isDraggingOver = false;
+      if (this._isEnabled) {
+        this._isDraggingOver = false;
+
+        var index = this.manager.activeDropzones.indexOf(this);
+        if (index > -1) {
+          this.manager.activeDropzones.splice(index, 1);
+        } else {
+          throw new Error('onmouseleave -- wtf, dropzone not in manger.activeDropzones list');
+        }
+      }
     },
 
     // TODO: not sure if this makes sense or is useful
@@ -86,6 +105,7 @@ export default {
 
       this._isReadyForDrop = false;
       this._isDraggingOver = false;
+      //this._isEnabled = true;
     }
   }
 };

@@ -24,15 +24,18 @@ function buildWidgetComponent(title, className) {
       };
 
       this.dragItem = params.createDragItem({
-        onDragStart: ()=> this.widgetToMoveProp(widget),
+        onDragStart: ()=> {
+          this.widgetToMoveProp(widget);
+          this.dropzone.disable();
+        },
         onDrop: ()=> {
           this.widgetToMoveProp(null);
           params.saveWidgets();
+          this.dropzone.enable();
         }
       });
 
       this.dropzone = params.createDropzone({
-        // TODO: this should not fire for a dropzone that is also the current dragItem
         onDragEnter: (event, dragItem)=> {
           if (this.widgetToMoveProp().uid() !== widget.uid()) {
             // TODO: this only works in the naive case where the user drags directly up and down the list
@@ -55,15 +58,13 @@ function buildWidgetComponent(title, className) {
       var isDragging = controller.dragItem.isDragging();
       var isDraggingClass = isDragging ? '.is-dragging' : '';
       var classList = (className || '') + isDraggingClass;
-      var isDraggingOverClass = controller.dropzone.isDraggingOver() ? '.is-dragging-over' : '';
+      var isDraggingOverClass = controller.dropzone.isUnderDragItem() ? '.is-dragging-over' : '';
 
       return m('.widget-row' + isDraggingOverClass, {
         key: widget.uid(),
         config: controller.configDropzone
-      }, m('.widget' + classList, [
-        m('.widget-title', {
-          config: controller.configDragItem
-        }, `${title} -- ${widget.uid()} -- ${widget.pos()}`),
+      }, m('.widget' + classList, { config: controller.configDragItem }, [
+        m('.widget-title', `${title} -- ${widget.uid()} -- ${widget.pos()}`),
         m('.widget-slot')
       ]));
     }

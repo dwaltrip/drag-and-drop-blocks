@@ -2,10 +2,11 @@
 $border-color: #555;
 $lighter-border-color: #999;
 
-.home-container {
-  padding: 10px;
+.widget-editor {
+  $widget-editor-margin: 10px;
+  margin: $widget-editor-margin;
   display: flex;
-  height: 100vh;
+  height: calc(100vh - #{2 * $widget-editor-margin});
 }
 
 .toolbox {
@@ -20,8 +21,6 @@ $lighter-border-color: #999;
   display: flex;
   flex-grow: 1;
   flex-direction: column;
-  //align-items: flex-start;
-  padding: 10px;
   border: 1px solid $border-color;
   border-left: none;
   overflow: auto;
@@ -47,6 +46,27 @@ $lighter-border-color: #999;
   }
 }
 
+.widget-editor {
+  .widget-list {
+    flex-grow: 1;
+    padding: 10px;
+  }
+
+  .trashcan {
+    display: flex;
+    flex-grow: 0;
+    padding: 10px;
+    background-color: #ddd;
+    border-top: 1px solid #555;
+    justify-content: space-around;
+    align-items: center;
+
+    &.is-active {
+      background-color: #f3a2a2;
+    }
+  }
+}
+
 .widget-row {
   display: flex;
   position: relative;
@@ -64,10 +84,6 @@ $lighter-border-color: #999;
     display: flex;
     align-items: center;
     white-space: pre;
-
-    &:hover {
-      cursor: move;
-    }
   }
 
   &.drag-image {

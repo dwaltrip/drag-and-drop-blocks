@@ -20,24 +20,19 @@ export default {
     this.metalDragon = MetalDragon.create({ eventHandlerDecorator });
     this.createDraggableToolboxWidget = (opts) => {
       return this.metalDragon.createDragItem({
-        // TODO: switch API to something like: `{ classOfDragImageSource: 'widget' }`
-        findElementForDragImage: element => findAncestorWithClass(element, 'widget'),
-        onDrop: opts.onDrop,
-        group: TOOLBOX_WIDGET_GROUP
+        group: TOOLBOX_WIDGET_GROUP,
+        dragHandle: 'widget-title',
+        onDrop: opts.onDrop
       });
     };
 
     this.createDraggableWorkspaceWidget = (opts) => {
       return this.metalDragon.createDragItem({
-        findElementForDragImage: element => findAncestorWithClass(element, 'widget'),
-        onDragStart: opts.onDragStart,
-        onDrop: opts.onDrop,
         group: WORKSPACE_WIDGET_GROUP,
-        constraints: {
-          getBoundingElement: function(element) {
-            return findAncestorWithClass(element, 'workspace')
-          }
-        }
+        dragHandle: 'widget-title',
+        boundingContainer: 'widget-editor',
+        onDragStart: opts.onDragStart,
+        onDrop: opts.onDrop
       });
     };
 
@@ -59,7 +54,7 @@ export default {
 
     var isDraggingClass = (controller.metalDragon.isDragging() ? '.is-dragging' : '')
 
-    return m('.home-container', [
+    return m('.widget-editor', [
       m(Toolbox, { createDragItem: controller.createDraggableToolboxWidget }),
       m('.workspace' + isDraggingClass, widgets.map(widget => {
         return m(lookupWidgetComponent(widget.name()), {
@@ -92,11 +87,6 @@ var Workspace = {
     widgets: null
   }
 };
-
-function findAncestorWithClass(el, cls) {
-  while ((el = el.parentElement) && !el.classList.contains(cls));
-  return el;
-}
 
 // for development purposes only
 var WidgetNames = Object.keys(Widget.NAMES).map(key => Widget.NAMES[key]);

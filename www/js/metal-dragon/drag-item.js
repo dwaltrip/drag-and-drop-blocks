@@ -1,18 +1,15 @@
 
+import { DEFAULT_GROUP, DRAG_HANDLE_CSS_CLASS } from './constants';
+
 export default {
   create: function(manager, opts) {
     var instance = Object.create(this.instance);
 
     instance.manager = manager;
-    instance.group = opts.group || manager.DEFAULT_GROUP;
+    instance.group = opts.group || DEFAULT_GROUP;
 
-    var findNodeForImg = opts.findElementForDragImage;
-    if (!findNodeForImg || !(typeof findNodeForImg === 'function')) {
-      throw new Error('[MetalDragon.DragItem] The value for options key "findElementForDragImage" must be a function');
-    }
-    instance.findNodeForImage = findNodeForImg;
-    instance.dragImage = null;
-    instance._dragImages = [];
+    instance._findElementForDragImage = opts.findElementForDragImage;
+    instance._dragHandleClass = opts.dragHandle;
     instance.dragImageClass = opts.dragImageClass || 'drag-image';
 
     if (manager.eventHandlerDecorator) {
@@ -33,10 +30,13 @@ export default {
     };
 
     instance.isMovementConstrained = false;
-    if (opts.constraints) {
+    if (opts.constraints || opts.boundingContainer) {
       instance.isMovementConstrained = true;
-      if (opts.constraints.getBoundingElement) {
+      if (opts.constraints && opts.constraints.getBoundingElement) {
         instance.getBoundingElement = opts.constraints.getBoundingElement;
+      } else {
+        var className = opts.boundingContainer;
+        instance.getBoundingElement = (element) => findAncestorWithClass(element, className);
       }
     }
 
@@ -45,6 +45,7 @@ export default {
 
   instance: {
     manager: null,
+    dragImage: null,
     _element: null,
     _boundEventListeners: null,
 
@@ -54,7 +55,7 @@ export default {
 
     _prepForDrag: function(event) {
       var self = this;
-      var element = this._getTargetElement(event);
+      var element = this._element;
       var dragImage = this._setupDragImage(element);
       var rect = element.getBoundingClientRect();
       this.initialCursorOffset = {
@@ -77,17 +78,29 @@ export default {
         };
       }
 
+      // this.manager._prepForDrag();
       document.addEventListener('mousemove', this._boundEventListeners.onmousemove, false);
       document.addEventListener('mouseup', this._boundEventListeners.onmouseup, false);
     },
 
     attachToElement: function(element) {
       this._element = element;
-      element.addEventListener('mousedown', this._boundEventListeners.onmousedown)
+      if (this._dragHandleClass) {
+        this._dragHandle = findChildWithClass(element, this._dragHandleClass);
+        if (!this._dragHandle) {
+          throw new Error(`DragItem: No drag-handle with class '${this._dragHandleClass}' was found`);
+        }
+      } else {
+        this._dragHandle = element;
+      }
+      this._dragHandle.classList.add(DRAG_HANDLE_CSS_CLASS);
+      this._dragHandle.addEventListener('mousedown', this._boundEventListeners.onmousedown)
     },
 
     unAttachFromElement: function() {
-      this._element.removeEventListener('mousedown', this._boundEventListeners.onmousedown);
+      this._dragHandle.removeEventListener('mousedown', this._boundEventListeners.onmousedown);
+      this._dragHandle.classList.remove(DRAG_HANDLE_CSS_CLASS);
+      this._dragHandle = null;
       this._element = null;
     },
 
@@ -96,7 +109,9 @@ export default {
     },
 
     _setupDragImage: function(element) {
-      var dragImage = this.dragImage = this.findNodeForImage(element).cloneNode(true);
+      var dragImageSource = this._findElementForDragImage ?
+        this._findElementForDragImage(element) : element;
+      var dragImage = this.dragImage = dragImageSource.cloneNode(true);
 
       // TODO: ensure this is always rendered in front of every other DOM element (stacking contexts, etc)
       dragImage.style.position = 'absolute';
@@ -108,7 +123,6 @@ export default {
       dragImage.classList.add(this.dragImageClass);
       document.body.appendChild(dragImage);
 
-      this._dragImages.push(dragImage);
       return dragImage;
     },
 
@@ -151,8 +165,8 @@ export default {
     },
 
     _postDragCleanup: function() {
-      this._dragImages.forEach(node => node.remove());
-      this._dragImages = [];
+      this.dragImage.remove();
+      this.dragImage = null;
 
       document.removeEventListener('mousemove', this._boundEventListeners.onmousemove)
       document.removeEventListener('mouseup', this._boundEventListeners.onmouseup)
@@ -166,11 +180,6 @@ export default {
       }
 
       document.documentElement.style.cursor = '';
-    },
-
-    // TODO: allow for this to be customized
-    _getTargetElement: function(event) {
-      return event.target;
     },
 
     _constrainDragElement: function(elementPosition) {
@@ -193,4 +202,14 @@ function getFullSize(element) {
     width: element.offsetWidth + parseFloat(style.marginLeft) + parseFloat(style.marginLeft),
     height: element.offsetHeight + parseFloat(style.marginTop) + parseFloat(style.marginBottom)
   };
+}
+
+function findChildWithClass(el, cls) {
+  var children = el.getElementsByClassName(cls);
+  return children[0];
+}
+
+function findAncestorWithClass(el, cls) {
+  while ((el = el.parentElement) && !el.classList.contains(cls));
+  return el;
 }
