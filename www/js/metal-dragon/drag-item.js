@@ -17,13 +17,19 @@ export default {
 
     if (manager.eventHandlerDecorator) {
       var decorator = manager.eventHandlerDecorator;
+      instance._onMousedown = decorator('mousedown', instance._onMousedown);
       instance._onMousemove = decorator('mousemove', instance._onMousemove);
       instance._onMouseup = decorator('mouseup', instance._onMouseup);
     }
+    instance._boundEventListeners = {
+      onmousedown: (event) => instance._onMousedown(event),
+      onmousemove: (event) => instance._onMousemove(event),
+      onmouseup:   (event) => instance._onMouseup(event),
+    };
 
-    instance._eventListeners = null;
     instance.userEvents = {
-      onDragend: opts.onDragend
+      onDragStart: opts.onDragStart,
+      onDrop: opts.onDrop
     };
 
     instance.isMovementConstrained = false;
@@ -39,15 +45,17 @@ export default {
 
   instance: {
     manager: null,
+    _element: null,
+    _boundEventListeners: null,
 
     isDragging: function() {
       return this === this.manager.activeDragItem;
     },
 
-    startDrag: function(event) {
+    _prepForDrag: function(event) {
       var self = this;
       var element = this._getTargetElement(event);
-      this._setupDragImage(element);
+      var dragImage = this._setupDragImage(element);
       var rect = element.getBoundingClientRect();
       this.initialCursorOffset = {
         x: event.clientX - rect.left,
@@ -59,18 +67,28 @@ export default {
       // different widget rows)
       if (this.isMovementConstrained) {
         var container = this.getBoundingElement(element);
-        this._boundingRect = container.getBoundingClientRect();
+        var rect = container.getBoundingClientRect();
+        var dragImageSize = getFullSize(dragImage);
+        this._boundingRect = {
+          left: rect.left,
+          top: rect.top,
+          right: rect.right - dragImageSize.width,
+          bottom: rect.bottom - dragImageSize.height
+        };
       }
 
-      // NOTE: this gives us a reference to the listeners, so we can call 'removeEventListener' later
-      // This also lets us ensure that _onMousemove and _onMouseup are called with the correct 'this' context
-      this._eventListeners = [
-        { target: document, name: 'mousemove', fn: (event) => this._onMousemove(event) },
-        { target: document, name: 'mouseup', fn: (event) => this._onMouseup(event) }
-      ];
-      this._eventListeners.forEach(listener => {
-        listener.target.addEventListener(listener.name, listener.fn, false);
-      });
+      document.addEventListener('mousemove', this._boundEventListeners.onmousemove, false);
+      document.addEventListener('mouseup', this._boundEventListeners.onmouseup, false);
+    },
+
+    attachToElement: function(element) {
+      this._element = element;
+      element.addEventListener('mousedown', this._boundEventListeners.onmousedown)
+    },
+
+    unAttachFromElement: function() {
+      this._element.removeEventListener('mousedown', this._boundEventListeners.onmousedown);
+      this._element = null;
     },
 
     getBoundingElement: function() {
@@ -91,12 +109,23 @@ export default {
       document.body.appendChild(dragImage);
 
       this._dragImages.push(dragImage);
+      return dragImage;
+    },
+
+    _onMousedown: function(event) {
+      this._prepForDrag(event);
     },
 
     _onMousemove: function(event) {
+      // NOTE: after the 'mousedown' event on a dragitem, we don't consider the drag
+      // to have officially started until the first 'mousemove' event fires
       if (!this.manager.isDragging()) {
         this.manager._startDrag(this);
         document.documentElement.style.cursor = 'move';
+
+        if (this.userEvents.onDragStart) {
+          this.userEvents.onDragStart(event);
+        }
       }
 
       var newPosition = {
@@ -116,8 +145,8 @@ export default {
     _onMouseup: function(event) {
       this._postDragCleanup();
 
-      if (this.userEvents.onDragend) {
-        this.userEvents.onDragend();
+      if (this.userEvents.onDrop) {
+        this.userEvents.onDrop(event);
       }
     },
 
@@ -125,16 +154,16 @@ export default {
       this._dragImages.forEach(node => node.remove());
       this._dragImages = [];
 
-      this._eventListeners.forEach(listener => {
-        listener.target.removeEventListener(listener.name, listener.fn);
-      });
-      this._eventListeners = null;
+      document.removeEventListener('mousemove', this._boundEventListeners.onmousemove)
+      document.removeEventListener('mouseup', this._boundEventListeners.onmouseup)
 
       if (this.isMovementConstrained) {
         this._boundingRect = null;
       }
 
-      this.manager._postDragCleanup();
+      if (this.isDragging()) {
+        this.manager._postDragCleanup();
+      }
 
       document.documentElement.style.cursor = '';
     },
@@ -156,4 +185,12 @@ export default {
 
 function clamp(numberToClamp, min, max) {
   return Math.max(min, Math.min(numberToClamp, max));
+}
+
+function getFullSize(element) {
+  var style = getComputedStyle(element);
+  return {
+    width: element.offsetWidth + parseFloat(style.marginLeft) + parseFloat(style.marginLeft),
+    height: element.offsetHeight + parseFloat(style.marginTop) + parseFloat(style.marginBottom)
+  };
 }

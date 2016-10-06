@@ -20,10 +20,9 @@ export default {
     this.metalDragon = MetalDragon.create({ eventHandlerDecorator });
     this.createDraggableToolboxWidget = (opts) => {
       return this.metalDragon.createDragItem({
-        // TODO: switch API to use 'classOfDragImageSource'
-        // classOfDragImageSource: 'widget',
+        // TODO: switch API to something like: `{ classOfDragImageSource: 'widget' }`
         findElementForDragImage: element => findAncestorWithClass(element, 'widget'),
-        onDragend: opts.onDragend,
+        onDrop: opts.onDrop,
         group: TOOLBOX_WIDGET_GROUP
       });
     };
@@ -31,7 +30,8 @@ export default {
     this.createDraggableWorkspaceWidget = (opts) => {
       return this.metalDragon.createDragItem({
         findElementForDragImage: element => findAncestorWithClass(element, 'widget'),
-        onDragend: opts.onDragend,
+        onDragStart: opts.onDragStart,
+        onDrop: opts.onDrop,
         group: WORKSPACE_WIDGET_GROUP,
         constraints: {
           getBoundingElement: function(element) {
@@ -44,7 +44,7 @@ export default {
     this.createDropzoneWidget = (opts) => {
       return this.metalDragon.createDropzone({
         accepts: [TOOLBOX_WIDGET_GROUP, WORKSPACE_WIDGET_GROUP],
-        onMouseenter: opts.onMouseenter
+        onDragEnter: opts.onDragEnter
       })
     }
   },
@@ -66,7 +66,6 @@ export default {
           key: widget.uid(),
           widget,
           widgetToMove: controller.widgetToMove,
-          isInWorkspace: true,
           saveWidgets: () => {
             // TODO: this is not ideal
             widgets.forEach(widget => widget.save({ isBatch: true }));
@@ -118,7 +117,7 @@ function getRandomInt(min, max) {
 // knows how the library implementation makes use of the low level mouse events.
 // Perhaps creating higher level names like 'dragmove', 'dragover', 'dragend', etc would solve this?
 function eventHandlerDecorator(eventName, handler) {
-  if (['mouseup', 'mouseenter', 'mouseleave'].indexOf(eventName) > -1) {
+  if (['mousedown', 'mouseup', 'mouseenter', 'mouseleave'].indexOf(eventName) > -1) {
     return handleWithRedraw(handler);
   } else if (eventName === 'mousemove') {
     return handleWithRedraw(handler, { throttleDelayAmount: 100 });

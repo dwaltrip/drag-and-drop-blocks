@@ -34,7 +34,8 @@ $lighter-border-color: #999;
   //   border: 1px solid black;
   // }
 
-  .widget-row::after {
+  // .widget-row::after {
+  .widget-row.has-bottom-connector::after {
     content: '';
     display: block;
     position: absolute;
@@ -62,6 +63,7 @@ $lighter-border-color: #999;
   .widget-title {
     display: flex;
     align-items: center;
+    white-space: pre;
 
     &:hover {
       cursor: move;

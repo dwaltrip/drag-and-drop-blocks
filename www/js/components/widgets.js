@@ -1,9 +1,6 @@
 import m from 'mithril';
 
-import doAll from 'lib/m-utils/do-all';
-import on from 'lib/m-utils/on';
-import handleWithRedraw from 'lib/m-utils/handle-with-redraw';
-
+import { configForDragItem, configForDropzone } from 'lib/m-utils/metal-dragon-helpers';
 import { WidgetNames } from 'models/widget'
 
 
@@ -19,7 +16,6 @@ function buildWidgetComponent(title, className) {
       var self = this;
       var params = params || {};
       this.widgetToMoveProp = params.widgetToMove;
-      var isInWorkspace = this.isInWorkspace = params.isInWorkspace;
 
       var widget = this.widget = params.widget || {
         uid: m.prop(null),
@@ -28,57 +24,45 @@ function buildWidgetComponent(title, className) {
       };
 
       this.dragItem = params.createDragItem({
-        onDragend: ()=> {
+        onDragStart: ()=> this.widgetToMoveProp(widget),
+        onDrop: ()=> {
           this.widgetToMoveProp(null);
           params.saveWidgets();
         }
       });
 
-      if (isInWorkspace) {
-        this.dropzone = params.createDropzone({
-          onMouseenter: ()=> {
-            if (this.widgetToMoveProp().uid() !== widget.uid()) {
-              // TODO: this only works in the naive case where the user drags directly up and down the list
-              // It doesn't work properly when the user drags out of the list and re-enters at a different point :(
-              var tmp = this.widgetToMoveProp().pos();
-              this.widgetToMoveProp().pos(widget.pos());
-              widget.pos(tmp);
-            }
+      this.dropzone = params.createDropzone({
+        // TODO: this should not fire for a dropzone that is also the current dragItem
+        onDragEnter: (event, dragItem)=> {
+          if (this.widgetToMoveProp().uid() !== widget.uid()) {
+            // TODO: this only works in the naive case where the user drags directly up and down the list
+            // It doesn't work properly when the user drags out of the list and re-enters at a different point :(
+            var tmp = this.widgetToMoveProp().pos();
+            this.widgetToMoveProp().pos(widget.pos());
+            widget.pos(tmp);
           }
-        });
-      }
+        }
+      });
 
-      this.configDropzone = (element, isInitialized, context) => {
-        if (isInitialized || !isInWorkspace) { return; }
-        this.dropzone.attachToElement(element);
-      };
+      this.configDragItem = configForDragItem(this.dragItem);
+      this.configDropzone = configForDropzone(this.dropzone);
     },
 
     view: function(controller, params) {
       var params = params || {};
       var widget = controller.widget;
-      var isInWorkspace = controller.isInWorkspace;
-      var widgetToMoveProp = params.widgetToMove;
 
       var isDragging = controller.dragItem.isDragging();
-
       var isDraggingClass = isDragging ? '.is-dragging' : '';
       var classList = (className || '') + isDraggingClass;
-      var isDraggingOverClass = isInWorkspace && controller.dropzone.isDraggingOver() ?
-        '.is-dragging-over' : '';
+      var isDraggingOverClass = controller.dropzone.isDraggingOver() ? '.is-dragging-over' : '';
 
       return m('.widget-row' + isDraggingOverClass, {
         key: widget.uid(),
         config: controller.configDropzone
       }, m('.widget' + classList, [
         m('.widget-title', {
-          onmousedown: function(event) {
-            controller.dragItem.startDrag(event);
-            // TODO: The rest of this callback should only occur once we start dragging (the mouse has moved a bit)
-            // TODO: toolbox widgets don't have this!!!
-            // we need to create a widget to be added when we drag from the toolbox
-            widgetToMoveProp(controller.widget);
-          },
+          config: controller.configDragItem
         }, `${title} -- ${widget.uid()} -- ${widget.pos()}`),
         m('.widget-slot')
       ]));

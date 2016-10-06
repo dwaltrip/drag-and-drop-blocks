@@ -29,10 +29,15 @@ export default {
     activeDragItem: null,
     _isDragging: false,
 
+    dropzoneCount: 0,
+    dragItemCount: 0,
+
     isDragging: function() { return this._isDragging; },
 
     createDragItem: function(opts) {
       var newDragItem = DragItem.create(this, opts);
+      this.dragItemCount += 1;
+      newDragItem.id = this.dragItemCount;
 
       var group = newDragItem.group;
       if (!(group in this.dragItemGroups)) {
@@ -45,6 +50,8 @@ export default {
 
     createDropzone: function(opts) {
       var newDropzone = Dropzone.create(this, opts);
+      this.dropzoneCount += 1;
+      newDropzone.id = this.dropzoneCount;
 
       if (newDropzone.doesAcceptAll()) {
         this.dropzonesByAcceptType[ACCEPT_ALL].push(newDropzone);
@@ -69,19 +76,17 @@ export default {
       var dropzones = this.dropzonesByAcceptType[ACCEPT_ALL].concat(
         this.dropzonesByAcceptType[dragItem.group] || []
       );
-      dropzones.forEach(dropzone => this._prepDropzone(dropzone));
-    },
-
-    _prepDropzone: function(dropzone) {
-      dropzone._prep();
-      this._activeDropzones.push(dropzone);
+      dropzones.forEach(dropzone => {
+        dropzone._prepForDrag();
+        this._activeDropzones.push(dropzone);
+      });
     },
 
     _postDragCleanup: function() {
       this.activeDragItem = null;
       this._isDragging = false;
 
-      this._activeDropzones.forEach(dropzone => dropzone._cleanup());
+      this._activeDropzones.forEach(dropzone => dropzone._postDragCleanup());
       this._activeDropzones = [];
     },
   }
