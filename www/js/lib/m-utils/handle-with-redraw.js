@@ -1,6 +1,8 @@
 /**
   Wrapper function for handlers for non-standard events that tells mithril to redraw
-  This is needed as mithril doesn't know how to handle non-standard events by default
+  This is needed as mithril doesn't know how to handle non-standard events by default.
+  Also useful for any event handlers that need to be manually added/removed
+  outside of a mithril view function (e.g. 3rd party library).
 **/
 
 import m from 'mithril';
@@ -31,7 +33,6 @@ export default function handleWithRedraw(callback, opts) {
 }
 
 function throttle(fn, delay, scope) {
-  var delay = delay || 250;
   var lastCalledAt = null;
   var timerId = null;
 

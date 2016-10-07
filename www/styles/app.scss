@@ -14,36 +14,33 @@ $lighter-border-color: #999;
   background-color: #eee;
 
   .toolbox-header {
-    padding: 7px;
+    padding: 10px;
     text-align: center;
     font-size: 18px;
     border-bottom: 1px solid $border-color;
   }
 
   .toolbox-widgets {
-    padding: 5px;
-  }
-
-  .toolbox-section {
-    // padding: 10px;
+    padding: 10px;
   }
 }
 
-.widget-editor.is-dragging {
-  .toolbox {
-    position: relative;
-  }
+// if we want to style toolbox as a trashcan, use this
+// .widget-editor.is-dragging {
+//   .toolbox {
+//     position: relative;
+//   }
 
-  .toolbox-trashcan {
-    content: '';
-    position: absolute;
-    height: 100%;
-    width: 100%;
-    top: 0;
-    opacity: 0;
-    // background-color: #999;
-  }
-}
+//   .toolbox-trashcan {
+//     content: '';
+//     position: absolute;
+//     height: 100%;
+//     width: 100%;
+//     top: 0;
+//     opacity: 0;
+//     background-color: #999;
+//   }
+// }
 
 .workspace {
   display: flex;
@@ -52,10 +49,6 @@ $lighter-border-color: #999;
   border: 1px solid $border-color;
   border-left: none;
   overflow: auto;
-  user-select: none;
-  -moz-user-select: none;
-  -webkit-user-select: none;
-  -ms-user-select: none;
 
   // &.is-dragging .widget-row.is-dragging-over {
   //   border: 1px solid black;
@@ -148,3 +141,10 @@ $lighter-border-color: #999;
 .widget-1 { background-color: #7bd887; }
 .widget-2 { background-color: #89c2ea; }
 .widget-3 { background-color: #e8a28d; }
+
+.no-text-select {
+  user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+}

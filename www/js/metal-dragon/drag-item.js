@@ -183,7 +183,7 @@ export default {
 
     // TODO: should this be here, in DragItem? or should it be in the manager class?
     _onMouseup: function(event) {
-      if (this.manager.isDragging()) {
+      if (this.manager.isMidDrag()) {
         this.manager.onDrop();
         if (this.userEvents.onDrop) {
           this.userEvents.onDrop(event);

@@ -78,7 +78,7 @@ export default {
     // TODO: don't sort everytime view changes
     widgets.sort((a,b) => a.pos() - b.pos());
 
-    var isDragging = controller.metalDragon.isDragging();
+    var isDragging = controller.metalDragon.isMidDrag();
     var isTrashcanActive = controller.trashcanDropzone.isUnderDragItem();
     var isToolboxActive = controller.toolboxDropzone.isUnderDragItem();
 
@@ -88,17 +88,14 @@ export default {
       (isToolboxActive ? '.is-dragging-over-toolbox' : ''),
     ].join('')
 
-    return m('.widget-editor' + widgetEditorClassList, [
-      m('.toolbox', [
+    return m('.widget-editor.no-text-select' + widgetEditorClassList, [
+      m('.toolbox', { config: controller.configToolboxDropzone }, [
         m('.toolbox-header', 'Toolbox'),
         m('.toolbox-widgets', ToolboxWidgets.map(Component => {
           return m('.toolbox-section', m(Component, {
             createDragItem: controller.createDraggableToolboxWidget
           }))
-        })),
-        isDragging ? m('.toolbox-trashcan', {
-          config: controller.configToolboxDropzone
-        }) : null
+        }))
       ]),
 
       m('.workspace', [
