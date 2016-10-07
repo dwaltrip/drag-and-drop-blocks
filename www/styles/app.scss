@@ -11,9 +11,37 @@ $lighter-border-color: #999;
 
 .toolbox {
   border: 1px solid $border-color;
+  background-color: #eee;
+
+  .toolbox-header {
+    padding: 7px;
+    text-align: center;
+    font-size: 18px;
+    border-bottom: 1px solid $border-color;
+  }
+
+  .toolbox-widgets {
+    padding: 5px;
+  }
 
   .toolbox-section {
-    padding: 10px;
+    // padding: 10px;
+  }
+}
+
+.widget-editor.is-dragging {
+  .toolbox {
+    position: relative;
+  }
+
+  .toolbox-trashcan {
+    content: '';
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    top: 0;
+    opacity: 0;
+    // background-color: #999;
   }
 }
 
@@ -56,8 +84,8 @@ $lighter-border-color: #999;
     display: flex;
     flex-grow: 0;
     padding: 10px;
-    background-color: #ddd;
-    border-top: 1px solid #555;
+    background-color: #eee;
+    border-top: 1px solid $border-color;
     justify-content: space-around;
     align-items: center;
   }
@@ -91,8 +119,8 @@ $lighter-border-color: #999;
   }
 
   &.drag-image.drag-over--trashcan {
-    border: 1px solid $lighter-border-color;
-    opacity: 0.8;
+    border: 3px solid #e01d1d;
+    opacity: 0.65;
   }
 }
 
@@ -101,8 +129,10 @@ $lighter-border-color: #999;
     opacity: 0.2;
   }
 
-  &.is-dragging-over-trashcan .widget.is-dragging {
-    opacity: 0;
+  &.is-dragging-over-trashcan, &.is-dragging-over-toolbox {
+    .widget.is-dragging {
+      opacity: 0;
+    }
   }
 }
 

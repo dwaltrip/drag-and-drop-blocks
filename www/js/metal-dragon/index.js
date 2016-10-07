@@ -5,6 +5,10 @@ import Dropzone from './dropzone';
 import { ACCEPT_ALL, DEFAULT_GROUP, DRAG_HANDLE_CSS_CLASS } from './constants';
 import { addStylesheetRules, removeFromArray } from './utils';
 
+const DRAG_STATE_PRE_DRAG = 'PRE_DRAG';
+const DRAG_STATE_MID_DRAG = 'MID_DRAG';
+const DRAG_STATE_NONE = 'NONE';
+
 export default {
   create: function(opts) {
     var instance = Object.create(this.instance);
@@ -30,12 +34,16 @@ export default {
     activeDropzones: null,
 
     _potentialDropzones: null,
-    _isDragging: false,
+    _dragState: DRAG_STATE_NONE,
 
     dropzoneCount: 0,
     dragItemCount: 0,
 
-    isDragging: function() { return this._isDragging; },
+    isPreDrag: function() { return this._dragState === DRAG_STATE_PRE_DRAG; },
+    isMidDrag: function() { return this._dragState === DRAG_STATE_MID_DRAG; },
+
+    isDragging: function() { return this.isPreDrag() || this.isMidDrag(); },
+    isNotDragging: function() { return this._dragState === DRAG_STATE_NONE; },
 
     createDragItem: function(opts) {
       var newDragItem = DragItem.create(this, opts);
@@ -85,11 +93,11 @@ export default {
     },
 
     onDrop: function() {
-      this.activeDropzones.forEach(dropzone => {
-        if (dropzone.userEvents.onDrop) {
-          dropzone.userEvents.onDrop(this.activeDragItem);
-        }
-      });
+      // Only perform the drop for the most recently entered dragzone that is still active
+      var mostRecentDropzone = this.activeDropzones[this.activeDropzones.length - 1];
+      if (mostRecentDropzone && mostRecentDropzone.userEvents.onDrop) {
+        mostRecentDropzone.userEvents.onDrop(this.activeDragItem);
+      }
     },
 
     onDragEnter: function(dropzone) {
@@ -106,8 +114,12 @@ export default {
       this.activeDragItem.dragImage.classList.remove(getDragOverClass(dropzone));
     },
 
+    _prepForDrag: function() {
+      this._dragState = DRAG_STATE_PRE_DRAG;
+    },
+
     _startDrag: function(dragItem) {
-      this._isDragging = true;
+      this._dragState = DRAG_STATE_MID_DRAG;
       this.activeDragItem = dragItem;
       this.activeDropzones = [];
 
@@ -117,7 +129,7 @@ export default {
         this.dropzonesByAcceptType[dragItem.group] || []
       );
       dropzones.forEach(dropzone => {
-        dropzone._prepForDrag();
+        dropzone._prepForDragAndDrop();
         this._potentialDropzones.push(dropzone);
       });
     },
@@ -126,7 +138,7 @@ export default {
       this.activeDragItem = null;
       this.activeDropzones = [];
 
-      this._isDragging = false;
+      this._dragState = DRAG_STATE_NONE;
       this._potentialDropzones.forEach(dropzone => dropzone._postDragCleanup());
       this._potentialDropzones = [];
     },

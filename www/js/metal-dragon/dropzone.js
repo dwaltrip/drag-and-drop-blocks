@@ -60,14 +60,15 @@ export default {
       this.manager.removeDropzone(this);
     },
 
-    _prepForDrag: function(dragItem) {
+    _prepForDragAndDrop: function(dragItem) {
       this._isReadyForDrop = true;
-      this._listenForDrop();
-    },
 
-    _listenForDrop: function() {
       if (!this.hasElement()) {
-        throw new Error('Metal-Dragon: dropzone cannot listen for a drop without being attached to an element');
+        var errorMsg = [
+          `Metal-Dragon: dropzone (id: ${this.id}, group: ${this.group} --`,
+          `accepts: ${this.accepts.join(', ')}) is not attached to an element`
+        ].join(' ');
+        throw new Error(errorMsg);
       }
 
       this._element.addEventListener('mouseenter', this._boundEventListeners.onmouseenter, false);

@@ -104,7 +104,7 @@ export default {
         };
       }
 
-      // this.manager._prepForDrag();
+      this.manager._prepForDrag();
       document.addEventListener('mousemove', this._boundEventListeners.onmousemove, false);
       document.addEventListener('mouseup', this._boundEventListeners.onmouseup, false);
     },
@@ -159,7 +159,7 @@ export default {
     _onMousemove: function(event) {
       // NOTE: after the 'mousedown' event on a dragitem, we don't consider the drag
       // to have officially started until the first 'mousemove' event fires
-      if (!this.manager.isDragging()) {
+      if (!this.manager.isMidDrag()) {
         this.manager._startDrag(this);
         document.documentElement.style.cursor = 'move';
 

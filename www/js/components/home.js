@@ -4,8 +4,8 @@ import Widget from 'models/widget';
 import db from 'db';
 
 import handleWithRedraw from 'lib/m-utils/handle-with-redraw';
-import Toolbox from 'components/toolbox';
 import { lookupWidgetComponent } from 'components/widgets';
+import ToolboxWidgets from 'components/toolbox-widgets';
 import unicode from 'lib/unicode-characters';
 
 import { configForDropzone } from 'lib/m-utils/metal-dragon-helpers';
@@ -14,11 +14,6 @@ import MetalDragon from 'metal-dragon';
 var TOOLBOX_WIDGET_GROUP = 'toolbox-widgets';
 var WORKSPACE_WIDGET_GROUP = 'workspace-widgets';
 
-/* ---------------------------------------------------------------
-  TODO:
-    The next commit should allow for deleting a widget by dragging
-    from the worksapce to the trashcan or to the toolbox.
---------------------------------------------------------------- */
 
 export default {
   controller: function() {
@@ -51,22 +46,28 @@ export default {
       })
     };
 
-    this.trashcanDropzone = this.metalDragon.createDropzone({
-      accepts: WORKSPACE_WIDGET_GROUP,
-      group: 'trashcan',
-      onDrop: (dragItem) => {
-        var widget = dragItem.getDragData('widget');
-        this.workspace.removeWidget(widget);
-        // TODO: this line ('reverting' each widget) is not the best. It fixes the bug where
-        // when we delete a widget, the widgets we passed over to do so show the swapped pos,
-        // even though we never save the swapped pos to the db
-        // Another fix would be to save the two widgets that swap positions after each position swap,
-        // and then do nothing extra here.
-        this.workspace.widgets.forEach(widget => widget.revert());
-      }
-    });
+    this.createTrashcanDropzone = ()=> {
+      return this.metalDragon.createDropzone({
+        accepts: WORKSPACE_WIDGET_GROUP,
+        group: 'trashcan',
+        onDrop: (dragItem) => {
+          var widget = dragItem.getDragData('widget');
+          this.workspace.removeWidget(widget);
+          // TODO: this line ('reverting' each widget) is not the best. It fixes the bug where
+          // when we delete a widget, the widgets we passed over to do so show the swapped pos,
+          // even though we never save the swapped pos to the db
+          // Another fix would be to save the two widgets that swap positions after each position swap,
+          // and then do nothing extra here.
+          this.workspace.widgets.forEach(widget => widget.revert());
+        }
+      });
+    };
+
+    this.trashcanDropzone = this.createTrashcanDropzone();
+    this.toolboxDropzone = this.createTrashcanDropzone();
 
     this.configTrashcanDropzone = configForDropzone(this.trashcanDropzone);
+    this.configToolboxDropzone = configForDropzone(this.toolboxDropzone);
   },
 
   view: function(controller) {
@@ -79,14 +80,27 @@ export default {
 
     var isDragging = controller.metalDragon.isDragging();
     var isTrashcanActive = controller.trashcanDropzone.isUnderDragItem();
+    var isToolboxActive = controller.toolboxDropzone.isUnderDragItem();
 
     var widgetEditorClassList = [
       (isDragging ? '.is-dragging' : ''),
-      (isTrashcanActive ? '.is-dragging-over-trashcan' : '')
+      (isTrashcanActive ? '.is-dragging-over-trashcan' : ''),
+      (isToolboxActive ? '.is-dragging-over-toolbox' : ''),
     ].join('')
 
     return m('.widget-editor' + widgetEditorClassList, [
-      m(Toolbox, { createDragItem: controller.createDraggableToolboxWidget }),
+      m('.toolbox', [
+        m('.toolbox-header', 'Toolbox'),
+        m('.toolbox-widgets', ToolboxWidgets.map(Component => {
+          return m('.toolbox-section', m(Component, {
+            createDragItem: controller.createDraggableToolboxWidget
+          }))
+        })),
+        isDragging ? m('.toolbox-trashcan', {
+          config: controller.configToolboxDropzone
+        }) : null
+      ]),
+
       m('.workspace', [
         m('.widget-list', widgets.map(widget => {
           return m(lookupWidgetComponent(widget.name()), {
@@ -102,6 +116,7 @@ export default {
             createDragItem: controller.createDraggableWorkspaceWidget
           });
         })),
+
         m('.trashcan', {
           config: controller.configTrashcanDropzone
         }, [

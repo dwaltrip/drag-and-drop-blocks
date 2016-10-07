@@ -14,21 +14,14 @@ function buildWidgetComponent(title, className, widgetName) {
     controller: function(params) {
       var self = this;
       var params = params || {};
-
-      var widget = this.widget = params.widget || {
-        uid: m.prop(null),
-        pos: m.prop(null),
-        name: m.prop('blank')
-      };
     },
 
     view: function(controller, params) {
       var params = params || {};
-      var widget = controller.widget;
       var classList = (className || '');
 
-      return m('.widget-row', { key: widget.uid() }, m('.widget' + classList, [
-        m('.widget-title', `${title} -- ${widget.uid()} -- ${widget.pos()}`),
+      return m('.widget-row', m('.widget' + classList, [
+        m('.widget-title', title),
         m('.widget-slot')
       ]));
     }
