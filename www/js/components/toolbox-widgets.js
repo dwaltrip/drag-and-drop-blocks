@@ -18,6 +18,12 @@ function buildWidgetComponent(title, className, widgetName) {
     controller: function(params) {
       var self = this;
       var params = params || {};
+
+      this.dragItem = params.createDragItem({
+        onDragStart: ()=> this.dragItem.setDragData('widgetName', widgetName)
+      });
+
+      this.configDragItem = configForDragItem(this.dragItem);
     },
 
     view: function(controller, params) {

@@ -5,7 +5,8 @@ export default function(widget, title, isInWorkspace) {
     `${title} -- ${widget.uid()} -- ${widget.pos()}` : title;
 
   return [
-    m('.widget-title', titleContent),
+    // m('.widget-title', titleContent),
+    m('.widget-title', title),
     slotsForNestedWidget(widget)
   ];
 };

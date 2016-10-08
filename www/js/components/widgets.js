@@ -19,6 +19,7 @@ function buildWidgetComponent(title, className) {
       var params = params || {};
       this.widgetToMoveProp = params.widgetToMove;
       var widget = this.widget = params.widget;
+      var workspace = params.workspace;
 
       this.dragItem = params.createDragItem({
         onDragStart: ()=> {
@@ -28,12 +29,7 @@ function buildWidgetComponent(title, className) {
           if (widget.nextWidget) {
             widget.nextWidget.dropzone.disable();
           }
-        },
-        // onDrop: ()=> {
-        //   if (!this.dragItem.isAboveGroup('trashcan')) {
-        //     this.widgetToMoveProp(null);
-        //   }
-        // }
+        }
       });
 
       // TODO: adding a reference to the dropzone on the widget model is BAD!!
@@ -44,7 +40,11 @@ function buildWidgetComponent(title, className) {
         accepts: ['toolbox-widgets', 'workspace-widgets'],
         onDrop: (dragItem)=> {
           if (dragItem.group === 'workspace-widgets') {
-            params.moveSelectedWidgetInFrontOf(widget);
+            workspace.insertBefore(this.widgetToMoveProp(), widget);
+            this.widgetToMoveProp().save();
+          } else {
+            var newWidget = workspace.createWidget(dragItem.getDragData('widgetName'))
+            workspace.insertBefore(newWidget, widget);
           }
         }
       });

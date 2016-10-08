@@ -1,7 +1,7 @@
 import m from 'mithril';
 
 import Widget from 'models/widget';
-import db from 'db';
+import Workspace from 'models/workspace';
 
 import handleWithRedraw from 'lib/m-utils/handle-with-redraw';
 import { lookupWidgetComponent } from 'components/widgets';
@@ -25,7 +25,7 @@ export default {
       return this.metalDragon.createDragItem({
         group: TOOLBOX_WIDGET_GROUP,
         dragHandle: 'widget-title',
-        onDrop: opts.onDrop
+        onDragStart: opts.onDragStart
       });
     };
 
@@ -57,12 +57,17 @@ export default {
     this.trashcanDropzone = this.createTrashcanDropzone();
     this.toolboxDropzone = this.createTrashcanDropzone();
     this.workspaceMarginDZ = this.metalDragon.createDropzone({
-      accepts: WORKSPACE_WIDGET_GROUP,
+      accepts: [WORKSPACE_WIDGET_GROUP, TOOLBOX_WIDGET_GROUP],
       onDrop: (dragItem)=> {
-        var widget = dragItem.getDragData('widget');
-        widget.pos(Widget.maxPos + 1);
-        widget.save();
-        workspace.sortWidgets();
+        if (dragItem.group === WORKSPACE_WIDGET_GROUP) {
+          var widget = dragItem.getDragData('widget');
+          widget.pos(Widget.maxPos + 1);
+          widget.save();
+          workspace.sortWidgets();
+        } else {
+          var newWidget = workspace.createWidget(dragItem.getDragData('widgetName'))
+          workspace.appendWidget(newWidget);
+        }
       }
     });
 
@@ -79,8 +84,10 @@ export default {
     var isDragging = controller.metalDragon.isMidDrag();
     var isTrashcanActive = controller.trashcanDropzone.isUnderDragItem();
     var isToolboxActive = controller.toolboxDropzone.isUnderDragItem();
-    var isWorkspaceMarginActive = controller.workspaceMarginDZ.isUnderDragItem() &&
-      !controller.widgetToMove().isLastWidget;
+    var isWorkspaceMarginActive = controller.workspaceMarginDZ.isUnderDragItem() && (
+      controller.metalDragon.activeDragItem.group === TOOLBOX_WIDGET_GROUP ||
+      !controller.widgetToMove().isLastWidget
+    );
 
     var isOverWidgetRow = controller.metalDragon.isDraggingOverGroup('widget-row') ||
       isWorkspaceMarginActive;
@@ -107,16 +114,8 @@ export default {
           return m(lookupWidgetComponent(widget.name()), {
             key: widget.uid(),
             widget,
+            workspace,
             widgetToMove: controller.widgetToMove,
-            moveSelectedWidgetInFrontOf: function(markerWidget) {
-              var min = markerWidget.isFirstWidget ? markerWidget.pos() - 1 :
-                markerWidget.prevWidget.pos();
-              var max = markerWidget.pos();
-              var newPos = (min + max) / 2.0;
-              controller.widgetToMove().pos(newPos);
-              controller.widgetToMove().save();
-              workspace.sortWidgets();
-            },
             metalDragon: controller.metalDragon,
             createDragItem: controller.createDraggableWorkspaceWidget
           });
@@ -137,75 +136,6 @@ export default {
 };
 
 window.Widget = Widget;
-
-var Workspace = {
-  create: function() {
-    var instance = Object.create(this.instance);
-    instance.widgets = Widget.query();
-    instance.sortWidgets();
-    instance.setPrevAndNextRefs();
-    return instance;
-  },
-
-  instance: {
-    widgets: null,
-
-    removeWidget: function(widgetToDelete) {
-      this.widgets = this.widgets.filter(w => w !== widgetToDelete);
-      widgetToDelete.delete();
-      this.setPrevAndNextRefs();
-    },
-
-    sortWidgets: function() {
-      this.widgets.sort((a,b) => a.pos() - b.pos());
-      this.normalizePosValues();
-      this.setPrevAndNextRefs();
-    },
-
-    // re-normalize pos values to integers (preserving order)
-    normalizePosValues: function() {
-      this.widgets.forEach((widget, index)=> {
-        widget.pos(index + 1);
-        widget.save({ isBatch: true });
-      });
-      db.commit();
-    },
-
-    setPrevAndNextRefs: function() {
-      this.widgets.forEach((widget, index)=> {
-        widget.prevWidget = widget.nextWidget = null;
-        widget.isFirstWidget = widget.isLastWidget = false;
-
-        if (index > 0) {
-          widget.prevWidget = this.widgets[index - 1];
-        } else {
-          widget.isFirstWidget = true;
-        }
-
-        if (index < (this.widgets.length - 1)) {
-          widget.nextWidget = this.widgets[index + 1];
-        } else {
-          widget.isLastWidget = true;
-        }
-      });
-    }
-  }
-};
-
-// for development purposes only
-var WidgetNames = Object.keys(Widget.NAMES).map(key => Widget.NAMES[key]);
-function createWidgets(n) {
-  for(var i=0; i<n; i++) {
-    var name = WidgetNames[getRandomInt(0, WidgetNames.length)];
-    var widget = Widget.create({ name, data: 'lol', pos: (Widget.maxPos + 1) });
-    widget.save();
-  }
-}
-window.createWidgets = createWidgets;
-function getRandomInt(min, max) {
-  min = Math.ceil(min); max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min)) + min;
-}
 
 // TODO: this still isn't ideal, as it requires that the user of metal-dragon
 // knows how the library implementation makes use of the low level mouse events.
