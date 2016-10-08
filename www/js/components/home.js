@@ -56,9 +56,19 @@ export default {
 
     this.trashcanDropzone = this.createTrashcanDropzone();
     this.toolboxDropzone = this.createTrashcanDropzone();
+    this.workspaceMarginDZ = this.metalDragon.createDropzone({
+      accepts: WORKSPACE_WIDGET_GROUP,
+      onDrop: (dragItem)=> {
+        var widget = dragItem.getDragData('widget');
+        widget.pos(Widget.maxPos + 1);
+        widget.save();
+        workspace.sortWidgets();
+      }
+    });
 
     this.configTrashcanDropzone = configForDropzone(this.trashcanDropzone);
     this.configToolboxDropzone = configForDropzone(this.toolboxDropzone);
+    this.configWorkspaceMarginDZ = configForDropzone(this.workspaceMarginDZ);
   },
 
   view: function(controller) {
@@ -69,7 +79,11 @@ export default {
     var isDragging = controller.metalDragon.isMidDrag();
     var isTrashcanActive = controller.trashcanDropzone.isUnderDragItem();
     var isToolboxActive = controller.toolboxDropzone.isUnderDragItem();
-    var isOverWidgetRow = controller.metalDragon.isDraggingOverGroup('widget-row');
+    var isWorkspaceMarginActive = controller.workspaceMarginDZ.isUnderDragItem() &&
+      !controller.widgetToMove().isLastWidget;
+
+    var isOverWidgetRow = controller.metalDragon.isDraggingOverGroup('widget-row') ||
+      isWorkspaceMarginActive;
 
     var widgetEditorClassList = [
       (isDragging ? '.is-dragging' : ''),
@@ -107,6 +121,8 @@ export default {
             createDragItem: controller.createDraggableWorkspaceWidget
           });
         })),
+        m('.workspace-margin' + (isWorkspaceMarginActive ? '.is-under-drag-item' : ''),
+          { config: controller.configWorkspaceMarginDZ }),
 
         m('.trashcan', {
           config: controller.configTrashcanDropzone

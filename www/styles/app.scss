@@ -73,7 +73,25 @@ $lighter-border-color: #999;
 
 .widget-editor {
   .widget-list {
+    flex-grow: 0;
+  }
+
+  .workspace-margin {
     flex-grow: 1;
+    margin-top: -5px;
+    position: relative;
+
+    &.is-under-drag-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 5px;
+      right: 5px;
+      height: 2px;
+      margin-top: -1px;
+      background-color: #444;
+      opacity: 1;
+    }
   }
 
   // uncomment this to see the indicator lines for all widget-row dropzones
