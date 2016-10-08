@@ -50,12 +50,6 @@ export default {
         onDrop: (dragItem) => {
           var widget = dragItem.getDragData('widget');
           this.workspace.removeWidget(widget);
-          // TODO: this line ('reverting' each widget) is not the best. It fixes the bug where
-          // when we delete a widget, the widgets we passed over to do so show the swapped pos,
-          // even though we never save the swapped pos to the db
-          // Another fix would be to save the two widgets that swap positions after each position swap,
-          // and then do nothing extra here.
-          this.workspace.widgets.forEach(widget => widget.revert());
         }
       });
     };
@@ -133,6 +127,7 @@ var Workspace = {
     var instance = Object.create(this.instance);
     instance.widgets = Widget.query();
     instance.sortWidgets();
+    instance.setPrevAndNextRefs();
     return instance;
   },
 
@@ -142,10 +137,25 @@ var Workspace = {
     removeWidget: function(widgetToDelete) {
       this.widgets = this.widgets.filter(w => w !== widgetToDelete);
       widgetToDelete.delete();
+      this.setPrevAndNextRefs();
     },
 
     sortWidgets: function() {
       this.widgets.sort((a,b) => a.pos() - b.pos());
+      this.normalizePosValues();
+      this.setPrevAndNextRefs();
+    },
+
+    // re-normalize pos values to integers (preserving order)
+    normalizePosValues: function() {
+      this.widgets.forEach((widget, index)=> {
+        widget.pos(index + 1);
+        widget.save({ isBatch: true });
+      });
+      db.commit();
+    },
+
+    setPrevAndNextRefs: function() {
       this.widgets.forEach((widget, index)=> {
         widget.prevWidget = widget.nextWidget = null;
         widget.isFirstWidget = widget.isLastWidget = false;
@@ -161,11 +171,7 @@ var Workspace = {
         } else {
           widget.isLastWidget = true;
         }
-        // re-normalize pos values to integers (preserving order)
-        widget.pos(index + 1);
-        widget.save({ isBatch: true });
       });
-      db.commit();
     }
   }
 };
