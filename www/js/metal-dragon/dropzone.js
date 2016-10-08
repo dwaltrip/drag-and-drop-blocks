@@ -104,7 +104,10 @@ export default {
 
       this._isReadyForDrop = false;
       this._isDraggingOver = false;
-      //this._isEnabled = true;
+      // NOTE: would we ever rely on a dropzone remaining disabled between drags?
+      // I think we may, so I leave this commented out
+      // Essentially, user always has to manually re-enable the dropzone: `dropzone.enable()`
+      // this._isEnabled = true;
     }
   }
 };

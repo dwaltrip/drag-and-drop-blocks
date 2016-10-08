@@ -3,7 +3,6 @@ import m from 'mithril';
 import { configForDragItem, configForDropzone } from 'lib/m-utils/metal-dragon-helpers';
 import { WidgetNames } from 'models/widget'
 
-
 var WidgetComponents = {
   [WidgetNames.WIDGET1]: buildWidgetComponent('Widget 1', '.widget-1'),
   [WidgetNames.WIDGET2]: buildWidgetComponent('Widget 2', '.widget-2'),
@@ -16,37 +15,33 @@ function buildWidgetComponent(title, className) {
       var self = this;
       var params = params || {};
       this.widgetToMoveProp = params.widgetToMove;
-
-      var widget = this.widget = params.widget || {
-        uid: m.prop(null),
-        pos: m.prop(null),
-        name: m.prop('blank')
-      };
+      var widget = this.widget = params.widget;
 
       this.dragItem = params.createDragItem({
         onDragStart: ()=> {
           this.dragItem.setDragData('widget', widget);
           this.widgetToMoveProp(widget);
           this.dropzone.disable();
-        },
-        onDrop: ()=> {
-          if (!this.dragItem.isAboveGroup('trashcan')) {
-            this.widgetToMoveProp(null);
-            params.saveWidgets();
-            this.dropzone.enable();
+          if (widget.nextWidget) {
+            widget.nextWidget.dropzone.disable();
           }
-        }
+        },
+        // onDrop: ()=> {
+        //   if (!this.dragItem.isAboveGroup('trashcan')) {
+        //     this.widgetToMoveProp(null);
+        //   }
+        // }
       });
 
-      this.dropzone = params.createDropzone({
+      // TODO: adding a reference to the dropzone on the widget model is BAD!!
+      // I think my data model & component organization needs to be improved.
+      // Things are getting a little messy
+      widget.dropzone = this.dropzone = params.metalDragon.createDropzone({
         group: 'widget-row',
-        onDragEnter: (event, dragItem)=> {
-          if (this.widgetToMoveProp().uid() !== widget.uid()) {
-            // TODO: this only works in the naive case where the user drags directly up and down the list
-            // It doesn't work properly when the user drags out of the list and re-enters at a different point :(
-            var tmp = this.widgetToMoveProp().pos();
-            this.widgetToMoveProp().pos(widget.pos());
-            widget.pos(tmp);
+        accepts: ['toolbox-widgets', 'workspace-widgets'],
+        onDrop: (dragItem)=> {
+          if (dragItem.group === 'workspace-widgets') {
+            params.moveSelectedWidgetInFrontOf(widget);
           }
         }
       });
@@ -63,19 +58,36 @@ function buildWidgetComponent(title, className) {
     view: function(controller, params) {
       var params = params || {};
       var widget = controller.widget;
+      var widgetToMoveProp = controller.widgetToMoveProp;
 
       var isDragging = controller.dragItem.isDragging();
       var isDraggingClass = isDragging ? '.is-dragging' : '';
-      var classList = (className || '') + isDraggingClass;
-      var isDraggingOverClass = controller.dropzone.isUnderDragItem() ? '.is-dragging-over' : '';
+      var widgetClassList = (className || '') + isDraggingClass;
 
-      return m('.widget-row' + isDraggingOverClass, {
+
+      var prevWidget = widget.prevWidget;
+      var nextWidget = widget.nextWidget;
+      var isBeforeSelectedWidget = widgetToMoveProp() && nextWidget && nextWidget.uid() === widgetToMoveProp().uid();
+      var isAfterSelectedWidget = widgetToMoveProp() && prevWidget && prevWidget.uid() === widgetToMoveProp().uid();
+
+      var isSelectecWidget = widgetToMoveProp() && widget.uid() === widgetToMoveProp().uid();
+      var isPotentialDropSlot = !(isSelectecWidget || isAfterSelectedWidget);
+
+      var widgetRowClassList = [
+        controller.dropzone.isUnderDragItem() ? '.is-under-drag-item' : null,
+        !(isDragging || isBeforeSelectedWidget || widget.isLastWidget) ? '.has-bottom-connector' : null
+      ].filter(cls => !!cls).join('')
+
+      return m('.widget-row' + widgetRowClassList, {
         key: widget.uid(),
-        config: controller.configDropzone
-      }, m('.widget' + classList, { config: controller.configDragItem }, [
-        m('.widget-title', `${title} -- ${widget.uid()} -- ${widget.pos()}`),
-        m('.widget-slot')
-      ]));
+        config: isPotentialDropSlot ? controller.configDropzone : null,
+      }, [
+        isPotentialDropSlot ? m('.reposition-slot.before-this') : null,
+        m('.widget' + widgetClassList, { config: controller.configDragItem }, [
+          m('.widget-title', `${title} -- ${widget.uid()} -- ${widget.pos()}`),
+          m('.widget-slot')
+        ])
+      ])
     }
   };
 }

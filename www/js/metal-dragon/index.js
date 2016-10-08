@@ -78,6 +78,13 @@ export default {
       return newDropzone;
     },
 
+    isDraggingOverGroup: function(group) {
+      if (!this.isMidDrag()) { return false; }
+
+      var targetDropzone = this.targetDropzone();
+      return targetDropzone && targetDropzone.group === group;
+    },
+
     removeDragItem: function(dragItem) {
       removeFromArray(this.dragItemGroups[dragItem.group], dragItem);
     },
@@ -93,11 +100,20 @@ export default {
     },
 
     onDrop: function() {
-      // Only perform the drop for the most recently entered dragzone that is still active
-      var mostRecentDropzone = this.activeDropzones[this.activeDropzones.length - 1];
-      if (mostRecentDropzone && mostRecentDropzone.userEvents.onDrop) {
-        mostRecentDropzone.userEvents.onDrop(this.activeDragItem);
+      var targetDropzone = this.targetDropzone();
+      if (targetDropzone && targetDropzone.userEvents.onDrop) {
+        targetDropzone.userEvents.onDrop(this.activeDragItem);
       }
+    },
+
+    // `activeDropzones` is essentially a stack of dropzones we have enetered.
+    // Only the most recently entered one is used.
+    // The assumption that this is the sensible and always desired has not been fully validated.
+    targetDropzone: function() {
+      if (this.activeDropzones.length > 0) {
+        return this.activeDropzones[this.activeDropzones.length - 1];
+      }
+      return null;
     },
 
     onDragEnter: function(dropzone) {

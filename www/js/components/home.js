@@ -35,15 +35,12 @@ export default {
         dragHandle: 'widget-title',
         boundingContainer: 'widget-editor',
         onDragStart: opts.onDragStart,
-        onDrop: opts.onDrop
+        onDrop: ()=> {
+          this.widgetToMove(null);
+          // TODO: this is strange & pretty hacky
+          this.workspace.widgets.forEach(w => w.dropzone.enable());
+        }
       });
-    };
-
-    this.createDropzoneWidget = (opts) => {
-      return this.metalDragon.createDropzone({
-        accepts: [TOOLBOX_WIDGET_GROUP, WORKSPACE_WIDGET_GROUP],
-        onDragEnter: opts.onDragEnter
-      })
     };
 
     this.createTrashcanDropzone = ()=> {
@@ -73,19 +70,18 @@ export default {
   view: function(controller) {
     var workspace = controller.workspace;
     window.workspace = workspace;
-
-    var widgets = workspace.widgets.concat();
-    // TODO: don't sort everytime view changes
-    widgets.sort((a,b) => a.pos() - b.pos());
+    var widgets = workspace.widgets;
 
     var isDragging = controller.metalDragon.isMidDrag();
     var isTrashcanActive = controller.trashcanDropzone.isUnderDragItem();
     var isToolboxActive = controller.toolboxDropzone.isUnderDragItem();
+    var isOverWidgetRow = controller.metalDragon.isDraggingOverGroup('widget-row');
 
     var widgetEditorClassList = [
       (isDragging ? '.is-dragging' : ''),
       (isTrashcanActive ? '.is-dragging-over-trashcan' : ''),
       (isToolboxActive ? '.is-dragging-over-toolbox' : ''),
+      (isOverWidgetRow ? '.is-dragging-over-widget-row' : '')
     ].join('')
 
     return m('.widget-editor.no-text-select' + widgetEditorClassList, [
@@ -104,12 +100,16 @@ export default {
             key: widget.uid(),
             widget,
             widgetToMove: controller.widgetToMove,
-            saveWidgets: ()=> {
-              // TODO: this is not ideal
-              workspace.widgets.forEach(widget => widget.save({ isBatch: true }));
-              db.commit();
+            moveSelectedWidgetInFrontOf: function(markerWidget) {
+              var min = markerWidget.isFirstWidget ? markerWidget.pos() - 1 :
+                markerWidget.prevWidget.pos();
+              var max = markerWidget.pos();
+              var newPos = (min + max) / 2.0;
+              controller.widgetToMove().pos(newPos);
+              controller.widgetToMove().save();
+              workspace.sortWidgets();
             },
-            createDropzone: controller.createDropzoneWidget,
+            metalDragon: controller.metalDragon,
             createDragItem: controller.createDraggableWorkspaceWidget
           });
         })),
@@ -132,6 +132,7 @@ var Workspace = {
   create: function() {
     var instance = Object.create(this.instance);
     instance.widgets = Widget.query();
+    instance.sortWidgets();
     return instance;
   },
 
@@ -141,6 +142,30 @@ var Workspace = {
     removeWidget: function(widgetToDelete) {
       this.widgets = this.widgets.filter(w => w !== widgetToDelete);
       widgetToDelete.delete();
+    },
+
+    sortWidgets: function() {
+      this.widgets.sort((a,b) => a.pos() - b.pos());
+      this.widgets.forEach((widget, index)=> {
+        widget.prevWidget = widget.nextWidget = null;
+        widget.isFirstWidget = widget.isLastWidget = false;
+
+        if (index > 0) {
+          widget.prevWidget = this.widgets[index - 1];
+        } else {
+          widget.isFirstWidget = true;
+        }
+
+        if (index < (this.widgets.length - 1)) {
+          widget.nextWidget = this.widgets[index + 1];
+        } else {
+          widget.isLastWidget = true;
+        }
+        // re-normalize pos values to integers (preserving order)
+        widget.pos(index + 1);
+        widget.save({ isBatch: true });
+      });
+      db.commit();
     }
   }
 };

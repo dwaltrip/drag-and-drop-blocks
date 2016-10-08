@@ -19,10 +19,6 @@ $lighter-border-color: #999;
     font-size: 18px;
     border-bottom: 1px solid $border-color;
   }
-
-  .toolbox-widgets {
-    padding: 10px;
-  }
 }
 
 // if we want to style toolbox as a trashcan, use this
@@ -50,27 +46,43 @@ $lighter-border-color: #999;
   border-left: none;
   overflow: auto;
 
-  // &.is-dragging .widget-row.is-dragging-over {
-  //   border: 1px solid black;
-  // }
+  .widget-row {
+    &.has-bottom-connector::after {
+      content: '';
+      display: block;
+      position: absolute;
+      left: 20px;
+      bottom: -5px;
+      height: 10px;
+      width: 2px;
+      background: #555;
+    }
 
-  // .widget-row::after {
-  .widget-row.has-bottom-connector::after {
-    content: '';
-    display: block;
-    position: absolute;
-    left: 20px;
-    bottom: -5px;
-    height: 10px;
-    width: 2px;
-    background: #555;
+    .reposition-slot.before-this {
+      position: absolute;
+      top: 0;
+      left: 5px;
+      right: 5px;
+      height: 2px;
+      margin-top: -1px;
+      background-color: #444;
+      opacity: 0;
+    }
   }
 }
 
 .widget-editor {
   .widget-list {
     flex-grow: 1;
-    padding: 10px;
+  }
+
+  // uncomment this to see the indicator lines for all widget-row dropzones
+  // &.is-dragging .widget-row .reposition-slot.before-this {
+  //   opacity: 0.3;
+  // }
+
+  &.is-dragging .widget-row.is-under-drag-item .reposition-slot.before-this {
+    opacity: 1;
   }
 
   .trashcan {
@@ -88,16 +100,23 @@ $lighter-border-color: #999;
   }
 }
 
-.widget-row {
+.workspace .widget-row {
+  padding: 5px 10px;
   display: flex;
   position: relative;
+
+  &:first-child { margin-top: 5px; }
+  &:last-child { margin-bottom: 5px; }
+}
+
+.toolbox .widget-row {
+  margin: 10px;
 }
 
 .widget {
   display: flex;
   flex-shrink: 0;
   padding: 5px;
-  margin: 5px;
   border: 1px solid $lighter-border-color;
   border-radius: 5px;
 
@@ -122,7 +141,7 @@ $lighter-border-color: #999;
     opacity: 0.2;
   }
 
-  &.is-dragging-over-trashcan, &.is-dragging-over-toolbox {
+  &.is-dragging-over-trashcan, &.is-dragging-over-toolbox, &.is-dragging-over-widget-row {
     .widget.is-dragging {
       opacity: 0;
     }
@@ -141,6 +160,9 @@ $lighter-border-color: #999;
 .widget-1 { background-color: #7bd887; }
 .widget-2 { background-color: #89c2ea; }
 .widget-3 { background-color: #e8a28d; }
+
+// this is just to make one of the widgets a different height
+.widget-2 { height: 50px; }
 
 .no-text-select {
   user-select: none;
