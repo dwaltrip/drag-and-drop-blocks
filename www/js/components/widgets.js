@@ -3,10 +3,13 @@ import m from 'mithril';
 import { configForDragItem, configForDropzone } from 'lib/m-utils/metal-dragon-helpers';
 import { WidgetNames } from 'models/widget'
 
+import widgetContent from 'components/widget-content';
+
 var WidgetComponents = {
   [WidgetNames.WIDGET1]: buildWidgetComponent('Widget 1', '.widget-1'),
   [WidgetNames.WIDGET2]: buildWidgetComponent('Widget 2', '.widget-2'),
-  [WidgetNames.WIDGET3]: buildWidgetComponent('Widget 3', '.widget-3')
+  [WidgetNames.WIDGET3]: buildWidgetComponent('Widget 3', '.widget-3'),
+  [WidgetNames.WIDGET4]: buildWidgetComponent('Widget 4', '.widget-4')
 };
 
 function buildWidgetComponent(title, className) {
@@ -83,10 +86,9 @@ function buildWidgetComponent(title, className) {
         config: isPotentialDropSlot ? controller.configDropzone : null,
       }, [
         isPotentialDropSlot ? m('.reposition-slot.before-this') : null,
-        m('.widget' + widgetClassList, { config: controller.configDragItem }, [
-          m('.widget-title', `${title} -- ${widget.uid()} -- ${widget.pos()}`),
-          m('.widget-slot')
-        ])
+        m('.widget' + widgetClassList, {
+          config: controller.configDragItem
+        }, widgetContent(widget, title, true))
       ])
     }
   };

@@ -55,7 +55,7 @@ $lighter-border-color: #999;
       bottom: -5px;
       height: 10px;
       width: 2px;
-      background: #555;
+      background: #aaa;
     }
 
     .reposition-slot.before-this {
@@ -111,6 +111,7 @@ $lighter-border-color: #999;
 
 .toolbox .widget-row {
   margin: 10px;
+  display: flex;
 }
 
 .widget {
@@ -148,18 +149,24 @@ $lighter-border-color: #999;
   }
 }
 
-.widget-slot {
-  display: flex;
-  width: 50px;
-  background-color: white;
-  margin-left: 10px;
-  border: 1px solid $lighter-border-color;
-  align-self: stretch;
+.widget {
+  .widget-slots {
+    align-self: stretch;display: flex;
+  }
+  .widget-slot {
+    display: flex;
+    width: 50px;
+    background-color: white;
+    margin-left: 10px;
+    border: 1px solid $lighter-border-color;
+    align-self: stretch;
+  }
 }
 
 .widget-1 { background-color: #7bd887; }
 .widget-2 { background-color: #89c2ea; }
 .widget-3 { background-color: #e8a28d; }
+.widget-4 { background-color: #f3ec9c; }
 
 // this is just to make one of the widgets a different height
 .widget-2 { height: 50px; }

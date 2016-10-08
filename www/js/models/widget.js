@@ -7,6 +7,7 @@ const WidgetNames = {
   WIDGET1: 'widget1',
   WIDGET2: 'widget2',
   WIDGET3: 'widget3',
+  WIDGET4: 'widget4'
 }
 
 var Widget = extend(Base, {
