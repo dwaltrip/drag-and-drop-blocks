@@ -17,7 +17,12 @@ var WORKSPACE_WIDGET_GROUP = 'workspace-widgets';
 
 export default {
   controller: function() {
-    this.workspace = Workspace.create();
+    var workspace = Workspace.query()[0];
+    if (!workspace) {
+      workspace = Workspace.create({name: 'test workspace', widgetIds: [] });
+      workspace.save();
+    }
+    this.workspace = workspace;
     this.widgetToMove = m.prop();
 
     this.metalDragon = MetalDragon.create({ eventHandlerDecorator });

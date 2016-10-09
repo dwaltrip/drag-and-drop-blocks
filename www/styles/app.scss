@@ -2,6 +2,10 @@
 $border-color: #555;
 $lighter-border-color: #999;
 
+$toolbox-bg: #ccc;
+$trashcan-bg: #ccc;
+$workspace-bg: #eee;
+
 .widget-editor {
   $widget-editor-margin: 10px;
   margin: $widget-editor-margin;
@@ -11,7 +15,7 @@ $lighter-border-color: #999;
 
 .toolbox {
   border: 1px solid $border-color;
-  background-color: #eee;
+  background-color: $toolbox-bg;
 
   .toolbox-header {
     padding: 10px;
@@ -45,6 +49,7 @@ $lighter-border-color: #999;
   border: 1px solid $border-color;
   border-left: none;
   overflow: auto;
+  background-color: $workspace-bg;
 
   .widget-row {
     &.has-bottom-connector::after {
@@ -107,7 +112,7 @@ $lighter-border-color: #999;
     display: flex;
     flex-grow: 0;
     padding: 10px;
-    background-color: #eee;
+    background-color: $trashcan-bg;
     border-top: 1px solid $border-color;
     justify-content: space-around;
     align-items: center;
@@ -171,13 +176,22 @@ $lighter-border-color: #999;
   .widget-slots {
     align-self: stretch;display: flex;
   }
-  .widget-slot {
+  .widget-slot, .inner-widget-section {
     display: flex;
     width: 50px;
+    min-height: 25px;
     background-color: white;
     margin-left: 10px;
     border: 1px solid $lighter-border-color;
     align-self: stretch;
+  }
+  .widget-slot {
+    border-radius: 4px;
+  }
+  .inner-widget-section {
+    min-height: 40px;
+    width: 80px;
+    background-color: $workspace-bg;
   }
 }
 
@@ -187,7 +201,7 @@ $lighter-border-color: #999;
 .widget-4 { background-color: #f3ec9c; }
 
 // this is just to make one of the widgets a different height
-.widget-2 { height: 50px; }
+// .widget-2 { height: 50px; }
 
 .no-text-select {
   user-select: none;

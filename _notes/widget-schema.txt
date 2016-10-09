@@ -1,0 +1,50 @@
+
+<WORKSPACE>
+  id: string
+  name: string
+  widgetIds: [string, ...]
+
+<WIDGET>
+  id: string
+  name: string
+  inputs: [<INPUT>, ...]
+  position: number
+
+<INPUT>
+  <WIDGET-INPUT> | <WIDGET-LIST> | <TEXT-INPUT>
+
+<WIDGET-INPUT>
+  - name: string
+  - input-type: 'WIDGET_INPUT' | 'WIDGET_LIST' | 'TEXT_INPUT'
+  - widget: <WIDGET>
+
+<WIDGET-LIST>
+  - name: string
+  - widgets: [<WIDGET>, ...]
+
+<TEXT-INPUT>
+  - name: string
+  - value: number | string | ??
+
+
+Example 1:
+
+var workspace = {
+  id: 1,
+  name: 'test workspace 1 2 3',
+  widgets: [1]
+};
+
+var widget = {
+  id: 1,
+  name: 'foo widget',
+  inputs: [{
+    name: 'firstInput',
+    type: 'WIDGET_INPUT'
+    widget: 5
+  }, {
+    name: 'someWidgetList',
+    type: 'WIDGET_LIST',
+    widgets: [11, 15, 33]
+  }]
+};

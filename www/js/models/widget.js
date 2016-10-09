@@ -1,7 +1,7 @@
 import Base from 'models/base';
 import extend from 'lib/object-extend';
 
-import { TABLES } from 'models/db-schema';
+import { WidgetTable } from 'models/db-schema';
 
 const WidgetNames = {
   WIDGET1: 'widget1',
@@ -11,24 +11,36 @@ const WidgetNames = {
 }
 
 var Widget = extend(Base, {
-  _fields: TABLES.Widget.fields,
-
-  NAMES: WidgetNames,
+  _fields: WidgetTable.fields,
+  tableName: WidgetTable.name,
 
   create: function(data) {
     var instance = Base.create.call(this, data);
+    // instance.inputs = parseInputs(instance.inputsJSON);
     return instance;
   },
 
-  tableName: TABLES.Widget.name,
-
   instance: extend(Base.instance, {
+    inputs: null,
+
     save: function() {
       this.class.maxPos = Math.max(this.class.maxPos, this.pos());
       return Base.instance.save.apply(this, arguments);
     }
   })
 });
+
+function parseInputs(inputs) {
+  return inputs.map(input => {
+    if (input.type === WIDGET_INPUT) {
+      // fetch the widget...
+    } else if (input.type === WIDGET_LIST) {
+      // fetch all the widgets
+    } else if (input.type === TEXT_INPUT) {
+      // blah
+    }
+  });
+}
 
 var widgetPosList = Widget.query().map(widget => widget.pos());
 // concat with 0 in case the list is empty

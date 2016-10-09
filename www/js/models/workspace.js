@@ -1,22 +1,39 @@
-// NOTE: this model doesn't have direct access to pre
+
+import Base from 'models/base';
+import extend from 'lib/object-extend';
+
+import { WorkspaceTable } from 'models/db-schema';
+import { removeFromArray } from 'lib/utils';
 
 import Widget from 'models/widget';
 import db from 'db';
 
-export default {
-  create: function() {
-    var instance = Object.create(this.instance);
-    instance.widgets = Widget.query();
+export default extend(Base, {
+  _fields: WorkspaceTable.fields,
+  tableName: WorkspaceTable.name,
+
+  create: function(data) {
+    var instance = Base.create.call(this, data);
+
+    var uidsAsHash = instance.widgetIds().reduce((memo, uid) => {
+      memo[uid] = true;
+      return memo;
+    }, {});
+
+    instance.widgets = Widget.query({ query: row => !!(row.uid in uidsAsHash) });
     instance.sortWidgets();
     instance.setPrevAndNextRefs();
+
     return instance;
   },
 
-  instance: {
+  instance: extend(Base.instance, {
     widgets: null,
 
     createWidget: function(name) {
-      return Widget.create({ name, data: 'foo', pos: null });
+      var widget = Widget.create({ name, inputs: [], pos: null });
+      widget.save();
+      return widget;
     },
 
     insertBefore: function(widget, referenceWidget) {
@@ -28,8 +45,10 @@ export default {
         widget.pos(newPos);
 
         // add to the list if it's not in the list
-        if (this.widgets.indexOf(widget) < 0) {
+        if (this.widgetIds().indexOf(widget.uid()) < 0) {
           this.widgets.push(widget);
+          this.widgetIds().push(widget.uid())
+          this.save();
         }
         // re-order the widgets, so the order matches the new pos values
         workspace.sortWidgets();
@@ -40,14 +59,20 @@ export default {
 
     removeWidget: function(widgetToDelete) {
       this.widgets = this.widgets.filter(w => w !== widgetToDelete);
+      removeFromArray(this.widgets, widgetToDelete)
+      removeFromArray(this.widgetIds(), widgetToDelete.uid());
+      this.save();
       widgetToDelete.delete();
       this.setPrevAndNextRefs();
     },
 
     appendWidget: function(widget) {
+      // TODO: this should be workspace.maxPos, not Widget.maxPos
       widget.pos(Widget.maxPos + 1);
       widget.save();
+      this.widgetIds().push(widget.uid());;
       this.widgets.push(widget);
+      this.save();
       this.setPrevAndNextRefs();
     },
 
@@ -84,5 +109,5 @@ export default {
         }
       });
     }
-  }
-};
+  })
+});

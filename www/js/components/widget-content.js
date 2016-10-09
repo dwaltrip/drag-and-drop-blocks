@@ -12,13 +12,16 @@ export default function(widget, title, isInWorkspace) {
 };
 
 function slotsForNestedWidget(widget) {
-  if (widget.name() === 'widget1') {
+  var name = widget.name();
+  if (name === 'widget1') {
     return null;
-  } else if (widget.name() === 'widget3') {
+  } else if (name === 'widget3') {
     return m('.widget-slots', [
       m('.widget-slot'),
       m('.widget-slot')
     ]);
+  } else if (name === 'widget4') {
+    return m('.inner-widget-section');
   } else {
     return m('.widget-slot');
   }
