@@ -16,14 +16,16 @@
 <WIDGET-INPUT>
   - name: string
   - input-type: 'WIDGET_INPUT' | 'WIDGET_LIST' | 'TEXT_INPUT'
-  - widget: <WIDGET>
+  - widgetId: <WIDGET>
 
 <WIDGET-LIST>
   - name: string
-  - widgets: [<WIDGET>, ...]
+  - input-type: 'WIDGET_INPUT' | 'WIDGET_LIST' | 'TEXT_INPUT'
+  - widgetIds: [<WIDGET>, ...]
 
 <TEXT-INPUT>
   - name: string
+  - input-type: 'WIDGET_INPUT' | 'WIDGET_LIST' | 'TEXT_INPUT'
   - value: number | string | ??
 
 
@@ -32,7 +34,7 @@ Example 1:
 var workspace = {
   id: 1,
   name: 'test workspace 1 2 3',
-  widgets: [1]
+  widgetIds: [1]
 };
 
 var widget = {
@@ -41,10 +43,10 @@ var widget = {
   inputs: [{
     name: 'firstInput',
     type: 'WIDGET_INPUT'
-    widget: 5
+    widgetId: 5
   }, {
     name: 'someWidgetList',
     type: 'WIDGET_LIST',
-    widgets: [11, 15, 33]
+    widgetIds: [11, 15, 33]
   }]
 };

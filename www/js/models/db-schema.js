@@ -6,7 +6,7 @@ const WorkspaceTable = {
 
 const WidgetTable = {
   name: 'widgets',
-  fields: ['name', 'inputsJSON', 'pos']
+  fields: ['name', 'inputs', 'pos']
 };
 
 const TABLES = [

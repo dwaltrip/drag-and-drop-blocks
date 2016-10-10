@@ -34,6 +34,10 @@ export default {
     }.bind(this));
   },
 
+  queryUIDs: function(uids) {
+    return this.query({ query: row => uids.indexOf(row.uid) > -1 });
+  },
+
   count: function() {
     return DB.rowCount(this.tableName);
   },

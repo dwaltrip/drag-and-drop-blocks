@@ -2,8 +2,10 @@ import m from 'mithril';
 
 import { WidgetNames } from 'models/widget'
 
-import widgetContent from 'components/widget-content';
+import widgetContentBuilder from 'components/widget-content';
 
+
+var widgetContent = widgetContentBuilder(lookupWidgetComponent);
 
 var WidgetComponents = {
   [WidgetNames.WIDGET1]: buildWidgetComponent('Widget 1', '.widget-1'),
@@ -11,6 +13,7 @@ var WidgetComponents = {
   [WidgetNames.WIDGET3]: buildWidgetComponent('Widget 3', '.widget-3'),
   [WidgetNames.WIDGET4]: buildWidgetComponent('Widget 4', '.widget-4')
 };
+
 
 function buildWidgetComponent(title, className) {
   return {
