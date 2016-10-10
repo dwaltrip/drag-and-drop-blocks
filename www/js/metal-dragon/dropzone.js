@@ -28,7 +28,14 @@ export default {
       instance.accepts = (accepts instanceof Array) ? accepts : [accepts];
       instance._restrictDropTypes = true;
     }
+    instance._isEligible = opts.isEligible;
 
+    // TODO: we are starting to have more functionality that is idential between dropzones
+    // and dragitems, such as this itemData stuff. Consider making a base class?
+    instance._itemData = {};
+    if (opts.itemData) {
+      Object.keys(opts.itemData).forEach(key => instance._itemData[key] = opts.itemData[key]);
+    }
     if (opts.element) {
       instance.attachToElement(opts.element);
     }
@@ -43,6 +50,8 @@ export default {
     _element: null, 
     _boundEventListeners: null,
     _isEnabled: true,
+    _itemData: null,
+    _isEligible: null,
 
     hasElement:       function() { return !!this._element; },
     isUnderDragItem:  function() { return this._isDraggingOver; },
@@ -53,8 +62,27 @@ export default {
       this._element = element;
     },
 
+    isEligible: function(dragItem) {
+      if (!this._isEligible) { return true; }
+      return this._isEligible(dragItem);
+    },
+
     disable:  function() {this._isEnabled = false; },
     enable:   function() { this._isEnabled = true; },
+
+    setItemData: function(key, value) {
+      this._itemData[key] = value;
+    },
+
+    getItemData: function(key) {
+      if (!(key in this._itemData)) {
+        throw new Error([
+          `DragItem ${this.id} has no itemData for key: ${key}.`,
+          `Existing keys: ${Object.keys(this._itemData)}`
+        ].join(' '));
+      }
+      return this._itemData[key];
+    },
 
     destroy: function() {
       this.manager.removeDropzone(this);
@@ -94,7 +122,7 @@ export default {
     },
 
     // TODO: not sure if this makes sense or is useful
-    unAttachFromElement: function() {
+    unattachFromElement: function() {
       this._element = null;
     },
 

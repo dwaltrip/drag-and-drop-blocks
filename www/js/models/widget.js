@@ -21,7 +21,7 @@ var Widget = extend(Base, {
   },
 
   instance: extend(Base.instance, {
-    inputs: null,
+    workspace: null,
 
     save: function() {
       this.class.maxPos = Math.max(this.class.maxPos, this.pos());

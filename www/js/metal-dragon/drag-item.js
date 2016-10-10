@@ -40,12 +40,18 @@ export default {
       }
     }
 
+    instance._itemData = {};
+    if (opts.itemData) {
+      Object.keys(opts.itemData).forEach(key => instance._itemData[key] = opts.itemData[key]);
+    }
+
     return instance;
   },
 
   instance: {
     manager: null,
     dragImage: null,
+    _itemData: null,
     _dragData: null,
     _element: null,
     _boundEventListeners: null,
@@ -58,15 +64,28 @@ export default {
       this._dragData[key] = value;
     },
 
-    getDragData: function(key, value) {
+    getDragData: function(key) {
       if (!(key in this._dragData)) {
-        var errorMsg = [
+        throw new Error([
           `DragItem ${this.id} has no dragData for key: ${key}.`,
           `Existing keys: ${Object.keys(this._dragData)}`
-        ].join(' ');
-        throw new Error(errorMsg);
+        ].join(' '));
       }
       return this._dragData[key];
+    },
+
+    setItemData: function(key, value) {
+      this._itemData[key] = value;
+    },
+
+    getItemData: function(key) {
+      if (!(key in this._itemData)) {
+        throw new Error([
+          `DragItem ${this.id} has no itemData for key: ${key}.`,
+          `Existing keys: ${Object.keys(this._itemData)}`
+        ].join(' '));
+      }
+      return this._itemData[key];
     },
 
     isAboveGroup: function(group) {
@@ -123,7 +142,7 @@ export default {
       this._dragHandle.addEventListener('mousedown', this._boundEventListeners.onmousedown)
     },
 
-    unAttachFromElement: function() {
+    unattachFromElement: function() {
       this._dragHandle.removeEventListener('mousedown', this._boundEventListeners.onmousedown);
       this._dragHandle.classList.remove(DRAG_HANDLE_CSS_CLASS);
       this._dragHandle = null;

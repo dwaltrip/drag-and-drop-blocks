@@ -31,6 +31,8 @@ export default {
     eventHandlerDecorator: null,
 
     activeDragItem: null,
+    // TODO: not sure if this is the best name.
+    // activeDropzones vs eligibleDropzones is slightly confusing
     activeDropzones: null,
 
     _potentialDropzones: null,
@@ -102,7 +104,7 @@ export default {
     onDrop: function() {
       var targetDropzone = this.targetDropzone();
       if (targetDropzone && targetDropzone.userEvents.onDrop) {
-        targetDropzone.userEvents.onDrop(this.activeDragItem);
+        targetDropzone.userEvents.onDrop.call(targetDropzone, this.activeDragItem);
       }
     },
 
@@ -139,14 +141,21 @@ export default {
       this.activeDragItem = dragItem;
       this.activeDropzones = [];
 
-      this._potentialDropzones = [];
+      this._eligibleDropzones = [];
+      this._ineligibleDropzones = [];
       // prep dropzones
       var dropzones = this.dropzonesByAcceptType[ACCEPT_ALL].concat(
         this.dropzonesByAcceptType[dragItem.group] || []
       );
+
       dropzones.forEach(dropzone => {
-        dropzone._prepForDragAndDrop();
-        this._potentialDropzones.push(dropzone);
+        if (dropzone.isEligible(dragItem)) {
+          dropzone._prepForDragAndDrop();
+          this._eligibleDropzones.push(dropzone);
+        } else {
+          dropzone.disable();
+          this._ineligibleDropzones.push(dropzone);
+        }
       });
     },
 
@@ -155,8 +164,11 @@ export default {
       this.activeDropzones = [];
 
       this._dragState = DRAG_STATE_NONE;
-      this._potentialDropzones.forEach(dropzone => dropzone._postDragCleanup());
-      this._potentialDropzones = [];
+      this._eligibleDropzones.forEach(dropzone => dropzone._postDragCleanup());
+      this._eligibleDropzones = [];
+
+      this._ineligibleDropzones.forEach(dropzone => dropzone.enable());
+      this._ineligibleDropzones = [];
     },
   }
 };

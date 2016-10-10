@@ -1,7 +1,6 @@
 import m from 'mithril';
 
 import { WidgetNames } from 'models/widget'
-import { configForDragItem } from 'lib/m-utils/metal-dragon-helpers';
 
 import widgetContent from 'components/widget-content';
 
@@ -18,12 +17,7 @@ function buildWidgetComponent(title, className, widgetName) {
     controller: function(params) {
       var self = this;
       var params = params || {};
-
-      this.dragItem = params.createDragItem({
-        onDragStart: ()=> this.dragItem.setDragData('widgetName', widgetName)
-      });
-
-      this.configDragItem = configForDragItem(this.dragItem);
+      this.dragItem = params.createDragItem(widgetName);
     },
 
     view: function(controller, params) {
@@ -32,7 +26,7 @@ function buildWidgetComponent(title, className, widgetName) {
 
       return m('.widget-row',
         m('.widget' + classList, {
-          config: controller.configDragItem
+          config: controller.dragItem.attachToElement
         }, widgetContent({ name: m.prop(widgetName) }, title))
       );
     }

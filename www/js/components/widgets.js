@@ -1,9 +1,9 @@
 import m from 'mithril';
 
-import { configForDragItem, configForDropzone } from 'lib/m-utils/metal-dragon-helpers';
 import { WidgetNames } from 'models/widget'
 
 import widgetContent from 'components/widget-content';
+
 
 var WidgetComponents = {
   [WidgetNames.WIDGET1]: buildWidgetComponent('Widget 1', '.widget-1'),
@@ -21,36 +21,8 @@ function buildWidgetComponent(title, className) {
       var widget = this.widget = params.widget;
       var workspace = params.workspace;
 
-      this.dragItem = params.createDragItem({
-        onDragStart: ()=> {
-          this.dragItem.setDragData('widget', widget);
-          this.widgetToMoveProp(widget);
-          this.dropzone.disable();
-          if (widget.nextWidget) {
-            widget.nextWidget.dropzone.disable();
-          }
-        }
-      });
-
-      // TODO: adding a reference to the dropzone on the widget model is BAD!!
-      // I think my data model & component organization needs to be improved.
-      // Things are getting a little messy
-      widget.dropzone = this.dropzone = params.metalDragon.createDropzone({
-        group: 'widget-row',
-        accepts: ['toolbox-widgets', 'workspace-widgets'],
-        onDrop: (dragItem)=> {
-          if (dragItem.group === 'workspace-widgets') {
-            workspace.insertBefore(this.widgetToMoveProp(), widget);
-            this.widgetToMoveProp().save();
-          } else {
-            var newWidget = workspace.createWidget(dragItem.getDragData('widgetName'))
-            workspace.insertBefore(newWidget, widget);
-          }
-        }
-      });
-
-      this.configDragItem = configForDragItem(this.dragItem);
-      this.configDropzone = configForDropzone(this.dropzone);
+      this.dragItem = params.createDragItem(widget);
+      this.dropzone = params.createDropzone(widget);
 
       this.onunload = ()=> {
         this.dragItem.destroy();
@@ -58,6 +30,9 @@ function buildWidgetComponent(title, className) {
       };
     },
 
+    // TODO: can I refactor this view? there is lots of crazy logic in here...
+    // Perhaps we can make more improvements to metalDragon API that will help.
+    // Or just find a better way of organizing this component and its different states
     view: function(controller, params) {
       var params = params || {};
       var widget = controller.widget;
@@ -83,11 +58,12 @@ function buildWidgetComponent(title, className) {
 
       return m('.widget-row' + widgetRowClassList, {
         key: widget.uid(),
-        config: isPotentialDropSlot ? controller.configDropzone : null,
+        // TODO: do we need this check, now that we have the `isEligible` parameter for dropzones?
+        config: isPotentialDropSlot ? controller.dropzone.attachToElement : null,
       }, [
         isPotentialDropSlot ? m('.reposition-slot.before-this') : null,
         m('.widget' + widgetClassList, {
-          config: controller.configDragItem
+          config: controller.dragItem.attachToElement
         }, widgetContent(widget, title, true))
       ])
     }

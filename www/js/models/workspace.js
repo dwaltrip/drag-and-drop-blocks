@@ -21,6 +21,7 @@ export default extend(Base, {
     }, {});
 
     instance.widgets = Widget.query({ query: row => !!(row.uid in uidsAsHash) });
+    instance.widgets.forEach(widget => widget.workspace = instance);
     instance.sortWidgets();
     instance.setPrevAndNextRefs();
 
@@ -33,6 +34,7 @@ export default extend(Base, {
     createWidget: function(name) {
       var widget = Widget.create({ name, inputs: [], pos: null });
       widget.save();
+      widget.workspace = this;
       return widget;
     },
 
@@ -44,12 +46,7 @@ export default extend(Base, {
         var newPos = (min + max) / 2.0;
         widget.pos(newPos);
 
-        // add to the list if it's not in the list
-        if (this.widgetIds().indexOf(widget.uid()) < 0) {
-          this.widgets.push(widget);
-          this.widgetIds().push(widget.uid())
-          this.save();
-        }
+        this.addWidgetIfNeeded(widget);
         // re-order the widgets, so the order matches the new pos values
         workspace.sortWidgets();
       } else {
@@ -70,9 +67,8 @@ export default extend(Base, {
       // TODO: this should be workspace.maxPos, not Widget.maxPos
       widget.pos(Widget.maxPos + 1);
       widget.save();
-      this.widgetIds().push(widget.uid());;
-      this.widgets.push(widget);
-      this.save();
+      this.addWidgetIfNeeded(widget);
+      this.sortWidgets();
       this.setPrevAndNextRefs();
     },
 
@@ -91,6 +87,9 @@ export default extend(Base, {
       db.commit();
     },
 
+    // TODO: add code to Widget model that removes the need to
+    // manually update all of these references. Should just be a function call
+    //  [isFirstWidget, isLastWidget, prevWidget, nextWidget]
     setPrevAndNextRefs: function() {
       this.widgets.forEach((widget, index)=> {
         widget.prevWidget = widget.nextWidget = null;
@@ -108,6 +107,16 @@ export default extend(Base, {
           widget.isLastWidget = true;
         }
       });
+    },
+
+    addWidgetIfNeeded: function(widget) {
+      // add to the list if it's not in the list
+      if (this.widgetIds().indexOf(widget.uid()) < 0) {
+        this.widgets.push(widget);
+        this.widgetIds().push(widget.uid())
+        widget.workspace = this;
+        this.save();
+      }
     }
   })
 });

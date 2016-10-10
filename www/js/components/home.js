@@ -8,12 +8,12 @@ import { lookupWidgetComponent } from 'components/widgets';
 import ToolboxWidgets from 'components/toolbox-widgets';
 import unicode from 'lib/unicode-characters';
 
-import { configForDropzone } from 'lib/m-utils/metal-dragon-helpers';
 import MetalDragon from 'metal-dragon';
+import { mithrilifyMetalDragon } from 'lib/m-utils/metal-dragon-helpers';
 
-var TOOLBOX_WIDGET_GROUP = 'toolbox-widgets';
-var WORKSPACE_WIDGET_GROUP = 'workspace-widgets';
 
+var TOOLBOX_WIDGETS = 'toolbox-widgets';
+var WORKSPACE_WIDGETS = 'workspace-widgets';
 
 export default {
   controller: function() {
@@ -22,63 +22,77 @@ export default {
       workspace = Workspace.create({name: 'test workspace', widgetIds: [] });
       workspace.save();
     }
-    this.workspace = workspace;
-    this.widgetToMove = m.prop();
+    var workspace = this.workspace = workspace;
+    var widgetToMove = this.widgetToMove = m.prop();
 
-    this.metalDragon = MetalDragon.create({ eventHandlerDecorator });
-    this.createDraggableToolboxWidget = (opts) => {
+    this.metalDragon = mithrilifyMetalDragon(MetalDragon.create({ eventHandlerDecorator }));
+
+    this.createToolboxWidgetDragItem = (widgetName)=> {
       return this.metalDragon.createDragItem({
-        group: TOOLBOX_WIDGET_GROUP,
+        group: TOOLBOX_WIDGETS,
+        itemData: { widgetName },
         dragHandle: 'widget-title',
-        onDragStart: opts.onDragStart
+        boundingContainer: 'widget-editor'
       });
     };
 
-    this.createDraggableWorkspaceWidget = (opts) => {
+    this.createWorkspaceWidgetDragItem = (widget)=> {
       return this.metalDragon.createDragItem({
-        group: WORKSPACE_WIDGET_GROUP,
+        group: WORKSPACE_WIDGETS,
+        itemData: { widget },
         dragHandle: 'widget-title',
         boundingContainer: 'widget-editor',
-        onDragStart: opts.onDragStart,
-        onDrop: ()=> {
-          this.widgetToMove(null);
-          // TODO: this is strange & pretty hacky
-          this.workspace.widgets.forEach(w => w.dropzone.enable());
+        onDragStart: ()=> widgetToMove(widget),
+        onDrop: ()=> widgetToMove(null)
+      });
+    };
+
+    this.createWorkspaceWidgetDropzone = (widget)=> {
+      return this.metalDragon.createDropzone({
+        group: 'widget-row',
+        accepts: [TOOLBOX_WIDGETS, WORKSPACE_WIDGETS],
+        itemData: { widget },
+        isEligible: function(dragItem) {
+          return dragItem.group === TOOLBOX_WIDGETS ||
+            this.getItemData('widget') !== dragItem.getItemData('widget');
+        },
+        onDrop: function(dragItem) {
+          var widget = this.getItemData('widget');
+          if (dragItem.group === WORKSPACE_WIDGETS) {
+            workspace.insertBefore(widgetToMove(), widget);
+          } else {
+            var newWidget = workspace.createWidget(dragItem.getItemData('widgetName'))
+            workspace.insertBefore(newWidget, widget);
+          }
         }
       });
     };
 
     this.createTrashcanDropzone = ()=> {
       return this.metalDragon.createDropzone({
-        accepts: WORKSPACE_WIDGET_GROUP,
+        accepts: WORKSPACE_WIDGETS,
         group: 'trashcan',
-        onDrop: (dragItem) => {
-          var widget = dragItem.getDragData('widget');
-          this.workspace.removeWidget(widget);
-        }
+        // TODO: this doesnt allow us to trash toolbox widgets
+        onDrop: (dragItem) => workspace.removeWidget(dragItem.getItemData('widget'))
       });
     };
 
     this.trashcanDropzone = this.createTrashcanDropzone();
     this.toolboxDropzone = this.createTrashcanDropzone();
+
+    // TODO: I should be able to make this attach to the entire workspace, instead of the blank space only?
+    // The widget rows should take precedence over the workspace container.
     this.workspaceMarginDZ = this.metalDragon.createDropzone({
-      accepts: [WORKSPACE_WIDGET_GROUP, TOOLBOX_WIDGET_GROUP],
+      accepts: [WORKSPACE_WIDGETS, TOOLBOX_WIDGETS],
       onDrop: (dragItem)=> {
-        if (dragItem.group === WORKSPACE_WIDGET_GROUP) {
-          var widget = dragItem.getDragData('widget');
-          widget.pos(Widget.maxPos + 1);
-          widget.save();
-          workspace.sortWidgets();
+        if (dragItem.group === WORKSPACE_WIDGETS) {
+          workspace.appendWidget(dragItem.getItemData('widget'));
         } else {
-          var newWidget = workspace.createWidget(dragItem.getDragData('widgetName'))
+          var newWidget = workspace.createWidget(dragItem.getItemData('widgetName'))
           workspace.appendWidget(newWidget);
         }
       }
     });
-
-    this.configTrashcanDropzone = configForDropzone(this.trashcanDropzone);
-    this.configToolboxDropzone = configForDropzone(this.toolboxDropzone);
-    this.configWorkspaceMarginDZ = configForDropzone(this.workspaceMarginDZ);
   },
 
   view: function(controller) {
@@ -90,7 +104,7 @@ export default {
     var isTrashcanActive = controller.trashcanDropzone.isUnderDragItem();
     var isToolboxActive = controller.toolboxDropzone.isUnderDragItem();
     var isWorkspaceMarginActive = controller.workspaceMarginDZ.isUnderDragItem() && (
-      controller.metalDragon.activeDragItem.group === TOOLBOX_WIDGET_GROUP ||
+      controller.metalDragon.activeDragItem.group === TOOLBOX_WIDGETS ||
       !controller.widgetToMove().isLastWidget
     );
 
@@ -105,15 +119,17 @@ export default {
     ].join('')
 
     return m('.widget-editor.no-text-select' + widgetEditorClassList, [
-      m('.toolbox', { config: controller.configToolboxDropzone }, [
+      m('.toolbox', { config: controller.toolboxDropzone.attachToElement }, [
         m('.toolbox-header', 'Toolbox'),
         m('.toolbox-widgets', ToolboxWidgets.map(Component => {
           return m('.toolbox-section', m(Component, {
-            createDragItem: controller.createDraggableToolboxWidget
+            createDragItem: controller.createToolboxWidgetDragItem
           }))
         }))
       ]),
 
+      // TODO: move this workspace stuff into its own Workspace component
+      // also, rename Home component to WidgetEditor component
       m('.workspace', [
         m('.widget-list', widgets.map(widget => {
           return m(lookupWidgetComponent(widget.name()), {
@@ -121,16 +137,14 @@ export default {
             widget,
             workspace,
             widgetToMove: controller.widgetToMove,
-            metalDragon: controller.metalDragon,
-            createDragItem: controller.createDraggableWorkspaceWidget
+            createDragItem: controller.createWorkspaceWidgetDragItem,
+            createDropzone: controller.createWorkspaceWidgetDropzone
           });
         })),
         m('.workspace-margin' + (isWorkspaceMarginActive ? '.is-under-drag-item' : ''),
-          { config: controller.configWorkspaceMarginDZ }),
+          { config: controller.workspaceMarginDZ.attachToElement }),
 
-        m('.trashcan', {
-          config: controller.configTrashcanDropzone
-        }, [
+        m('.trashcan', { config: controller.trashcanDropzone.attachToElement }, [
           m('.arrow', m.trust(unicode.rightArrowWhite)),
           m('.text', m.trust(`${unicode.wasteBasket} Remove`)),
           m('.arrow', m.trust(unicode.leftArrowWhite))
