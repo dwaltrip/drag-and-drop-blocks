@@ -15,12 +15,7 @@ export default extend(Base, {
   create: function(data) {
     var instance = Base.create.call(this, data);
 
-    var uidsAsHash = instance.widgetIds().reduce((memo, uid) => {
-      memo[uid] = true;
-      return memo;
-    }, {});
-
-    instance.widgets = Widget.query({ query: row => !!(row.uid in uidsAsHash) });
+    instance.widgets = Widget.queryUIDs(instance.widgetIds());
     instance.widgets.forEach(widget => widget.workspace = instance);
     instance.sortWidgets();
     instance.setPrevAndNextRefs();
@@ -31,8 +26,8 @@ export default extend(Base, {
   instance: extend(Base.instance, {
     widgets: null,
 
-    createWidget: function(name) {
-      var widget = Widget.create({ name, inputs: [], pos: null });
+    createWidget: function(type) {
+      var widget = Widget.create({ type, inputs: [], pos: null });
       widget.save();
       widget.workspace = this;
       return widget;
@@ -64,8 +59,7 @@ export default extend(Base, {
     },
 
     appendWidget: function(widget) {
-      // TODO: this should be workspace.maxPos, not Widget.maxPos
-      widget.pos(Widget.maxPos + 1);
+      widget.pos(this.maxPos() + 1);
       widget.save();
       this.addWidgetIfNeeded(widget);
       this.sortWidgets();
@@ -76,6 +70,11 @@ export default extend(Base, {
       this.widgets.sort((a,b) => a.pos() - b.pos());
       this.normalizePosValues();
       this.setPrevAndNextRefs();
+    },
+
+    maxPos: function() {
+      var lastWidget = this.widgets[this.widgets.length - 1];
+      return lastWidget ? lastWidget.pos() : 0;
     },
 
     // re-normalize pos values to integers (preserving order)

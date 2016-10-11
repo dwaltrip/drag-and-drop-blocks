@@ -3,15 +3,15 @@ import m from 'mithril';
 export default function(lookupWidgetComponent) {
 
   function slotsForNestedWidget(widget) {
-    var name = widget.name();
-    if (name === 'widget1') {
+    var type = widget.type();
+    if (type === 'widget1') {
       return null;
-    } else if (name === 'widget3') {
+    } else if (type === 'widget3') {
       return m('.widget-slots', [
         m('.widget-slot'),
         m('.widget-slot')
       ]);
-    } else if (name === 'widget4') {
+    } else if (type === 'widget4') {
       return m('.inner-widget-section');
     } else {
       var fooWidget = widget.getInput('foo-input');
@@ -20,7 +20,7 @@ export default function(lookupWidgetComponent) {
   }
 
   function widgetSlot(widget) {
-    var slotContent = widget ? m(lookupWidgetComponent(widget.name()), {
+    var slotContent = widget ? m(lookupWidgetComponent(widget.type()), {
       widget,
       // uh we dont have all the shit we need. see line 119 of components/home.js
       // *********

@@ -27,10 +27,10 @@ export default {
 
     this.metalDragon = mithrilifyMetalDragon(MetalDragon.create({ eventHandlerDecorator }));
 
-    this.createToolboxWidgetDragItem = (widgetName)=> {
+    this.createToolboxWidgetDragItem = (widgetType)=> {
       return this.metalDragon.createDragItem({
         group: TOOLBOX_WIDGETS,
-        itemData: { widgetName },
+        itemData: { widgetType },
         dragHandle: 'widget-title',
         boundingContainer: 'widget-editor'
       });
@@ -61,7 +61,7 @@ export default {
           if (dragItem.group === WORKSPACE_WIDGETS) {
             workspace.insertBefore(widgetToMove(), widget);
           } else {
-            var newWidget = workspace.createWidget(dragItem.getItemData('widgetName'))
+            var newWidget = workspace.createWidget(dragItem.getItemData('widgetType'))
             workspace.insertBefore(newWidget, widget);
           }
         }
@@ -88,7 +88,7 @@ export default {
         if (dragItem.group === WORKSPACE_WIDGETS) {
           workspace.appendWidget(dragItem.getItemData('widget'));
         } else {
-          var newWidget = workspace.createWidget(dragItem.getItemData('widgetName'))
+          var newWidget = workspace.createWidget(dragItem.getItemData('widgetType'))
           workspace.appendWidget(newWidget);
         }
       }
@@ -132,7 +132,7 @@ export default {
       // also, rename Home component to WidgetEditor component
       m('.workspace', [
         m('.widget-list', widgets.map(widget => {
-          return m(lookupWidgetComponent(widget.name()), {
+          return m(lookupWidgetComponent(widget.type()), {
             key: widget.uid(),
             widget,
             workspace,

@@ -3,7 +3,7 @@ import extend from 'lib/object-extend';
 
 import { WidgetTable } from 'models/db-schema';
 
-const WidgetNames = {
+const WidgetTypes = {
   WIDGET1: 'widget1',
   WIDGET2: 'widget2',
   WIDGET3: 'widget3',
