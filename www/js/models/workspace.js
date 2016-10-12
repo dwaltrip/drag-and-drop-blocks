@@ -13,8 +13,7 @@ export default extendBaseModel({
   create: function(data) {
     var instance = Base.create.call(this, data);
 
-    instance.widgets = Widget.queryUIDs(instance.widgetIds());
-    instance.widgets.forEach(widget => widget.workspace = instance);
+    instance.rootWidgets = instance.getRootWidgets();
     instance.sortWidgets();
     instance.setPrevAndNextRefs();
 
@@ -22,13 +21,20 @@ export default extendBaseModel({
   },
 
   instance: {
-    widgets: null,
+    rootWidgets: null,
+
+    allWidgets: function() {
+      return Widget.query({ query: { workspace: this.uid() } });
+    },
+
+    getRootWidgets: function() {
+      var widgets = this.allWidgets().filter(widget => widget.isRoot());
+      widgets.sort((w1, w2) => w1.pos() - w2.pos());
+      return widgets;
+    },
 
     createWidget: function(type) {
-      var widget = Widget.create({ type, inputs: [], pos: null });
-      widget.save();
-      widget.workspace = this;
-      return widget;
+      return Widget.create({ type, workspace: this.uid() });
     },
 
     insertBefore: function(widget, referenceWidget) {
@@ -48,10 +54,7 @@ export default extendBaseModel({
     },
 
     removeWidget: function(widgetToDelete) {
-      this.widgets = this.widgets.filter(w => w !== widgetToDelete);
-      removeFromArray(this.widgets, widgetToDelete)
-      removeFromArray(this.widgetIds(), widgetToDelete.uid());
-      this.save();
+      removeFromArray(this.rootWidgets, widgetToDelete)
       widgetToDelete.delete();
       this.setPrevAndNextRefs();
     },
@@ -65,41 +68,32 @@ export default extendBaseModel({
     },
 
     sortWidgets: function() {
-      this.widgets.sort((a,b) => a.pos() - b.pos());
+      this.rootWidgets.sort((w1, w2) => w1.pos() - w2.pos());
       this.normalizePosValues();
       this.setPrevAndNextRefs();
     },
 
     maxPos: function() {
-      var lastWidget = this.widgets[this.widgets.length - 1];
+      var lastWidget = this.rootWidgets.slice(-1).pop();
       return lastWidget ? lastWidget.pos() : 0;
-    },
-
-    // re-normalize pos values to integers (preserving order)
-    normalizePosValues: function() {
-      this.widgets.forEach((widget, index)=> {
-        widget.pos(index + 1);
-        widget.save({ isBatch: true });
-      });
-      db.commit();
     },
 
     // TODO: add code to Widget model that removes the need to
     // manually update all of these references. Should just be a function call
     //  [isFirstWidget, isLastWidget, prevWidget, nextWidget]
     setPrevAndNextRefs: function() {
-      this.widgets.forEach((widget, index)=> {
+      this.rootWidgets.forEach((widget, index)=> {
         widget.prevWidget = widget.nextWidget = null;
         widget.isFirstWidget = widget.isLastWidget = false;
 
         if (index > 0) {
-          widget.prevWidget = this.widgets[index - 1];
+          widget.prevWidget = this.rootWidgets[index - 1];
         } else {
           widget.isFirstWidget = true;
         }
 
-        if (index < (this.widgets.length - 1)) {
-          widget.nextWidget = this.widgets[index + 1];
+        if (index < (this.rootWidgets.length - 1)) {
+          widget.nextWidget = this.rootWidgets[index + 1];
         } else {
           widget.isLastWidget = true;
         }
@@ -108,12 +102,21 @@ export default extendBaseModel({
 
     addWidgetIfNeeded: function(widget) {
       // add to the list if it's not in the list
-      if (this.widgetIds().indexOf(widget.uid()) < 0) {
-        this.widgets.push(widget);
-        this.widgetIds().push(widget.uid())
-        widget.workspace = this;
-        this.save();
+      if (this.rootWidgets.indexOf(widget) < 0) {
+        this.rootWidgets.push(widget);
+        widget.workspace(this.uid());
+        widget.makeRoot();
+        widget.save();
       }
+    },
+
+    // re-normalize pos values to integers (preserving order)
+    normalizePosValues: function() {
+      this.rootWidgets.forEach((widget, index)=> {
+        widget.pos(index + 1);
+        widget.save({ isBatch: true });
+      });
+      db.commit();
     }
   }
 });

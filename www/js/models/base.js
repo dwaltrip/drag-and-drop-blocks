@@ -14,6 +14,10 @@ var Base = {
     var instance = Object.create(this.instance);
     instance.class = this;
     instance.setFields(data || {});
+
+    // NOTE: I just added this. So far, we never create a new record without saving it.
+    // Not sure if that assumption will always be true.
+    if (instance.isNew()) { instance.save(); }
     return instance;
   },
 
@@ -104,7 +108,7 @@ var Base = {
             this[field] = m.prop(val);
           }
         } else {
-          this[field] = m.prop();
+          this[field] = m.prop(null);
         }
       });
       this.uid = helpers.readOnlyProp(m.prop(data.uid || null));

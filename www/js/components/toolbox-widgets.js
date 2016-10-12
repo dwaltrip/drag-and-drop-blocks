@@ -19,6 +19,7 @@ function buildWidgetComponent(title, className, widgetType) {
       var self = this;
       var params = params || {};
       this.dragItem = params.createDragItem(widgetType);
+      this.widget = { type: m.prop(widgetType) };
     },
 
     view: function(controller, params) {
@@ -28,7 +29,7 @@ function buildWidgetComponent(title, className, widgetType) {
       return m('.widget-row',
         m('.widget' + classList, {
           config: controller.dragItem.attachToElement
-        }, widgetContent({ type: m.prop(widgetType), getInput: ()=> null }, title))
+        }, widgetContent(controller.widget, title))
       );
     }
   };

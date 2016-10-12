@@ -14,8 +14,8 @@ export default function(lookupWidgetComponent) {
     } else if (type === 'widget4') {
       return m('.inner-widget-section');
     } else {
-      var fooWidget = widget.getInput('foo-input');
-      return widgetSlot(fooWidget);
+      // TODO: figure out how this will work
+      return widgetSlot(null);
     }
   }
 

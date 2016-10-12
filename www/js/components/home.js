@@ -19,8 +19,7 @@ export default {
   controller: function() {
     var workspace = Workspace.query()[0];
     if (!workspace) {
-      workspace = Workspace.create({name: 'test workspace', widgetIds: [] });
-      workspace.save();
+      workspace = Workspace.create({name: 'test workspace' });
     }
     var workspace = this.workspace = workspace;
     var widgetToMove = this.widgetToMove = m.prop();
@@ -98,7 +97,7 @@ export default {
   view: function(controller) {
     var workspace = controller.workspace;
     window.workspace = workspace;
-    var widgets = workspace.widgets;
+    var widgets = workspace.rootWidgets;
 
     var isDragging = controller.metalDragon.isMidDrag();
     var isTrashcanActive = controller.trashcanDropzone.isUnderDragItem();
