@@ -1,16 +1,18 @@
 import m from 'mithril';
 
+import addIdentityMap from 'models/add-identity-map';
 import DB from 'db';
+import extend from 'lib/object-extend';
 import { randBase64String, isUndefOrNull } from 'lib/utils';
 import helpers from 'lib/mithril-helpers';
 
-export default {
+
+var Base = {
   _fields: [],
 
   create: function(data) {
     var instance = Object.create(this.instance);
     instance.class = this;
-
     instance.setFields(data || {});
     return instance;
   },
@@ -129,3 +131,11 @@ export default {
     }
   }
 };
+
+function extendBaseModel(Model, params) {
+  Model.instance = extend(Base.instance, Model.instance);
+  Model = extend(Base, Model);
+  return addIdentityMap(Model);
+}
+
+export { Base, extendBaseModel };

@@ -1,6 +1,4 @@
-import Base from 'models/base';
-import extend from 'lib/object-extend';
-
+import { extendBaseModel, Base } from 'models/base';
 import { WidgetTable } from 'models/db-schema';
 
 const WidgetTypes = {
@@ -14,7 +12,7 @@ const WIDGET_INPUT ='WIDGET_INPUT';
 const WIDGET_LIST ='WIDGET_LIST';
 const TEXT_INPUT = 'TEXT_INPUT';
 
-var Widget = extend(Base, {
+var Widget = extendBaseModel({
   _fields: WidgetTable.fields,
   tableName: WidgetTable.name,
 
@@ -31,7 +29,7 @@ var Widget = extend(Base, {
     }
   },
 
-  instance: extend(Base.instance, {
+  instance: {
     workspace: null,
 
     getInput: function() { return null; },
@@ -40,7 +38,7 @@ var Widget = extend(Base, {
       this.class.maxPos = Math.max(this.class.maxPos, this.pos());
       return Base.instance.save.apply(this, arguments);
     }
-  })
+  }
 });
 
 function deserializeInputs(inputs) {
@@ -75,4 +73,4 @@ var widgetPosList = Widget.query().map(widget => widget.pos());
 // concat with 0 in case the list is empty
 Widget.maxPos = Math.max.apply(Math, widgetPosList.concat([0]));
 
-export { Widget as default, WidgetNames };
+export { Widget as default, WidgetTypes };

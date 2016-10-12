@@ -1,14 +1,12 @@
 
-import Base from 'models/base';
-import extend from 'lib/object-extend';
-
+import { extendBaseModel, Base } from 'models/base';
 import { WorkspaceTable } from 'models/db-schema';
 import { removeFromArray } from 'lib/utils';
 
 import Widget from 'models/widget';
 import db from 'db';
 
-export default extend(Base, {
+export default extendBaseModel({
   _fields: WorkspaceTable.fields,
   tableName: WorkspaceTable.name,
 
@@ -23,7 +21,7 @@ export default extend(Base, {
     return instance;
   },
 
-  instance: extend(Base.instance, {
+  instance: {
     widgets: null,
 
     createWidget: function(type) {
@@ -117,5 +115,5 @@ export default extend(Base, {
         this.save();
       }
     }
-  })
+  }
 });
