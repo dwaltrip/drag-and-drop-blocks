@@ -15,6 +15,8 @@ import { mithrilifyMetalDragon } from 'lib/m-utils/metal-dragon-helpers';
 var TOOLBOX_WIDGETS = 'toolbox-widgets';
 var WORKSPACE_WIDGETS = 'workspace-widgets';
 
+window.Workspace = Workspace;
+
 export default {
   controller: function() {
     var workspace = Workspace.query()[0];

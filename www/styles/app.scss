@@ -178,7 +178,7 @@ $workspace-bg: #eee;
   }
   .widget-slot, .inner-widget-section {
     display: flex;
-    width: 50px;
+    min-width: 50px;
     min-height: 25px;
     background-color: white;
     margin-left: 10px;
@@ -186,12 +186,23 @@ $workspace-bg: #eee;
     align-self: stretch;
   }
   .widget-slot {
-    border-radius: 4px;
+    border-radius: 6px;
   }
   .inner-widget-section {
     min-height: 40px;
-    width: 80px;
+    min-width: 80px;
     background-color: $workspace-bg;
+  }
+}
+
+.workspace .widget-slot {
+  &> .widget-row {
+    margin: 0;
+    padding: 0;
+
+    &.has-bottom-connector::after {
+      display: none;
+    }
   }
 }
 

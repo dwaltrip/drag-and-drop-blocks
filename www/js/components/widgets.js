@@ -65,9 +65,14 @@ function buildWidgetComponent(title, className) {
         config: isPotentialDropSlot ? controller.dropzone.attachToElement : null,
       }, [
         isPotentialDropSlot ? m('.reposition-slot.before-this') : null,
-        m('.widget' + widgetClassList, {
-          config: controller.dragItem.attachToElement
-        }, widgetContent(widget, title, true))
+        m('.widget' + widgetClassList, { config: controller.dragItem.attachToElement },
+          widgetContent(widget, title, {
+            isInWorkspace: true,
+            widgetToMove: params.widgetToMove,
+            createDragItem: params.createDragItem,
+            createDropzone: params.createDropzone
+          })
+        )
       ])
     }
   };

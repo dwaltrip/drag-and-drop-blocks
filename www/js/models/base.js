@@ -136,10 +136,10 @@ var Base = {
   }
 };
 
-function extendBaseModel(Model, params) {
-  Model.instance = extend(Base.instance, Model.instance);
-  Model = extend(Base, Model);
+function extendModel(BaseModel, Model, params) {
+  Model.instance = extend(BaseModel.instance, Model.instance || {});
+  Model = extend(BaseModel, Model);
   return addIdentityMap(Model);
 }
 
-export { Base, extendBaseModel };
+export { Base, extendModel };

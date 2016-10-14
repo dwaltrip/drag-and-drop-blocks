@@ -1,12 +1,12 @@
 
-import { extendBaseModel, Base } from 'models/base';
+import { extendModel, Base } from 'models/base';
 import { WorkspaceTable } from 'models/db-schema';
 import { removeFromArray } from 'lib/utils';
 
 import Widget from 'models/widget';
 import db from 'db';
 
-export default extendBaseModel({
+export default extendModel(Base, {
   _fields: WorkspaceTable.fields,
   tableName: WorkspaceTable.name,
 

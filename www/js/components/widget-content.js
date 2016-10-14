@@ -1,42 +1,62 @@
 import m from 'mithril';
 
+import { WidgetTypes } from 'models/widget';
+
 export default function(lookupWidgetComponent) {
 
-  function slotsForNestedWidget(widget) {
-    var type = widget.type();
-    if (type === 'widget1') {
-      return null;
-    } else if (type === 'widget3') {
+  var nestedContentViewFunctionLookup = {
+    [WidgetTypes.WIDGET1]: (widget, opts) => null,
+
+    [WidgetTypes.WIDGET2]: (widget, opts)=> {
+      var fooWidget = opts.isInWorkspace ? widget.getFooWidget() : null;
+      return widgetSlot(nestedWidget(fooWidget, opts));
+    },
+
+    [WidgetTypes.WIDGET3]: (widget, opts)=> {
       return m('.widget-slots', [
-        m('.widget-slot'),
-        m('.widget-slot')
+        widgetSlot(),
+        widgetSlot()
       ]);
-    } else if (type === 'widget4') {
-      return m('.inner-widget-section');
-    } else {
-      // TODO: figure out how this will work
-      return widgetSlot(null);
+    },
+
+    [WidgetTypes.WIDGET4]: (widget, opts)=> {
+      var fooWidgetList = opts.isInWorkspace ? widget.getFooWidgetList() : null;
+      return m('.inner-widget-section', fooWidgetList ?
+        fooWidgetList.map(listWidget => nestedWidget(listWidget, opts)) :
+        null
+      );
     }
-  }
+  };
 
-  function widgetSlot(widget) {
-    var slotContent = widget ? m(lookupWidgetComponent(widget.type()), {
-      widget,
-      // uh we dont have all the shit we need. see line 119 of components/home.js
-      // *********
-    }) : null;
-
-    return m('.widget-slot', slotContent);
-  }
-
-  return function(widget, title, isInWorkspace) {
-    var titleContent = isInWorkspace ?
+  return function(widget, title, opts) {
+    var opts = opts || {};
+    var debuggingTitle = opts.isInWorkspace ?
       `${title} -- ${widget.uid()} -- ${widget.pos()}` : title;
 
     return [
-      // m('.widget-title', titleContent),
+      // m('.widget-title', debuggingTitle),
       m('.widget-title', title),
-      slotsForNestedWidget(widget)
+      nestedContent(widget, opts)
     ];
   };
+
+  function nestedContent(widget, opts) {
+    return nestedContentViewFunctionLookup[widget.type()](widget, opts);
+  }
+
+  function nestedWidget(widget, opts) {
+    if (opts.isInWorkspace) {
+      //var childWidget = !!childWidget && childWidget.widget;
+      return !!widget ? m(lookupWidgetComponent(widget.type()), {
+        widget,
+        widgetToMove: opts.widgetToMove,
+        createDragItem: opts.createDragItem,
+        createDropzone: opts.createDropzone
+      }) : null;
+    }
+  }
+
+  function widgetSlot(slotContent) {
+    return m('.widget-slot', slotContent);
+  }
 };
