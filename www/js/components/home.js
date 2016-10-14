@@ -16,6 +16,12 @@ var TOOLBOX_WIDGETS = 'toolbox-widgets';
 var WORKSPACE_WIDGETS = 'workspace-widgets';
 
 window.Workspace = Workspace;
+window.printAllWidgetInputs = function() {
+  var workspace = Workspace.query()[0];
+  workspace.rootWidgets.forEach(w => {
+    console.log(`${w.type()} -- ${w.uid()} -- isRoot: ${w.isRoot()} -- ${JSON.stringify(w.inputs)}`);
+  });
+}
 
 export default {
   controller: function() {

@@ -12,22 +12,39 @@ var Widget2Inputs = extendModel(Base, {
   _fields: Widget2InputsTable.fields,
   tableName: Widget2InputsTable.name,
 
+  create: function(data) {
+    var instance = Base.create.call(this, data);
+    instance.fooWidget = instance.getFooWidget();
+    return instance;
+  },
+
+  // TODO: what is the best way to ensure that there is at most
+  // a single 'fooWidget' for every widget of type 2?
   instance: {
-    widget: function() {
-      return Widget.findByUID(this.fooWidget());
+    fooWidget: null,
+
+    getFooWidget: function() {
+      return this.fooWidgetId() ? Widget.findByUID(this.fooWidgetId()) : null;
     }
   }
 });
 
 var Widget2 = extendModel(BaseWidget, {
   instance: {
-    // TODO: what is the best way to ensure that there is at most
-    // a single 'fooWidget' for every widget of type 2?
-    getFooWidget: function() {
-      var input = Widget2Inputs.query({
-        query: { parentWidget: this.uid() }
-      })[0] || null;
-      return input ? input.widget() : null;
+    inputsClass: Widget2Inputs,
+
+    setFooWidget: function() {
+    },
+
+    createFooWidget: function(type) {
+      var widget = Widget.create({
+        type,
+        parentWidget: this.uid(),
+        workspace: this.workspace()
+      });
+      this.inputs.fooWidgetId(widget.uid());
+      this.inputs.save();
+      return widget;
     }
   }
 });

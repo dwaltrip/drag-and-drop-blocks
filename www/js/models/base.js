@@ -40,8 +40,12 @@ var Base = {
     }.bind(this));
   },
 
+  findWhere: function(valuesObjOrFn) {
+    return this.query({ query: valuesObjOrFn });
+  },
+
   queryUIDs: function(uids) {
-    return this.query({ query: row => uids.indexOf(row.uid) > -1 });
+    return this.findWhere(row => uids.indexOf(row.uid) > -1);
   },
 
   count: function() {

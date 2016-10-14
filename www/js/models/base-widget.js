@@ -7,11 +7,15 @@ export default extendModel(Base, {
   tableName: BaseWidgetTable.name,
 
   create: function(data) {
+    if (!data.workspace) {  throw new Error("Widget.create - 'workspace' is a required field"); }
     var instance = Base.create.call(this, data);
+    instance.inputs = instance._getInputsContainer();
     return instance;
   },
 
   instance: {
+    inputs: null,
+
     isRoot: function() {
       return this.parentWidget() === null && this.parentList() === null;
     },
@@ -22,36 +26,31 @@ export default extendModel(Base, {
       console.log('Widget.instance.makeRoot -- TODO: implement this');
     },
 
-    // hasChildWidgets: function() {
-    //   return this.class.query({ query: { parentWidget: this.uid() } }).length > 0;
-    // },
+    setupInputs: function() {
+      throw new Error("Widget.instance -- Widget subclasses must implement 'setupInputs'");
+    },
 
-    // hasWidgetLists: function() {
-    //   return WidgetList.query
-    // },
+    _getInputsContainer: function() {
+      if (!this.inputsClass) {
+        return null;
+      }
 
-    // childWidgets: function() {
-    //   return ChildWidget.query({ query: { parentWidget: this.uid() } });
-    // },
+      var inputs = this.inputsClass.findWhere({ parentWidget: this.uid() })
+      if (inputs.length === 1) {
+        return inputs[0];
+      } else if (inputs.length === 0) {
+        return this.inputsClass.create({ parentWidget: this.uid() });
+      } else {
+        throw new Error('This should never happen');
+      }
+    },
 
-    // childWidgetLists: function() {
-    //   return ChildWidgetList.query({ query: { parentWidget: this.uid() } });
-    // },
+    hasChildWidgets: function() {
+      return this.class.findWhere({ parentWidget: this.uid() }).length > 0;
+    },
+
+    hasWidgetLists: function() {
+      return WidgetList.findWhere({ parentWidget: this.uid() }).length > 0;
+    }
   }
 });
-
-
-function linksForWidgetType2() {
-  var links = Widget2InputsTable.query({
-    query: { parentWidget: this.uid() }
-  });
-  if (links.length > 1) { throw new Error ('widget type 2 should NOT have 2 child widgets'); }
-  return links[0] || null;
-}
-
-function linksForWidgetType3() {
-  return null;
-}
-
-function linksForWidgetType1() { return []; }
-function linksForWidgetType4() { return []; }

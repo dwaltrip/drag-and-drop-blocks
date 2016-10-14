@@ -14,38 +14,28 @@ const BaseWidgetTable = {
 
 const WidgetListTable = {
   name: 'widgetLists',
-  fields: ['name', 'pos', 'parentWidget']
+  fields: ['name', 'parentWidget']
 };
 
-// NOTE: I may not need this generalized 'widget link' table
-// the widget type specific link tables below may be sufficicent
-// const WidgetLinkTable = {
-//   name: 'widgetLinks',
-//   fields: ['name', 'parentWidget', 'childWidget']
-// };
-
-// Widgets of type widget1 & widget4 don't have solitary child widgets.
-// widget4 only has a widgetList as an input
 
 const Widget2InputsTable = {
   name: 'widget2Inputs',
-  fields: ['parentWidget', 'fooWidget']
+  fields: ['parentWidget', 'fooWidgetId']
 };
 
 const Widget3InputsTable = {
   name: 'widget3Inputs',
-  fields: ['parentWidget', 'firstWidget', 'secondWidgetLink']
+  fields: ['parentWidget', 'firstWidgetId', 'secondWidgetId']
 };
 
 const Widget4InputsTable = {
   name: 'widget4Inputs',
-  fields: ['fooWidgetList', 'parentWidget']
+  fields: ['parentWidget', 'bazWidgetListId']
 };
 
 
 const TABLES = [
   WorkspaceTable, BaseWidgetTable, WidgetListTable,
-  // WidgetLinkTable, WidgetListTable,
   Widget2InputsTable, Widget3InputsTable, Widget4InputsTable
 ];
 
@@ -54,6 +44,5 @@ var COMMON_FIELDS = ['uid'];
 export {
   TABLES, COMMON_FIELDS,
   WorkspaceTable, BaseWidgetTable, WidgetListTable,
-  // WidgetLinkTable, WidgetListTable,
   Widget2InputsTable, Widget3InputsTable, Widget4InputsTable
 };

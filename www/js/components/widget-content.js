@@ -4,45 +4,46 @@ import { WidgetTypes } from 'models/widget';
 
 export default function(lookupWidgetComponent) {
 
-  var nestedContentViewFunctionLookup = {
+  var ViewFunctionLookup = {
     [WidgetTypes.WIDGET1]: (widget, opts) => null,
 
     [WidgetTypes.WIDGET2]: (widget, opts)=> {
-      var fooWidget = opts.isInWorkspace ? widget.getFooWidget() : null;
+      var fooWidget = opts.isInWorkspace ? widget.inputs.fooWidget : null;
       return widgetSlot(nestedWidget(fooWidget, opts));
     },
 
     [WidgetTypes.WIDGET3]: (widget, opts)=> {
+      var first = opts.isInWorkspace ? widget.inputs.firstWidget : null;
+      var second = opts.isInWorkspace ? widget.inputs.secondWidget : null;
       return m('.widget-slots', [
-        widgetSlot(),
-        widgetSlot()
+        widgetSlot(nestedWidget(first, opts)),
+        widgetSlot(nestedWidget(second, opts))
       ]);
     },
 
     [WidgetTypes.WIDGET4]: (widget, opts)=> {
-      var fooWidgetList = opts.isInWorkspace ? widget.getFooWidgetList() : null;
-      return m('.inner-widget-section', fooWidgetList ?
-        fooWidgetList.map(listWidget => nestedWidget(listWidget, opts)) :
+      var bazWidgetList = opts.isInWorkspace ? widget.inputs.bazWidgetList : null;
+      return m('.inner-widget-section', bazWidgetList ?
+        bazWidgetList.widgets.map(listWidget => nestedWidget(listWidget, opts)) :
         null
       );
     }
   };
 
-  return function(widget, title, opts) {
-    var opts = opts || {};
-    var debuggingTitle = opts.isInWorkspace ?
-      `${title} -- ${widget.uid()} -- ${widget.pos()}` : title;
 
+  return function widgetContent(widget, title, opts) {
+    var opts = opts || {};
+    // var debuggingTitle = opts.isInWorkspace ?
+    //   `${title} -- ${widget.uid()} -- ${widget.pos()}` : title;
+
+    var viewFn = ViewFunctionLookup[widget.type()];
     return [
       // m('.widget-title', debuggingTitle),
       m('.widget-title', title),
-      nestedContent(widget, opts)
+      viewFn(widget, opts)
     ];
   };
 
-  function nestedContent(widget, opts) {
-    return nestedContentViewFunctionLookup[widget.type()](widget, opts);
-  }
 
   function nestedWidget(widget, opts) {
     if (opts.isInWorkspace) {
