@@ -6,6 +6,7 @@ import { Widget2InputsTable }  from 'models/db-schema';
 
 // circular dependency
 import Widget from 'models/widget';
+import { buildWidgetGetter, buildInputWidgetCreator } from 'models/widget-helpers';
 
 
 var Widget2Inputs = extendModel(Base, {
@@ -22,30 +23,15 @@ var Widget2Inputs = extendModel(Base, {
   // a single 'fooWidget' for every widget of type 2?
   instance: {
     fooWidget: null,
-
-    getFooWidget: function() {
-      return this.fooWidgetId() ? Widget.findByUID(this.fooWidgetId()) : null;
-    }
+    getFooWidget: buildWidgetGetter('fooWidgetId')
   }
 });
 
 var Widget2 = extendModel(BaseWidget, {
   instance: {
     inputsClass: Widget2Inputs,
-
-    setFooWidget: function() {
-    },
-
-    createFooWidget: function(type) {
-      var widget = Widget.create({
-        type,
-        parentWidget: this.uid(),
-        workspace: this.workspace()
-      });
-      this.inputs.fooWidgetId(widget.uid());
-      this.inputs.save();
-      return widget;
-    }
+    createFooWidget: buildInputWidgetCreator('fooWidgetId'),
+    setFooWidget: function() { /*** TODO: implement this ***/ }
   }
 });
 

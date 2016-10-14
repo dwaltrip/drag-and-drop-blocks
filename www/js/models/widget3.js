@@ -4,6 +4,9 @@ import extend from 'lib/object-extend';
 import { Base, extendModel } from 'models/base';
 import { Widget3InputsTable }  from 'models/db-schema';
 
+// circular dependency
+import Widget from 'models/widget';
+import { buildWidgetGetter, buildInputWidgetCreator } from 'models/widget-helpers';
 
 var Widget3Inputs = extendModel(Base, {
   _fields: Widget3InputsTable.fields,
@@ -19,19 +22,16 @@ var Widget3Inputs = extendModel(Base, {
   instance: {
     firstWidget: null,
     secondWidget: null,
-
-    getFirstWidget: function() {
-      return this.firstWidgetId() ? Widget.findByUID(this.firstWidgetId()) : null;
-    },
-    getSecondWidget: function() {
-      return this.secondWidgetId() ? Widget.findByUID(this.secondWidgetId()) : null;
-    }
+    getFirstWidget: buildWidgetGetter('firstWidgetId'),
+    getSecondWidget: buildWidgetGetter('secondWidgetId')
   }
 });
 
 var Widget3 = extendModel(BaseWidget, {
   instance: {
     inputsClass: Widget3Inputs,
+    createFirstWidget: buildInputWidgetCreator('firstWidgetId'),
+    createSecondWidget: buildInputWidgetCreator('secondWidgetId')
   }
 });
 

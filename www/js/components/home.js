@@ -161,7 +161,8 @@ export default {
   }
 };
 
-window.Widget = Widget;
+window.globals = (window.globals || {});
+window.globals.Widget = Widget;
 
 // TODO: this still isn't ideal, as it requires that the user of metal-dragon
 // knows how the library implementation makes use of the low level mouse events.

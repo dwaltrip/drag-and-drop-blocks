@@ -47,8 +47,7 @@ export default function(lookupWidgetComponent) {
 
   function nestedWidget(widget, opts) {
     if (opts.isInWorkspace) {
-      //var childWidget = !!childWidget && childWidget.widget;
-      return !!widget ? m(lookupWidgetComponent(widget.type()), {
+      return widget ? m(lookupWidgetComponent(widget.type()), {
         widget,
         widgetToMove: opts.widgetToMove,
         createDragItem: opts.createDragItem,
