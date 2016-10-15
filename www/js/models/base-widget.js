@@ -23,11 +23,28 @@ export default extendModel(Base, {
     // TODO: IMPLEMENT THIS.
     // Remove all links & references marking this as a child widget or member of a widget list
     makeRoot: function() {
-      console.log('Widget.instance.makeRoot -- TODO: implement this');
+      if (!this.isRoot()) {
+        this.getParent().inputs.removeInput(this);
+      } else {
+        console.log('Widget.instance.makeRoot -- Widget is already root!! -- widget:', this.uid());
+      }
     },
 
-    setupInputs: function() {
-      throw new Error("Widget.instance -- Widget subclasses must implement 'setupInputs'");
+    getParent: function() {
+      if (this.parentWidget()) {
+        return this.class.findByUID(this.parentWidget());
+      } else if (this.parentList()) {
+        return WidgetList.findByUID(this.parentList()).getParentWidget();
+      }
+      return null;
+    },
+
+    isAncestorOf: function(widget) {
+      var ancestor = widget.getParent();
+      while(ancestor && ancestor !== this) {
+        ancestor = ancestor.getParent();
+      }
+      return ancestor === this;
     },
 
     _getInputsContainer: function() {

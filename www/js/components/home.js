@@ -60,16 +60,23 @@ export default {
         accepts: [TOOLBOX_WIDGETS, WORKSPACE_WIDGETS],
         itemData: { widget },
         isEligible: function(dragItem) {
-          return dragItem.group === TOOLBOX_WIDGETS ||
-            this.getItemData('widget') !== dragItem.getItemData('widget');
+          if (dragItem.group === TOOLBOX_WIDGETS) { return true; }
+          var dragWidget = dragItem.getItemData('widget')
+          var _isEligible = widget !== dragWidget && !widget.isAncestorOf(dragWidget);
+          // console.log('dropzone:', widget.uid(), '-- dragItem', dragWidget.uid(),
+          //   '-- dropzone.isAncestorOf(dragItem):', widget.isAncestorOf(dragWidget),
+          //   '-- isEligible:', _isEligible);
+          return _isEligible;
         },
         onDrop: function(dragItem) {
-          var widget = this.getItemData('widget');
+          var dropzoneWidget = this.getItemData('widget');
           if (dragItem.group === WORKSPACE_WIDGETS) {
-            workspace.insertBefore(widgetToMove(), widget);
+            var dragWidget = dragItem.getItemData('widget');
+            dragWidget.makeRoot();
+            workspace.insertBefore(dragWidget, dropzoneWidget);
           } else {
             var newWidget = workspace.createWidget(dragItem.getItemData('widgetType'))
-            workspace.insertBefore(newWidget, widget);
+            workspace.insertBefore(newWidget, dropzoneWidget);
           }
         }
       });
@@ -93,7 +100,9 @@ export default {
       accepts: [WORKSPACE_WIDGETS, TOOLBOX_WIDGETS],
       onDrop: (dragItem)=> {
         if (dragItem.group === WORKSPACE_WIDGETS) {
-          workspace.appendWidget(dragItem.getItemData('widget'));
+          var widget = dragItem.getItemData('widget');
+          widget.makeRoot();
+          workspace.appendWidget(widget);
         } else {
           var newWidget = workspace.createWidget(dragItem.getItemData('widgetType'))
           workspace.appendWidget(newWidget);

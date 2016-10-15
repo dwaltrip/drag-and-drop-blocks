@@ -14,16 +14,35 @@ var Widget3Inputs = extendModel(Base, {
 
   create: function(data) {
     var instance = Base.create.call(this, data);
-    instance.firstWidget = instance.getFirstWidget();
-    instance.secondWidget = instance.getSecondWidget();
+    instance.firstWidget = instance._getFirstWidget();
+    instance.secondWidget = instance._getSecondWidget();
     return instance;
   },
 
   instance: {
     firstWidget: null,
     secondWidget: null,
-    getFirstWidget: buildWidgetGetter('firstWidgetId'),
-    getSecondWidget: buildWidgetGetter('secondWidgetId')
+    _getFirstWidget: buildWidgetGetter('firstWidgetId'),
+    _getSecondWidget: buildWidgetGetter('secondWidgetId'),
+    removeInput: function(widget) {
+      if (!this.isInput(widget)) {
+        throw new Error('Cannot remove widget that is not an input.');
+      }
+      if (this.firstWidget === widget) {
+        this.firstWidgetId(null);
+        this.firstWidget = null;
+      }
+      if (this.secondWidget === widget) {
+        this.secondWidgetId(null);
+        this.secondWidget = null;
+      }
+      this.save();
+      widget.parentWidget(null);
+      widget.save();
+    },
+    isInput: function(widget) {
+      return widget === this.firstWidget || widget === this.secondWidget;
+    }
   }
 });
 

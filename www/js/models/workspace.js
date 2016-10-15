@@ -105,7 +105,8 @@ export default extendModel(Base, {
       if (this.rootWidgets.indexOf(widget) < 0) {
         this.rootWidgets.push(widget);
         widget.workspace(this.uid());
-        widget.makeRoot();
+        // Maybe in here is where we should be calling make root?
+        // widget.makeRoot();
         widget.save();
       }
     },

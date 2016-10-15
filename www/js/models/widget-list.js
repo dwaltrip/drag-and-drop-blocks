@@ -18,6 +18,10 @@ export default extendModel(Base, {
   instance: {
     widgets: null,
 
+    getParentWidget: function() {
+      return Widget.findByUID(this.parentWidget());
+    },
+
     // what pos should it have?
     createWidgetInList: function(type) {
       var widget = Widget.create({ type, parentList: this.uid() });

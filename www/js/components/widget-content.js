@@ -33,13 +33,13 @@ export default function(lookupWidgetComponent) {
 
   return function widgetContent(widget, title, opts) {
     var opts = opts || {};
-    // var debuggingTitle = opts.isInWorkspace ?
-    //   `${title} -- ${widget.uid()} -- ${widget.pos()}` : title;
+    var debuggingTitle = opts.isInWorkspace ?
+      `${title} -- ${widget.uid()} -- ${widget.pos()}` : title;
 
     var viewFn = ViewFunctionLookup[widget.type()];
     return [
-      // m('.widget-title', debuggingTitle),
-      m('.widget-title', title),
+      m('.widget-title', debuggingTitle),
+      // m('.widget-title', title),
       viewFn(widget, opts)
     ];
   };
