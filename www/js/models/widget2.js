@@ -6,32 +6,18 @@ import { Widget2InputsTable }  from 'models/db-schema';
 
 // circular dependency
 import Widget from 'models/widget';
-import { buildWidgetGetter, buildInputWidgetCreator } from 'models/widget-helpers';
+import { buildWidgetInputClass } from 'models/widget-helpers';
 
 
-var Widget2Inputs = extendModel(Base, {
-  _fields: Widget2InputsTable.fields,
+var Widget2Inputs = buildWidgetInputClass({
   tableName: Widget2InputsTable.name,
-
-  create: function(data) {
-    var instance = Base.create.call(this, data);
-    instance.fooWidget = instance.getFooWidget();
-    return instance;
-  },
-
-  // TODO: what is the best way to ensure that there is at most
-  // a single 'fooWidget' for every widget of type 2?
-  instance: {
-    fooWidget: null,
-    getFooWidget: buildWidgetGetter('fooWidgetId')
-  }
+  widgetNames: Widget2InputsTable.widgetNames,
+  widgetListNames: Widget2InputsTable.widgetListNames
 });
 
 var Widget2 = extendModel(BaseWidget, {
   instance: {
-    inputsClass: Widget2Inputs,
-    createFooWidget: buildInputWidgetCreator('fooWidgetId'),
-    setFooWidget: function() { /*** TODO: implement this ***/ }
+    inputsClass: Widget2Inputs
   }
 });
 

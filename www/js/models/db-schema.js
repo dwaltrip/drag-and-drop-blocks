@@ -1,4 +1,6 @@
 
+var COMMON_FIELDS = ['uid'];
+
 const WorkspaceTable = {
   name: 'workspaces',
   fields: ['name']
@@ -18,15 +20,18 @@ const WidgetListTable = {
 };
 
 
-const Widget2InputsTable = {
-  name: 'widget2Inputs',
-  fields: ['parentWidget', 'fooWidgetId']
-};
+const Widget2InputsTable = defWidgetInputsTable({
+  tableName: 'widget2Inputs',
+  widgetNames: ['foo'],
+  // no widgetLists for widget2.
+  // but just for example (for other widget types), do it like this:
+  // widgetListNames: ['fooList']
+});
 
-const Widget3InputsTable = {
-  name: 'widget3Inputs',
-  fields: ['parentWidget', 'firstWidgetId', 'secondWidgetId']
-};
+const Widget3InputsTable = defWidgetInputsTable({
+  tableName: 'widget3Inputs',
+  widgetNames: ['firstWidget', 'secondWidget']
+});
 
 const Widget4InputsTable = {
   name: 'widget4Inputs',
@@ -39,10 +44,26 @@ const TABLES = [
   Widget2InputsTable, Widget3InputsTable, Widget4InputsTable
 ];
 
-var COMMON_FIELDS = ['uid'];
-
 export {
   TABLES, COMMON_FIELDS,
   WorkspaceTable, BaseWidgetTable, WidgetListTable,
   Widget2InputsTable, Widget3InputsTable, Widget4InputsTable
 };
+
+
+function defWidgetInputsTable(opts) {
+  var widgetNames = opts.widgetNames || [];
+  var widgetListNames = opts.widgetListNames || [];
+
+  var fields = COMMON_FIELDS
+    .concat(['parentWidget'])
+    .concat(widgetNames.map(name => `${name}Id`))
+    .concat(widgetListNames.map(name => `${name}Id`));
+
+  return {
+    name: opts.tableName,
+    fields: fields,
+    widgetNames,
+    widgetListNames
+  };
+}

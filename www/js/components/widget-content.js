@@ -8,7 +8,7 @@ export default function(lookupWidgetComponent) {
     [WidgetTypes.WIDGET1]: (widget, opts) => null,
 
     [WidgetTypes.WIDGET2]: (widget, opts)=> {
-      var fooWidget = opts.isInWorkspace ? widget.inputs.fooWidget : null;
+      var fooWidget = opts.isInWorkspace ? widget.inputs.foo : null;
       return widgetSlot(nestedWidget(fooWidget, opts));
     },
 
