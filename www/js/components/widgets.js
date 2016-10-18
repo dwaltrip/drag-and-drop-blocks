@@ -62,17 +62,20 @@ function buildWidgetComponent(title, className) {
       return m('.widget-row' + widgetRowClassList, {
         key: widget.uid(),
         // TODO: do we need this check, now that we have the `isEligible` parameter for dropzones?
-        config: isPotentialDropSlot ? controller.dropzone.attachToElement : null,
+        // config: isPotentialDropSlot ? controller.dropzone.attachToElement : null,
       }, [
-        isPotentialDropSlot ? m('.reposition-slot.before-this') : null,
         m('.widget' + widgetClassList, { config: controller.dragItem.attachToElement },
           widgetContent(widget, title, {
             isInWorkspace: true,
             widgetToMove: params.widgetToMove,
             createDragItem: params.createDragItem,
-            createDropzone: params.createDropzone
+            createDropzone: params.createDropzone,
+            dropzone: controller.dropzone
           })
-        )
+        ),
+        // m('.widget-attach-area', {
+        //   config: isPotentialDropSlot ? controller.dropzone.attachToElement : null
+        // }, m('.widget-attach-point'))
       ])
     }
   };

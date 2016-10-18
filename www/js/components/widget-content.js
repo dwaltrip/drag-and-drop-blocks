@@ -33,14 +33,19 @@ export default function(lookupWidgetComponent) {
 
   return function widgetContent(widget, title, opts) {
     var opts = opts || {};
-    var debuggingTitle = opts.isInWorkspace ?
-      `${title} -- ${widget.uid()} -- ${widget.pos()}` : title;
+    // var debuggingTitle = opts.isInWorkspace ?
+    //   `${title} -- ${widget.uid()} -- ${widget.pos()}` : title;
 
     var viewFn = ViewFunctionLookup[widget.type()];
     return [
-      m('.widget-title', debuggingTitle),
-      // m('.widget-title', title),
-      viewFn(widget, opts)
+      // m('.widget-title', debuggingTitle),
+      m('.widget-content', [
+        m('.widget-title', title),
+        viewFn(widget, opts),
+      ]),
+      m('.widget-attach-area', {
+        config: opts.dropzone ? opts.dropzone.attachToElement : null
+      }, m('.widget-attach-point'))
     ];
   };
 

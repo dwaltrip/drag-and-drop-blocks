@@ -33,6 +33,10 @@ const Widget3InputsTable = defWidgetInputsTable({
   widgetNames: ['firstWidget', 'secondWidget']
 });
 
+// const Widget4InputsTable = defWidgetInputsTable({
+//   tableName: 'widget4Inputs',
+//   widgetListNames: ['bazList']
+// });
 const Widget4InputsTable = {
   name: 'widget4Inputs',
   fields: ['parentWidget', 'bazWidgetListId']
