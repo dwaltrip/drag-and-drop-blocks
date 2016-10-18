@@ -39,8 +39,7 @@ export default {
         group: TOOLBOX_WIDGETS,
         itemData: { widgetType },
         dragHandle: 'widget-title',
-        boundingContainer: 'widget-editor',
-        useDragElementOverlap: true
+        boundingContainer: 'widget-editor'
       });
     };
 
@@ -50,7 +49,6 @@ export default {
         itemData: { widget },
         dragHandle: 'widget-title',
         boundingContainer: 'widget-editor',
-        useDragElementOverlap: true,
         onDragStart: ()=> widgetToMove(widget),
         onDrop: ()=> widgetToMove(null)
       });
@@ -61,6 +59,7 @@ export default {
         group: 'widget-row',
         accepts: [TOOLBOX_WIDGETS, WORKSPACE_WIDGETS],
         itemData: { widget },
+        useDragElementOverlap: true,
         isEligible: function(dragItem) {
           if (dragItem.group === TOOLBOX_WIDGETS) { return true; }
           var dragWidget = dragItem.getItemData('widget')

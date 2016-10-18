@@ -30,6 +30,8 @@ export default {
     }
     instance._isEligible = opts.isEligible;
 
+    instance.useDragElementOverlap = opts.useDragElementOverlap || false;
+
     // TODO: we are starting to have more functionality that is idential between dropzones
     // and dragitems, such as this itemData stuff. Consider making a base class?
     instance._itemData = {};
@@ -99,7 +101,7 @@ export default {
         throw new Error(errorMsg);
       }
 
-      if (!this.manager.isManuallyHandlingEnterLeaveEvents()) {
+      if (!this.useDragElementOverlap) {
         this._element.addEventListener('mouseenter', this._boundEventListeners.onmouseenter, false);
         this._element.addEventListener('mouseleave', this._boundEventListeners.onmouseleave, false);
       }
@@ -132,7 +134,7 @@ export default {
     },
 
     _postDragCleanup: function() {
-      if (!this.manager.isManuallyHandlingEnterLeaveEvents()) {
+      if (!this.useDragElementOverlap) {
         this._element.removeEventListener('mouseenter', this._boundEventListeners.onmouseenter);
         this._element.removeEventListener('mouseleave', this._boundEventListeners.onmouseleave);
       }

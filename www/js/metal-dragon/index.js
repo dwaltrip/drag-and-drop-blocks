@@ -48,10 +48,6 @@ export default {
     isDragging: function() { return this.isPreDrag() || this.isMidDrag(); },
     isNotDragging: function() { return this._dragState === DRAG_STATE_NONE; },
 
-    isManuallyHandlingEnterLeaveEvents: function() {
-      return this.activeDragItem && this.activeDragItem.useDragElementOverlap;
-    },
-
     createDragItem: function(opts) {
       var newDragItem = DragItem.create(this, opts);
       this.dragItemCount += 1;
@@ -114,16 +110,20 @@ export default {
     },
 
     manageRectBasedDragMoveEvents: function(rect) {
-      this._eligibleDropzones.forEach(dropzone => {
-        if (!dropzone.isUnderDragItem() && doRectsOverlap(rect, dropzone._element.getBoundingClientRect())) {
-          dropzone.handleDragEnter();
-        }
-      });
-      this.activeDropzones.forEach(dropzone => {
-        if (!doRectsOverlap(rect, dropzone._element.getBoundingClientRect())) {
-          dropzone.handleDragLeave();
-        }
-      });
+      if (this.isCheckingElementOverlap) {
+        this._eligibleDropzones.forEach(dropzone => {
+          if (dropzone.useDragElementOverlap && !dropzone.isUnderDragItem() &&
+          doRectsOverlap(rect, dropzone._element.getBoundingClientRect())) {
+            dropzone.handleDragEnter();
+          }
+        });
+        this.activeDropzones.forEach(dropzone => {
+          if (dropzone.useDragElementOverlap &&
+          !doRectsOverlap(rect, dropzone._element.getBoundingClientRect())) {
+            dropzone.handleDragLeave();
+          }
+        });
+      }
     },
 
     // `activeDropzones` is essentially a stack of dropzones we have enetered.
@@ -175,6 +175,8 @@ export default {
           this._ineligibleDropzones.push(dropzone);
         }
       });
+
+      this.isCheckingElementOverlap = !!this._eligibleDropzones.find(dz => dz.useDragElementOverlap);
     },
 
     _postDragCleanup: function() {
@@ -184,6 +186,7 @@ export default {
       this._dragState = DRAG_STATE_NONE;
       this._eligibleDropzones.forEach(dropzone => dropzone._postDragCleanup());
       this._eligibleDropzones = [];
+      this.isCheckingElementOverlap = false;
 
       this._ineligibleDropzones.forEach(dropzone => dropzone.enable());
       this._ineligibleDropzones = [];

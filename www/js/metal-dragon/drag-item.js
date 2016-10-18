@@ -40,9 +40,6 @@ export default {
       }
     }
 
-    // TODO: This should be specified on the dropzone, not on the dragitem!!
-    instance.useDragElementOverlap = opts.useDragElementOverlap || false;
-
     instance._itemData = {};
     if (opts.itemData) {
       Object.keys(opts.itemData).forEach(key => instance._itemData[key] = opts.itemData[key]);
@@ -199,9 +196,7 @@ export default {
       this.dragImage.style.left = `${newPosition.left}px`;
       this.dragImage.style.top = `${newPosition.top}px`;
 
-      if (this.useDragElementOverlap) {
-        this.manager.manageRectBasedDragMoveEvents(this.dragImage.getBoundingClientRect());
-      }
+      this.manager.manageRectBasedDragMoveEvents(this.dragImage.getBoundingClientRect());
     },
 
     // TODO: should this be here, in DragItem? or should it be in the manager class?
