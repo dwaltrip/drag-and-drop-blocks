@@ -40,6 +40,9 @@ export default {
       }
     }
 
+    // TODO: This should be specified on the dropzone, not on the dragitem!!
+    instance.useDragElementOverlap = opts.useDragElementOverlap || false;
+
     instance._itemData = {};
     if (opts.itemData) {
       Object.keys(opts.itemData).forEach(key => instance._itemData[key] = opts.itemData[key]);
@@ -180,24 +183,25 @@ export default {
       // to have officially started until the first 'mousemove' event fires
       if (!this.manager.isMidDrag()) {
         this.manager._startDrag(this);
-        document.documentElement.style.cursor = 'move';
-
         if (this.userEvents.onDragStart) {
           this.userEvents.onDragStart(event);
         }
+        document.documentElement.style.cursor = 'move';
       }
 
       var newPosition = {
         left: event.clientX - this.initialCursorOffset.x,
         top: event.clientY - this.initialCursorOffset.y
       };
-
       if (this.isMovementConstrained) {
         newPosition = this._constrainDragElement(newPosition);
       }
-
       this.dragImage.style.left = `${newPosition.left}px`;
       this.dragImage.style.top = `${newPosition.top}px`;
+
+      if (this.useDragElementOverlap) {
+        this.manager.manageRectBasedDragMoveEvents(this.dragImage.getBoundingClientRect());
+      }
     },
 
     // TODO: should this be here, in DragItem? or should it be in the manager class?

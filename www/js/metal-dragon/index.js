@@ -35,7 +35,8 @@ export default {
     // activeDropzones vs eligibleDropzones is slightly confusing
     activeDropzones: null,
 
-    _potentialDropzones: null,
+    _eligibleDropzones: null,
+    _ineligibleDropzones: null,
     _dragState: DRAG_STATE_NONE,
 
     dropzoneCount: 0,
@@ -46,6 +47,10 @@ export default {
 
     isDragging: function() { return this.isPreDrag() || this.isMidDrag(); },
     isNotDragging: function() { return this._dragState === DRAG_STATE_NONE; },
+
+    isManuallyHandlingEnterLeaveEvents: function() {
+      return this.activeDragItem && this.activeDragItem.useDragElementOverlap;
+    },
 
     createDragItem: function(opts) {
       var newDragItem = DragItem.create(this, opts);
@@ -106,6 +111,19 @@ export default {
       if (targetDropzone && targetDropzone.userEvents.onDrop) {
         targetDropzone.userEvents.onDrop.call(targetDropzone, this.activeDragItem);
       }
+    },
+
+    manageRectBasedDragMoveEvents: function(rect) {
+      this._eligibleDropzones.forEach(dropzone => {
+        if (!dropzone.isUnderDragItem() && doRectsOverlap(rect, dropzone._element.getBoundingClientRect())) {
+          dropzone.handleDragEnter();
+        }
+      });
+      this.activeDropzones.forEach(dropzone => {
+        if (!doRectsOverlap(rect, dropzone._element.getBoundingClientRect())) {
+          dropzone.handleDragLeave();
+        }
+      });
     },
 
     // `activeDropzones` is essentially a stack of dropzones we have enetered.
@@ -175,4 +193,13 @@ export default {
 
 function getDragOverClass(dropzone) {
   return `drag-over--${dropzone.group}`;
+}
+
+function doRectsOverlap(rect1, rect2) {
+  return !(
+    rect1.right   < rect2.left  ||
+    rect1.left    > rect2.right ||
+    rect1.bottom  < rect2.top   ||
+    rect1.top     > rect2.bottom
+  );
 }

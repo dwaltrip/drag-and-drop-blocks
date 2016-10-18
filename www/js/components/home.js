@@ -39,7 +39,8 @@ export default {
         group: TOOLBOX_WIDGETS,
         itemData: { widgetType },
         dragHandle: 'widget-title',
-        boundingContainer: 'widget-editor'
+        boundingContainer: 'widget-editor',
+        useDragElementOverlap: true
       });
     };
 
@@ -49,6 +50,7 @@ export default {
         itemData: { widget },
         dragHandle: 'widget-title',
         boundingContainer: 'widget-editor',
+        useDragElementOverlap: true,
         onDragStart: ()=> widgetToMove(widget),
         onDrop: ()=> widgetToMove(null)
       });

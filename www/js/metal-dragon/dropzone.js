@@ -99,11 +99,16 @@ export default {
         throw new Error(errorMsg);
       }
 
-      this._element.addEventListener('mouseenter', this._boundEventListeners.onmouseenter, false);
-      this._element.addEventListener('mouseleave', this._boundEventListeners.onmouseleave, false);
+      if (!this.manager.isManuallyHandlingEnterLeaveEvents()) {
+        this._element.addEventListener('mouseenter', this._boundEventListeners.onmouseenter, false);
+        this._element.addEventListener('mouseleave', this._boundEventListeners.onmouseleave, false);
+      }
     },
 
-    _onMouseenter: function(event) {
+    _onMouseenter: function(event) { this.handleDragEnter(event); },
+    _onMouseleave: function(event) { this.handleDragLeave(event); },
+
+    handleDragEnter: function(event) {
       if (this._isEnabled) {
         this._isDraggingOver = true;
         this.manager.onDragEnter(this);
@@ -114,7 +119,7 @@ export default {
       }
     },
 
-    _onMouseleave: function(event) {
+    handleDragLeave: function(event) {
       if (this._isEnabled) {
         this._isDraggingOver = false;
         this.manager.onDragLeave(this);
@@ -127,8 +132,10 @@ export default {
     },
 
     _postDragCleanup: function() {
-      this._element.removeEventListener('mouseenter', this._boundEventListeners.onmouseenter);
-      this._element.removeEventListener('mouseleave', this._boundEventListeners.onmouseleave);
+      if (!this.manager.isManuallyHandlingEnterLeaveEvents()) {
+        this._element.removeEventListener('mouseenter', this._boundEventListeners.onmouseenter);
+        this._element.removeEventListener('mouseleave', this._boundEventListeners.onmouseleave);
+      }
 
       this._isReadyForDrop = false;
       this._isDraggingOver = false;
