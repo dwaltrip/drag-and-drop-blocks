@@ -55,15 +55,11 @@ function buildWidgetComponent(title, className) {
       var isPotentialDropSlot = !(isSelectecWidget || isAfterSelectedWidget);
 
       var widgetRowClassList = [
-        controller.dropzone.isUnderDragItem() ? '.is-under-drag-item' : null,
+        controller.dropzone.isDropTarget() || widget.isLastWidget && params.isTargetingListEnd ? '.is-drop-target' : null,
         !(isDragging || isBeforeSelectedWidget || widget.isLastWidget) ? '.has-bottom-connector' : null
       ].filter(cls => !!cls).join('')
 
-      return m('.widget-row' + widgetRowClassList, {
-        key: widget.uid(),
-        // TODO: do we need this check, now that we have the `isEligible` parameter for dropzones?
-        // config: isPotentialDropSlot ? controller.dropzone.attachToElement : null,
-      }, [
+      return m('.widget-row' + widgetRowClassList, { key: widget.uid() }, [
         m('.widget' + widgetClassList, { config: controller.dragItem.attachToElement },
           widgetContent(widget, title, {
             isInWorkspace: true,
@@ -72,10 +68,7 @@ function buildWidgetComponent(title, className) {
             createDropzone: params.createDropzone,
             dropzone: controller.dropzone
           })
-        ),
-        // m('.widget-attach-area', {
-        //   config: isPotentialDropSlot ? controller.dropzone.attachToElement : null
-        // }, m('.widget-attach-point'))
+        )
       ])
     }
   };

@@ -6,6 +6,8 @@ $toolbox-bg: #ccc;
 $trashcan-bg: #ccc;
 $workspace-bg: #eee;
 
+$highlight-color: #ffd639;
+
 .widget-editor {
   $widget-editor-margin: 10px;
   margin: $widget-editor-margin;
@@ -25,23 +27,6 @@ $workspace-bg: #eee;
   }
 }
 
-// if we want to style toolbox as a trashcan, use this
-// .widget-editor.is-dragging {
-//   .toolbox {
-//     position: relative;
-//   }
-
-//   .toolbox-trashcan {
-//     content: '';
-//     position: absolute;
-//     height: 100%;
-//     width: 100%;
-//     top: 0;
-//     opacity: 0;
-//     background-color: #999;
-//   }
-// }
-
 .workspace {
   display: flex;
   flex-grow: 1;
@@ -56,31 +41,18 @@ $workspace-bg: #eee;
       content: '';
       display: block;
       position: absolute;
-      left: 20px;
+      left: 24px;
       bottom: -5px;
       height: 10px;
       width: 2px;
       background: #aaa;
     }
-
-    .reposition-slot.before-this {
-      position: absolute;
-      top: 0;
-      left: 5px;
-      right: 5px;
-      height: 2px;
-      margin-top: -1px;
-      background-color: #444;
-      opacity: 0;
-    }
   }
 
   .widget-attach-area {
     position: absolute;
-    height: 34px;
-    display: flex;
-    align-items: center;
-    bottom: -9px;
+    height: 20px;
+    bottom: -16px;
     margin-left: -16px;
     padding: 0 10px;
     z-index: 10;
@@ -105,31 +77,16 @@ $workspace-bg: #eee;
     flex-grow: 1;
     margin-top: -5px;
     position: relative;
+  }
 
-    &.is-under-drag-item::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 5px;
-      right: 5px;
-      height: 2px;
-      margin-top: -1px;
-      background-color: #444;
-      opacity: 1;
+  &.is-dragging .widget-row.is-drop-target .widget-attach-area {
+    bottom: -14px;
+
+    .widget-attach-point {
+      background-color: #bbb;
+      border: 2px solid $highlight-color;
+      height: 7px;
     }
-  }
-
-  // uncomment this to see the indicator lines for all widget-row dropzones
-  // &.is-dragging .widget-row .reposition-slot.before-this {
-  //   opacity: 0.3;
-  // }
-
-  &.is-dragging .widget-row.is-under-drag-item .reposition-slot.before-this {
-    opacity: 1;
-  }
-
-  &.is-dragging .widget-row.is-under-drag-item .widget-attach-point {
-    background-color: orange;
   }
 
   .trashcan {
@@ -163,6 +120,7 @@ $workspace-bg: #eee;
 
 .widget {
   display: flex;
+  position: relative;
   flex-direction: column;
   flex-shrink: 0;
   padding: 5px;
@@ -179,9 +137,10 @@ $workspace-bg: #eee;
 
   &.drag-image {
     z-index: 1001;
-    border: 3px solid #ffd639;
+    border: 3px solid $highlight-color;
+    opacity: 0.85;
   }
-  &.drag-image.drag-over--trashcan {
+  &.drag-image.drop-target--trashcan {
     border: 3px solid #e01d1d;
     opacity: 0.65;
   }
@@ -192,7 +151,7 @@ $workspace-bg: #eee;
     opacity: 0.4;
   }
 
-  &.is-dragging-over-trashcan, &.is-dragging-over-toolbox, &.is-dragging-over-widget-row {
+  &.is-targeting-trashcan, &.is-targeting-toolbox, &.is-targeting-widget-row {
     .widget.is-dragging {
       opacity: 0;
     }
@@ -237,9 +196,6 @@ $workspace-bg: #eee;
 .widget-2 { background-color: #89c2ea; }
 .widget-3 { background-color: #e8a28d; }
 .widget-4 { background-color: #f3ec9c; }
-
-// this is just to make one of the widgets a different height
-// .widget-2 { height: 50px; }
 
 .no-text-select {
   user-select: none;

@@ -57,6 +57,7 @@ export default {
 
     hasElement:       function() { return !!this._element; },
     isUnderDragItem:  function() { return this._isDraggingOver; },
+    isDropTarget:     function() { return this === this.manager.targetDropzone(); },
     isReadyForDrop:   function() { return this._isReadyForDrop; },
     doesAcceptAll:    function() { return !this._restrictDropTypes; },
 

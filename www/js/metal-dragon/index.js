@@ -130,15 +130,18 @@ export default {
     // Only the most recently entered one is used.
     // The assumption that this is the sensible and always desired has not been fully validated.
     targetDropzone: function() {
-      if (this.activeDropzones.length > 0) {
+      if (this.activeDropzones && this.activeDropzones.length > 0) {
         return this.activeDropzones[this.activeDropzones.length - 1];
       }
       return null;
     },
 
     onDragEnter: function(dropzone) {
+      if (this.targetDropzone()) {
+        this.activeDragItem.dragImage.classList.remove(getDropTargetClass(this.targetDropzone()));
+      }
       this.activeDropzones.push(dropzone);
-      var dragOverClass = getDragOverClass(dropzone);
+      var dragOverClass = getDropTargetClass(dropzone);
       this.activeDragItem.dragImage.classList.add(dragOverClass);
     },
 
@@ -147,7 +150,10 @@ export default {
       if (!wasRemoved) {
         throw new Error('onmouseleave -- wtf, dropzone not in activeDropzones list');
       }
-      this.activeDragItem.dragImage.classList.remove(getDragOverClass(dropzone));
+      this.activeDragItem.dragImage.classList.remove(getDropTargetClass(dropzone));
+      if (this.targetDropzone()) {
+        this.activeDragItem.dragImage.classList.add(getDropTargetClass(this.targetDropzone()));
+      }
     },
 
     _prepForDrag: function() {
@@ -194,8 +200,8 @@ export default {
   }
 };
 
-function getDragOverClass(dropzone) {
-  return `drag-over--${dropzone.group}`;
+function getDropTargetClass(dropzone) {
+  return `drop-target--${dropzone.group}`;
 }
 
 function doRectsOverlap(rect1, rect2) {

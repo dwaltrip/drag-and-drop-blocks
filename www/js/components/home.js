@@ -63,21 +63,17 @@ export default {
         isEligible: function(dragItem) {
           if (dragItem.group === TOOLBOX_WIDGETS) { return true; }
           var dragWidget = dragItem.getItemData('widget')
-          var _isEligible = widget !== dragWidget && !widget.isAncestorOf(dragWidget);
-          // console.log('dropzone:', widget.uid(), '-- dragItem', dragWidget.uid(),
-          //   '-- dropzone.isAncestorOf(dragItem):', widget.isAncestorOf(dragWidget),
-          //   '-- isEligible:', _isEligible);
-          return _isEligible;
+          return widget !== dragWidget && !widget.isAncestorOf(dragWidget);
         },
         onDrop: function(dragItem) {
           var dropzoneWidget = this.getItemData('widget');
           if (dragItem.group === WORKSPACE_WIDGETS) {
             var dragWidget = dragItem.getItemData('widget');
             dragWidget.makeRoot();
-            workspace.insertBefore(dragWidget, dropzoneWidget);
+            workspace.insertAfter(dragWidget, dropzoneWidget);
           } else {
             var newWidget = workspace.createWidget(dragItem.getItemData('widgetType'))
-            workspace.insertBefore(newWidget, dropzoneWidget);
+            workspace.insertAfter(newWidget, dropzoneWidget);
           }
         }
       });
@@ -112,27 +108,25 @@ export default {
     });
   },
 
+  // TODO: clean up this view
   view: function(controller) {
     var workspace = controller.workspace;
     window.workspace = workspace;
     var widgets = workspace.rootWidgets;
 
-    var isDragging = controller.metalDragon.isMidDrag();
-    var isTrashcanActive = controller.trashcanDropzone.isUnderDragItem();
-    var isToolboxActive = controller.toolboxDropzone.isUnderDragItem();
-    var isWorkspaceMarginActive = controller.workspaceMarginDZ.isUnderDragItem() && (
+    var isWorkspaceMarginTarget = controller.workspaceMarginDZ.isDropTarget() && (
       controller.metalDragon.activeDragItem.group === TOOLBOX_WIDGETS ||
       !controller.widgetToMove().isLastWidget
     );
 
     var isOverWidgetRow = controller.metalDragon.isDraggingOverGroup('widget-row') ||
-      isWorkspaceMarginActive;
+      isWorkspaceMarginTarget;
 
     var widgetEditorClassList = [
-      (isDragging ? '.is-dragging' : ''),
-      (isTrashcanActive ? '.is-dragging-over-trashcan' : ''),
-      (isToolboxActive ? '.is-dragging-over-toolbox' : ''),
-      (isOverWidgetRow ? '.is-dragging-over-widget-row' : '')
+      (controller.metalDragon.isMidDrag() ? '.is-dragging' : ''),
+      (controller.trashcanDropzone.isDropTarget() ? '.is-targeting-trashcan' : ''),
+      (controller.toolboxDropzone.isDropTarget() ? '.is-targeting-toolbox' : ''),
+      (isOverWidgetRow ? '.is-targeting-widget-row' : '')
     ].join('')
 
     return m('.widget-editor.no-text-select' + widgetEditorClassList, [
@@ -155,11 +149,12 @@ export default {
             workspace,
             widgetToMove: controller.widgetToMove,
             createDragItem: controller.createWorkspaceWidgetDragItem,
-            createDropzone: controller.createWorkspaceWidgetDropzone
+            createDropzone: controller.createWorkspaceWidgetDropzone,
+            isTargetingListEnd: isWorkspaceMarginTarget
           });
         })),
-        m('.workspace-margin' + (isWorkspaceMarginActive ? '.is-under-drag-item' : ''),
-          { config: controller.workspaceMarginDZ.attachToElement }),
+
+        m('.workspace-margin', { config: controller.workspaceMarginDZ.attachToElement }),
 
         m('.trashcan', { config: controller.trashcanDropzone.attachToElement }, [
           m('.arrow', m.trust(unicode.rightArrowWhite)),

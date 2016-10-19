@@ -37,11 +37,11 @@ export default extendModel(Base, {
       return Widget.create({ type, workspace: this.uid() });
     },
 
-    insertBefore: function(widget, referenceWidget) {
+    insertAfter: function(widget, referenceWidget) {
       var refPos = referenceWidget.pos();
       if (!!refPos || refPos === 0) {
-        var min = referenceWidget.isFirstWidget ? refPos - 1 : referenceWidget.prevWidget.pos();
-        var max = refPos;
+        var min = refPos;
+        var max = referenceWidget.isLastWidget ? refPos + 1 : referenceWidget.nextWidget.pos();
         var newPos = (min + max) / 2.0;
         widget.pos(newPos);
 
