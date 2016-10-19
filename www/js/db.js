@@ -11,9 +11,8 @@ function setupDB(db) {
   // for debugging
   window.db = db;
 
-  TABLES.forEach(table => {
-    var modelFields = COMMON_FIELDS.concat(table.fields);
-    var tableName = table.name;
+  Object.keys(TABLES).forEach(tableName => {
+    var modelFields = COMMON_FIELDS.concat(TABLES[tableName].fields);
 
     var tableNeedsToBeSetup = db.isNew() || !db.tableExists(tableName);
 

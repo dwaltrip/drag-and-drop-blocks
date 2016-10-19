@@ -1,16 +1,15 @@
-
 import { extendModel, Base } from 'models/base';
-import { WorkspaceTable } from 'models/db-schema';
 import { removeFromArray } from 'lib/utils';
+import { TABLES } from 'models/db-schema';
 
 import Widget from 'models/widget';
-import db from 'db';
 import WidgetList from 'models/widget-list';
+import db from 'db';
 
 
 export default extendModel(Base, {
-  _fields: WorkspaceTable.fields,
-  tableName: WorkspaceTable.name,
+  _fields: TABLES.workspaces.fields,
+  tableName: TABLES.workspaces.name,
 
   create: function(data) {
     var instance = Base.create.call(this, data);

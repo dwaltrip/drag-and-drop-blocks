@@ -1,63 +1,49 @@
+import { mapValues } from 'lib/utils';
 
-var COMMON_FIELDS = ['uid'];
-
-const WorkspaceTable = {
-  name: 'workspaces',
-  fields: ['name', 'widgetList']
+const WIDGET_INPUTS = {
+  widget2:  defInputsTable({
+    name: 'widget2Inputs',
+    widgetNames: ['foo']
+  }),
+  widget3:  defInputsTable({
+    name: 'widget3Inputs',
+    widgetNames: ['firstWidget', 'secondWidget']
+  }),
+  widget4:  defInputsTable({
+    name: 'widget4Inputs',
+    widgetListNames: ['bazWidgets']
+  }),
 };
 
-const BaseWidgetTable = {
-  name: 'baseWidgets',
-  fields: ['type', 'pos', 'workspace', 'parentList', 'parentWidget']
+var TABLE_FIELDS = {
+  workspaces:     ['name', 'widgetList'],
+  baseWidgets:    ['type', 'pos', 'workspace', 'parentList', 'parentWidget'],
+  // TODO: not sure if widgetLists needs 'name'
+  widgetLists:    ['name', 'parentWidget'],
+  widget2Inputs:  WIDGET_INPUTS.widget2.fields,
+  widget3Inputs:  WIDGET_INPUTS.widget3.fields,
+  widget4Inputs:  WIDGET_INPUTS.widget4.fields
 };
 
-// TODO: do we actually need a 'name' field?
-const WidgetListTable = {
-  name: 'widgetLists',
-  fields: ['name', 'parentWidget']
-};
+var TABLES = mapValues(TABLE_FIELDS, (name, fields)=> new Object({ name, fields }));
+const COMMON_FIELDS = ['uid'];
 
-const Widget2InputsTable = defWidgetInputsTable({
-  tableName: 'widget2Inputs',
-  widgetNames: ['foo']
-});
-
-const Widget3InputsTable = defWidgetInputsTable({
-  tableName: 'widget3Inputs',
-  widgetNames: ['firstWidget', 'secondWidget']
-});
-
-const Widget4InputsTable = defWidgetInputsTable({
-  tableName: 'widget4Inputs',
-  widgetListNames: ['bazWidgets']
-});
+export { TABLES, WIDGET_INPUTS, COMMON_FIELDS };
 
 
-const TABLES = [
-  WorkspaceTable, BaseWidgetTable, WidgetListTable,
-  Widget2InputsTable, Widget3InputsTable, Widget4InputsTable
-];
-
-export {
-  TABLES, COMMON_FIELDS,
-  WorkspaceTable, BaseWidgetTable, WidgetListTable,
-  Widget2InputsTable, Widget3InputsTable, Widget4InputsTable
-};
-
-
-function defWidgetInputsTable(opts) {
+function defInputsTable(opts) {
   var widgetNames = opts.widgetNames || [];
   var widgetListNames = opts.widgetListNames || [];
+  var fields = concatAll(
+    ['parentWidget'],
+    widgetNames.map(name => `${name}Id`),
+    widgetListNames.map(name => `${name}Id`)
+  );
+  return { name: opts.name, widgetNames, widgetListNames, fields };
+}
 
-  var fields = COMMON_FIELDS
-    .concat(['parentWidget'])
-    .concat(widgetNames.map(name => `${name}Id`))
-    .concat(widgetListNames.map(name => `${name}Id`));
-
-  return {
-    name: opts.tableName,
-    fields: fields,
-    widgetNames,
-    widgetListNames
-  };
+function concatAll() {
+  return Array.prototype.reduce.call(arguments, (memo, array) => {
+    return memo.concat(array);
+  }, []);
 }

@@ -1,6 +1,6 @@
 import { extendModel, Base } from 'models/base';
-import { WidgetListTable } from 'models/db-schema';
 import { removeFromArray } from 'lib/utils';
+import { TABLES } from 'models/db-schema';
 
 // circular dependency
 import Widget from 'models/widget';
@@ -8,8 +8,8 @@ import db from 'db';
 
 
 export default extendModel(Base, {
-  _fields: WidgetListTable.fields,
-  tableName: WidgetListTable.name,
+  _fields: TABLES.widgetLists.fields,
+  tableName: TABLES.widgetLists.name,
 
   create: function(data) {
     var instance = Base.create.call(this, data);
@@ -43,7 +43,7 @@ export default extendModel(Base, {
       var widget = Widget.create({
         type,
         parentList: this.uid(),
-        workspace: this.getParentWidget().workspace()
+        workspace: this.workspaceUID()
       });
       this.widgets.push(widget);
       return widget;
@@ -110,12 +110,14 @@ export default extendModel(Base, {
       // add to the list if it's not in the list
       if (this.widgets.indexOf(widget) < 0) {
         this.widgets.push(widget);
-        var workspaceUID = this.workspace ? this.workspace.uid()
-          : this.getParentWidget().workspace();
-        widget.workspace(workspaceUID)
+        widget.workspace(this.workspaceUID());
         widget.parentList(this.uid());
         widget.save();
       }
+    },
+
+    workspaceUID: function() {
+      return this.workspace ? this.workspace.uid() : this.getParentWidget().workspace();
     },
 
     // re-normalize pos values to integers (preserving order)

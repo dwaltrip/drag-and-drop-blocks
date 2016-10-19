@@ -1,13 +1,13 @@
 import { extendModel, Base } from 'models/base';
-import { BaseWidgetTable } from 'models/db-schema';
+import { TABLES } from 'models/db-schema';
 
 // circular dependency
 import WidgetList from 'models/widget-list';
 
 
 export default extendModel(Base, {
-  _fields: BaseWidgetTable.fields,
-  tableName: BaseWidgetTable.name,
+  _fields: TABLES.baseWidgets.fields,
+  tableName: TABLES.baseWidgets.name,
 
   create: function(data) {
     if (!data.workspace) {  throw new Error("Widget.create - 'workspace' is a required field"); }
@@ -19,12 +19,6 @@ export default extendModel(Base, {
   instance: {
     inputs: null,
 
-    // isRoot: function() {
-    //   return this.parentWidget() === null && this.parentList() === null;
-    // },
-
-    // TODO: IMPLEMENT THIS.
-    // Remove all links & references marking this as a child widget or member of a widget list
     disconnect: function() {
       if (this.parentList()) {
         this.getParentList().remove(this);
@@ -58,15 +52,15 @@ export default extendModel(Base, {
     },
 
     _getInputsContainer: function() {
-      if (!this.inputsClass) {
+      if (!this.class.inputsClass) {
         return null;
       }
 
-      var inputs = this.inputsClass.findWhere({ parentWidget: this.uid() })
+      var inputs = this.class.inputsClass.findWhere({ parentWidget: this.uid() })
       if (inputs.length === 1) {
         return inputs[0];
       } else if (inputs.length === 0) {
-        return this.inputsClass.create({ parentWidget: this.uid() });
+        return this.class.inputsClass.create({ parentWidget: this.uid() });
       } else {
         throw new Error('This should never happen');
       }

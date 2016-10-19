@@ -1,11 +1,9 @@
-
 import { Base, extendModel } from 'models/base';
 import Widget from 'models/widget';
 import WidgetList from 'models/widget-list';
 
 window.globals = (window.globals || {});
 window.globals.WidgetList = WidgetList;
-const COMMON_FIELDS = ['parentWidget'];
 
 export function buildWidgetInputClass(opts) {
   var widgetNames = opts.widgetNames || [];
@@ -22,16 +20,8 @@ export function buildWidgetInputClass(opts) {
   });
   var widgetListInputs = widgetListNames.map(name => {
     var nameCapitalized = capitalize1stLetter(name);
-    return {
-      name,
-
-      idField: `${name}Id`
-    };
+    return { name, idField: `${name}Id` };
   });
-
-  var fieldNames = COMMON_FIELDS
-    .concat(widgetInputs.map(input => input.idField))
-    .concat(widgetListInputs.map(input => input.idField));
 
   var instancePrototype = {
     widget: null,
@@ -120,8 +110,8 @@ export function buildWidgetInputClass(opts) {
   };
 
   return extendModel(Base, {
-    _fields: fieldNames,
-    tableName: opts.tableName,
+    _fields: opts.fields,
+    tableName: opts.name,
     widgetInputs,
     widgetListInputs,
 
