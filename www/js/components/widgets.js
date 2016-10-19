@@ -25,11 +25,15 @@ function buildWidgetComponent(title, className) {
       var workspace = params.workspace;
 
       this.dragItem = params.createDragItem(widget);
-      this.dropzone = params.createDropzone(widget);
+      if (widget.parentList()) {
+        this.dropzone = params.createDropzone(widget);
+      }
 
       this.onunload = ()=> {
         this.dragItem.destroy();
-        this.dropzone.destroy();
+        if (this.dropzone) {
+          this.dropzone.destroy();
+        }
       };
     },
 
@@ -54,10 +58,10 @@ function buildWidgetComponent(title, className) {
       var isSelectecWidget = widgetToMoveProp() && widget.uid() === widgetToMoveProp().uid();
       var isPotentialDropSlot = !(isSelectecWidget || isAfterSelectedWidget);
 
+      var isDropTarget = controller.dropzone && controller.dropzone.isDropTarget();
       var widgetRowClassList = [
-        controller.dropzone.isDropTarget() || widget.isLastWidget && params.isTargetingListEnd ? '.is-drop-target' : null,
-        !(isDragging || isBeforeSelectedWidget || widget.isLastWidget || controller.dropzone.isDropTarget()) ?
-          '.has-bottom-connector' : null
+        isDropTarget || (widget.isLastWidget && params.isTargetingListEnd) ? '.is-drop-target' : null,
+        !(isDragging || isBeforeSelectedWidget || widget.isLastWidget || isDropTarget) ? '.has-bottom-connector' : null
       ].filter(cls => !!cls).join('')
 
       return m('.widget-row' + widgetRowClassList, { key: widget.uid() }, [

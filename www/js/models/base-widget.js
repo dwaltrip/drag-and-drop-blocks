@@ -19,33 +19,40 @@ export default extendModel(Base, {
   instance: {
     inputs: null,
 
-    isRoot: function() {
-      return this.parentWidget() === null && this.parentList() === null;
-    },
+    // isRoot: function() {
+    //   return this.parentWidget() === null && this.parentList() === null;
+    // },
 
     // TODO: IMPLEMENT THIS.
     // Remove all links & references marking this as a child widget or member of a widget list
-    makeRoot: function() {
-      if (!this.isRoot()) {
-        this.getParent().inputs.removeInput(this);
+    disconnect: function() {
+      if (this.parentList()) {
+        this.getParentList().remove(this);
       } else {
-        console.log('Widget.instance.makeRoot -- Widget is already root!! -- widget:', this.uid());
+        this.getParentWidget().inputs.removeInput(this);
       }
     },
 
-    getParent: function() {
-      if (this.parentWidget()) {
-        return this.class.findByUID(this.parentWidget());
-      } else if (this.parentList()) {
-        return WidgetList.findByUID(this.parentList()).getParentWidget();
-      }
-      return null;
+    getWorkspace: function() {
+      return Workspace.findByUID(this.workspace());
+    },
+
+    getParentWidget: function() {
+      return this.parentWidget() ? this.class.findByUID(this.parentWidget()) : null;
+    },
+
+    getParentList: function() {
+      return this.parentList() ? WidgetList.findByUID(this.parentList()) : null;
+    },
+
+    getContainingWidget: function() {
+      return this.getParentWidget() || this.getParentList().getParentWidget();
     },
 
     isAncestorOf: function(widget) {
-      var ancestor = widget.getParent();
+      var ancestor = widget.getContainingWidget();
       while(ancestor && ancestor !== this) {
-        ancestor = ancestor.getParent();
+        ancestor = ancestor.getContainingWidget();
       }
       return ancestor === this;
     },

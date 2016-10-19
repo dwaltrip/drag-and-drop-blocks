@@ -69,7 +69,7 @@ export default {
           var dropzoneWidget = this.getItemData('widget');
           if (dragItem.group === WORKSPACE_WIDGETS) {
             var dragWidget = dragItem.getItemData('widget');
-            dragWidget.makeRoot();
+            dragWidget.disconnect();
             workspace.insertAfter(dragWidget, dropzoneWidget);
           } else {
             var newWidget = workspace.createWidget(dragItem.getItemData('widgetType'))
@@ -98,7 +98,7 @@ export default {
       onDrop: (dragItem)=> {
         if (dragItem.group === WORKSPACE_WIDGETS) {
           var widget = dragItem.getItemData('widget');
-          widget.makeRoot();
+          widget.disconnect();
           workspace.appendWidget(widget);
         } else {
           var newWidget = workspace.createWidget(dragItem.getItemData('widgetType'))
@@ -112,7 +112,7 @@ export default {
   view: function(controller) {
     var workspace = controller.workspace;
     window.workspace = workspace;
-    var widgets = workspace.rootWidgets;
+    var widgets = workspace.getWidgets();
 
     var isWorkspaceMarginTarget = controller.workspaceMarginDZ.isDropTarget() && (
       controller.metalDragon.activeDragItem.group === TOOLBOX_WIDGETS ||

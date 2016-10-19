@@ -3,7 +3,7 @@ var COMMON_FIELDS = ['uid'];
 
 const WorkspaceTable = {
   name: 'workspaces',
-  fields: ['name']
+  fields: ['name', 'widgetList']
 };
 
 const BaseWidgetTable = {
@@ -11,6 +11,7 @@ const BaseWidgetTable = {
   fields: ['type', 'pos', 'workspace', 'parentList', 'parentWidget']
 };
 
+// TODO: do we actually need a 'name' field?
 const WidgetListTable = {
   name: 'widgetLists',
   fields: ['name', 'parentWidget']

@@ -43,9 +43,10 @@ export default function(lookupWidgetComponent) {
         m('.widget-title', title),
         viewFn(widget, opts),
       ]),
-      m('.widget-attach-area', {
-        config: opts.dropzone ? opts.dropzone.attachToElement : null
-      }, m('.widget-attach-point'))
+      opts.dropzone ? m('.widget-attach-area', {
+        config: opts.dropzone.attachToElement
+        }, m('.widget-attach-point')
+      ) : null
     ];
   };
 
