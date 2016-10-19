@@ -1,6 +1,9 @@
 import { extendModel, Base } from 'models/base';
 import { BaseWidgetTable } from 'models/db-schema';
 
+// circular dependency
+import WidgetList from 'models/widget-list';
+
 
 export default extendModel(Base, {
   _fields: BaseWidgetTable.fields,

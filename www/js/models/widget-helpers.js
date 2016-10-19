@@ -1,8 +1,10 @@
 
 import { Base, extendModel } from 'models/base';
 import Widget from 'models/widget';
+import WidgetList from 'models/widget-list';
 
-
+window.globals = (window.globals || {});
+window.globals.WidgetList = WidgetList;
 const COMMON_FIELDS = ['parentWidget'];
 
 export function buildWidgetInputClass(opts) {
@@ -19,7 +21,12 @@ export function buildWidgetInputClass(opts) {
     };
   });
   var widgetListInputs = widgetListNames.map(name => {
-    return { name, nameCapitalized: capitalize1stLetter(name), idField: `${name}Id` };
+    var nameCapitalized = capitalize1stLetter(name);
+    return {
+      name,
+
+      idField: `${name}Id`
+    };
   });
 
   var fieldNames = COMMON_FIELDS
@@ -31,23 +38,44 @@ export function buildWidgetInputClass(opts) {
 
     getWidget: function() { return Widget.findByUID(this.parentWidget()); },
 
-    removeInput: function(widget) {
-      if (!this.isInput(widget)) {
-        throw new Error('Cannot remove widget that is not an input.');
-      }
-      this.class.widgetInputs.forEach(input => {
-        if (this[input.name] === widget) {
-          this[input.name] = null;
-          this[input.idField](null);
-        }
-      });
-      this.save();
-      widget.parentWidget(null);
-      widget.save();
+    childWidgets: function() {
+      return this.class.widgetInputs.map(input => this[input.name]);
+    },
+    widgetLists: function() {
+      return this.class.widgetListInputs.map(input => this[input.name]);
     },
 
-    isInput: function(widget) {
-      return !!this.class.widgetInputs.find(input => this[input.name] === widget);
+    removeInput: function(widget) {
+      if (this.isChild(widget)) {
+        this.class.widgetInputs.forEach(input => {
+          if (this[input.name] === widget) {
+            this[input.name] = null;
+            this[input.idField](null);
+          }
+        });
+        this.save();
+        widget.parentWidget(null);
+        widget.save();
+      } else if (this.isInChildList(widget)) {
+        this.class.widgetListInputs.forEach(input => {
+          var list = this[input.name];
+          if (list.contains(widget)) {
+            list.remove(widget);
+          }
+          widget.parentList(null);
+          widget.save();
+        });
+      } else {
+        throw new Error('Cannot remove widget that is not an input.');
+      }
+    },
+
+    isChild: function(widget) {
+      return !!this.childWidgets().find(child => child === widget);
+    },
+
+    isInChildList: function(widget) {
+      return !!this.widgetLists().find(list => list.contains(widget));
     }
   };
 
@@ -75,11 +103,21 @@ export function buildWidgetInputClass(opts) {
     };
   });
 
-  /* TODO: implement functions for adding and removing widgets from a widget list.
-  widgetListInputs.forEach(name => {
-    // assign getter fn for widget lists
-    instancePrototype[`_${name}Getter`] = ...;
-  };*/
+  widgetListInputs.forEach(input => instancePrototype[input.name] = null);
+
+  instancePrototype.setupWidgetLists = function() {
+    this.class.widgetListInputs.forEach(input => {
+      var idProp = this[input.idField];
+      if (!idProp()) {
+        var list = WidgetList.create({ name: input.name, parentWidget: this.parentWidget() });
+        idProp(list.uid());
+        this.save();
+      } else {
+        var list = WidgetList.findByUID(idProp());
+      }
+      this[input.name] = list;
+    });
+  };
 
   return extendModel(Base, {
     _fields: fieldNames,
@@ -92,6 +130,7 @@ export function buildWidgetInputClass(opts) {
       this.widgetInputs.forEach(input => {
         instance[input.name] = instance[input.getterFnName]();
       });
+      instance.setupWidgetLists();
       return instance;
     },
 

@@ -6,9 +6,6 @@ const WorkspaceTable = {
   fields: ['name']
 };
 
-// The 'parentWidget' values in this table are identical to the 'parentWidget'
-// values on the Widget input tables. This is purposeful duplication that makes
-// it far easier to know if an arbitrary widget is a root widget.
 const BaseWidgetTable = {
   name: 'baseWidgets',
   fields: ['type', 'pos', 'workspace', 'parentList', 'parentWidget']
@@ -19,13 +16,9 @@ const WidgetListTable = {
   fields: ['name', 'parentWidget']
 };
 
-
 const Widget2InputsTable = defWidgetInputsTable({
   tableName: 'widget2Inputs',
-  widgetNames: ['foo'],
-  // no widgetLists for widget2.
-  // but just for example (for other widget types), do it like this:
-  // widgetListNames: ['fooList']
+  widgetNames: ['foo']
 });
 
 const Widget3InputsTable = defWidgetInputsTable({
@@ -33,14 +26,10 @@ const Widget3InputsTable = defWidgetInputsTable({
   widgetNames: ['firstWidget', 'secondWidget']
 });
 
-// const Widget4InputsTable = defWidgetInputsTable({
-//   tableName: 'widget4Inputs',
-//   widgetListNames: ['bazList']
-// });
-const Widget4InputsTable = {
-  name: 'widget4Inputs',
-  fields: ['parentWidget', 'bazWidgetListId']
-};
+const Widget4InputsTable = defWidgetInputsTable({
+  tableName: 'widget4Inputs',
+  widgetListNames: ['bazWidgets']
+});
 
 
 const TABLES = [

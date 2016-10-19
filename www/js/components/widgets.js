@@ -56,7 +56,8 @@ function buildWidgetComponent(title, className) {
 
       var widgetRowClassList = [
         controller.dropzone.isDropTarget() || widget.isLastWidget && params.isTargetingListEnd ? '.is-drop-target' : null,
-        !(isDragging || isBeforeSelectedWidget || widget.isLastWidget) ? '.has-bottom-connector' : null
+        !(isDragging || isBeforeSelectedWidget || widget.isLastWidget || controller.dropzone.isDropTarget()) ?
+          '.has-bottom-connector' : null
       ].filter(cls => !!cls).join('')
 
       return m('.widget-row' + widgetRowClassList, { key: widget.uid() }, [

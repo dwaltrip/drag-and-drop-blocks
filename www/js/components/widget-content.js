@@ -22,9 +22,9 @@ export default function(lookupWidgetComponent) {
     },
 
     [WidgetTypes.WIDGET4]: (widget, opts)=> {
-      var bazWidgetList = opts.isInWorkspace ? widget.inputs.bazWidgetList : null;
-      return m('.inner-widget-section', bazWidgetList ?
-        bazWidgetList.widgets.map(listWidget => nestedWidget(listWidget, opts)) :
+      var bazList = opts.isInWorkspace ? widget.inputs.bazWidgets : null;
+      return m('.inner-widget-section', bazList ?
+        bazList.widgets.map(listWidget => nestedWidget(listWidget, opts)) :
         null
       );
     }

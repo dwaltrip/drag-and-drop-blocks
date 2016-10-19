@@ -1,11 +1,9 @@
 
-import BaseWidget from 'models/base-widget';
-import extend from 'lib/object-extend';
 import { Base, extendModel } from 'models/base';
+import BaseWidget from 'models/base-widget';
 import { Widget3InputsTable }  from 'models/db-schema';
 
 // circular dependency
-import Widget from 'models/widget';
 import { buildWidgetInputClass } from 'models/widget-helpers';
 
 

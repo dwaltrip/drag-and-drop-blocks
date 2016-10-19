@@ -4,6 +4,7 @@ $lighter-border-color: #999;
 
 $toolbox-bg: #ccc;
 $trashcan-bg: #ccc;
+$connector-bg: #ddd;
 $workspace-bg: #eee;
 
 $highlight-color: #ffd639;
@@ -45,7 +46,7 @@ $highlight-color: #ffd639;
       bottom: -5px;
       height: 10px;
       width: 2px;
-      background: #aaa;
+      background-color: $lighter-border-color;
     }
   }
 
@@ -61,10 +62,10 @@ $highlight-color: #ffd639;
   .widget-attach-point {
     width: 30px;
     height: 5px;
-    background-color: #ddd;
+    background-color: $connector-bg;
     border-bottom-left-radius: 5px;
     border-top-right-radius: 5px;
-    border: 1px solid #999;
+    border: 1px solid $lighter-border-color;
   }
 }
 
