@@ -33,14 +33,14 @@ export default function(lookupWidgetComponent) {
 
   return function widgetContent(widget, title, opts) {
     var opts = opts || {};
-    // var debuggingTitle = opts.isInWorkspace ?
-    //   `${title} -- ${widget.uid()} -- ${widget.pos()}` : title;
+    var debuggingTitle = opts.isInWorkspace ?
+      `${title} -- ${widget.uid()} -- ${widget.pos()}` : title;
 
     var viewFn = ViewFunctionLookup[widget.type()];
     return [
-      // m('.widget-title', debuggingTitle),
       m('.widget-content', [
         m('.widget-title', title),
+        // m('.widget-title', debuggingTitle),
         viewFn(widget, opts),
       ]),
       opts.dropzone ? m('.widget-attach-area', {
@@ -54,10 +54,11 @@ export default function(lookupWidgetComponent) {
   function nestedWidget(widget, opts) {
     if (opts.isInWorkspace) {
       return widget ? m(lookupWidgetComponent(widget.type()), {
+        key: widget.uid(),
         widget,
         widgetToMove: opts.widgetToMove,
         createDragItem: opts.createDragItem,
-        createDropzone: opts.createDropzone
+        metalDragon: opts.metalDragon
       }) : null;
     }
   }

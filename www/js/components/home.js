@@ -7,21 +7,11 @@ import handleWithRedraw from 'lib/m-utils/handle-with-redraw';
 import { lookupWidgetComponent } from 'components/widgets';
 import ToolboxWidgets from 'components/toolbox-widgets';
 import unicode from 'lib/unicode-characters';
+import { TOOLBOX_WIDGETS, WORKSPACE_WIDGETS } from 'app-constants';
 
 import MetalDragon from 'metal-dragon';
 import { mithrilifyMetalDragon } from 'lib/m-utils/metal-dragon-helpers';
 
-
-var TOOLBOX_WIDGETS = 'toolbox-widgets';
-var WORKSPACE_WIDGETS = 'workspace-widgets';
-
-window.Workspace = Workspace;
-window.printAllWidgetInputs = function() {
-  var workspace = Workspace.query()[0];
-  workspace.rootWidgets.forEach(w => {
-    console.log(`${w.type()} -- ${w.uid()} -- isRoot: ${w.isRoot()} -- ${JSON.stringify(w.inputs)}`);
-  });
-}
 
 export default {
   controller: function() {
@@ -54,37 +44,16 @@ export default {
       });
     };
 
-    this.createWorkspaceWidgetDropzone = (widget)=> {
-      return this.metalDragon.createDropzone({
-        group: 'widget-row',
-        accepts: [TOOLBOX_WIDGETS, WORKSPACE_WIDGETS],
-        itemData: { widget },
-        useDragElementOverlap: true,
-        isEligible: function(dragItem) {
-          if (dragItem.group === TOOLBOX_WIDGETS) { return true; }
-          var dragWidget = dragItem.getItemData('widget')
-          return widget !== dragWidget && !widget.isAncestorOf(dragWidget);
-        },
-        onDrop: function(dragItem) {
-          var dropzoneWidget = this.getItemData('widget');
-          if (dragItem.group === WORKSPACE_WIDGETS) {
-            var dragWidget = dragItem.getItemData('widget');
-            dragWidget.disconnect();
-            workspace.insertAfter(dragWidget, dropzoneWidget);
-          } else {
-            var newWidget = workspace.createWidget(dragItem.getItemData('widgetType'))
-            workspace.insertAfter(newWidget, dropzoneWidget);
-          }
-        }
-      });
-    };
-
     this.createTrashcanDropzone = ()=> {
       return this.metalDragon.createDropzone({
         accepts: WORKSPACE_WIDGETS,
         group: 'trashcan',
         // TODO: this doesnt allow us to trash toolbox widgets
-        onDrop: (dragItem) => workspace.removeWidget(dragItem.getItemData('widget'))
+        onDrop: (dragItem) => {
+          var dragWidget = dragItem.getItemData('widget')
+          dragWidget.disconnect();
+          dragWidget.delete();
+        }
       });
     };
 
@@ -149,7 +118,7 @@ export default {
             workspace,
             widgetToMove: controller.widgetToMove,
             createDragItem: controller.createWorkspaceWidgetDragItem,
-            createDropzone: controller.createWorkspaceWidgetDropzone,
+            metalDragon: controller.metalDragon,
             isTargetingListEnd: isWorkspaceMarginTarget
           });
         })),

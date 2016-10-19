@@ -1,5 +1,6 @@
 import m from 'mithril';
 
+import { TOOLBOX_WIDGETS, WORKSPACE_WIDGETS } from 'app-constants';
 import { WidgetTypes } from 'models/widget'
 
 import widgetContentBuilder from 'components/widget-content';
@@ -25,8 +26,30 @@ function buildWidgetComponent(title, className) {
       var workspace = params.workspace;
 
       this.dragItem = params.createDragItem(widget);
+
       if (widget.parentList()) {
-        this.dropzone = params.createDropzone(widget);
+        this.dropzone = params.metalDragon.createDropzone({
+          group: 'widget-row',
+          itemData: { widget },
+          useDragElementOverlap: true,
+          isEligible: function(dragItem) {
+            if (dragItem.group === TOOLBOX_WIDGETS) { return true; }
+            var dragWidget = dragItem.getItemData('widget')
+            return widget !== dragWidget && !widget.isAncestorOf(dragWidget);
+          },
+          onDrop: function(dragItem) {
+            var dropzoneWidget = this.getItemData('widget');
+            var targetList = dropzoneWidget.getParentList();
+            if (dragItem.group === WORKSPACE_WIDGETS) {
+              var dragWidget = dragItem.getItemData('widget');
+              dragWidget.disconnect();
+              targetList.insertAfter(dragWidget, dropzoneWidget);
+            } else {
+              var newWidget = targetList.createWidget(dragItem.getItemData('widgetType'))
+              targetList.insertAfter(newWidget, dropzoneWidget);
+            }
+          }
+        });
       }
 
       this.onunload = ()=> {
@@ -60,17 +83,18 @@ function buildWidgetComponent(title, className) {
 
       var isDropTarget = controller.dropzone && controller.dropzone.isDropTarget();
       var widgetRowClassList = [
+        // TODO: Something is wrong with 'isTargetingListEnd' in nested widget lists.
         isDropTarget || (widget.isLastWidget && params.isTargetingListEnd) ? '.is-drop-target' : null,
         !(isDragging || isBeforeSelectedWidget || widget.isLastWidget || isDropTarget) ? '.has-bottom-connector' : null
       ].filter(cls => !!cls).join('')
 
-      return m('.widget-row' + widgetRowClassList, { key: widget.uid() }, [
+      return m('.widget-row' + widgetRowClassList, { key: widget.uid(), }, [
         m('.widget' + widgetClassList, { config: controller.dragItem.attachToElement },
           widgetContent(widget, title, {
             isInWorkspace: true,
             widgetToMove: params.widgetToMove,
             createDragItem: params.createDragItem,
-            createDropzone: params.createDropzone,
+            metalDragon: params.metalDragon,
             dropzone: controller.dropzone
           })
         )

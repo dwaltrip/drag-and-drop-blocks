@@ -49,8 +49,9 @@ export default extendModel(Base, {
     sortWidgets:    proxyToWidgetList('sort'),
     appendWidget:   proxyToWidgetList('appendWidget'),
 
+    // TODO: this fn is not used. is it still needed?
     removeWidget: function(widgetToDelete) {
-      this.widgetList.remove(widgetToDelete)
+      this.getWidgetList().remove(widgetToDelete)
       widgetToDelete.delete();
     },
 

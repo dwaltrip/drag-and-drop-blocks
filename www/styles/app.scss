@@ -44,7 +44,7 @@ $highlight-color: #ffd639;
       position: absolute;
       left: 24px;
       bottom: -5px;
-      height: 10px;
+      height: 5px;
       width: 2px;
       background-color: $lighter-border-color;
     }
@@ -72,6 +72,7 @@ $highlight-color: #ffd639;
 .widget-editor {
   .widget-list {
     flex-grow: 0;
+    padding: 5px;
   }
 
   .workspace-margin {
@@ -80,7 +81,7 @@ $highlight-color: #ffd639;
     position: relative;
   }
 
-  &.is-dragging .widget-row.is-drop-target .widget-attach-area {
+  &.is-dragging .widget-row.is-drop-target > .widget > .widget-attach-area {
     bottom: -14px;
 
     .widget-attach-point {
@@ -106,11 +107,11 @@ $highlight-color: #ffd639;
 }
 
 .workspace .widget-row {
-  padding: 5px 10px;
+  padding: 5px;
+  padding-bottom: 0;
   display: flex;
   position: relative;
 
-  &:first-child { margin-top: 5px; }
   &:last-child { margin-bottom: 5px; }
 }
 
@@ -176,6 +177,8 @@ $highlight-color: #ffd639;
     border-radius: 6px;
   }
   .inner-widget-section {
+    display: flex;
+    flex-direction: column;
     min-height: 40px;
     min-width: 80px;
     background-color: $workspace-bg;

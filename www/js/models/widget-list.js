@@ -39,8 +39,7 @@ export default extendModel(Base, {
       this.setPrevAndNextRefs();
     },
 
-    // TODO: what pos should it have?
-    createWidgetInList: function(type) {
+    createWidget: function(type) {
       var widget = Widget.create({
         type,
         parentList: this.uid(),
