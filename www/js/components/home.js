@@ -85,7 +85,7 @@ export default {
 
     var isWorkspaceMarginTarget = controller.workspaceMarginDZ.isDropTarget() && (
       controller.metalDragon.activeDragItem.group === TOOLBOX_WIDGETS ||
-      !controller.widgetToMove().isLastWidget
+      !controller.widgetToMove().isLastWidget()
     );
 
     var isOverWidgetRow = controller.metalDragon.isDraggingOverGroup('widget-row') ||

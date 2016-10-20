@@ -73,8 +73,8 @@ function buildWidgetComponent(title, className) {
       var widgetClassList = (className || '') + isDraggingClass;
 
 
-      var prevWidget = widget.prevWidget;
-      var nextWidget = widget.nextWidget;
+      var prevWidget = widget.prevWidget();
+      var nextWidget = widget.nextWidget();
       var isBeforeSelectedWidget = widgetToMoveProp() && nextWidget && nextWidget.uid() === widgetToMoveProp().uid();
       var isAfterSelectedWidget = widgetToMoveProp() && prevWidget && prevWidget.uid() === widgetToMoveProp().uid();
 
@@ -84,8 +84,8 @@ function buildWidgetComponent(title, className) {
       var isDropTarget = controller.dropzone && controller.dropzone.isDropTarget();
       var widgetRowClassList = [
         // TODO: Something is wrong with 'isTargetingListEnd' in nested widget lists.
-        isDropTarget || (widget.isLastWidget && params.isTargetingListEnd) ? '.is-drop-target' : null,
-        !(isDragging || isBeforeSelectedWidget || widget.isLastWidget || isDropTarget) ? '.has-bottom-connector' : null
+        isDropTarget || (widget.isLastWidget() && params.isTargetingListEnd) ? '.is-drop-target' : null,
+        !(isDragging || isBeforeSelectedWidget || widget.isLastWidget() || isDropTarget) ? '.has-bottom-connector' : null
       ].filter(cls => !!cls).join('')
 
       return m('.widget-row' + widgetRowClassList, { key: widget.uid(), }, [

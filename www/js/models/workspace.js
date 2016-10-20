@@ -40,10 +40,7 @@ export default extendModel(Base, {
       return widgetList;
     },
 
-    createWidget: function(type) {
-      return Widget.create({ type, workspace: this.uid() });
-    },
-
+    createWidget:   proxyToWidgetList('createWidget'),
     insertAfter:    proxyToWidgetList('insertAfter'),
     sortWidgets:    proxyToWidgetList('sort'),
     appendWidget:   proxyToWidgetList('appendWidget'),

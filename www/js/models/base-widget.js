@@ -43,6 +43,22 @@ export default extendModel(Base, {
       return this.getParentWidget() || this.getParentList().getParentWidget();
     },
 
+    prevWidget: function() {
+      if (!this.parentList()) { return; }
+      var index = this.pos();
+      return index > 0 ? this.getParentList().widgets[index - 1] : null;
+    },
+
+    nextWidget: function() {
+      if (!this.parentList()) { return; }
+      var widgets = this.getParentList().widgets;
+      var index = this.pos();
+      return index >= 0 && index < widgets.length - 1 ? widgets[index + 1] : null;
+    },
+
+    isFirstWidget: function() { return !!this.parentList() && !this.prevWidget(); },
+    isLastWidget: function()  { return !!this.parentList() && !this.nextWidget(); },
+
     isAncestorOf: function(widget) {
       var ancestor = widget.getContainingWidget();
       while(ancestor && ancestor !== this) {
@@ -64,14 +80,6 @@ export default extendModel(Base, {
       } else {
         throw new Error('This should never happen');
       }
-    },
-
-    hasChildWidgets: function() {
-      return this.class.findWhere({ parentWidget: this.uid() }).length > 0;
-    },
-
-    hasWidgetLists: function() {
-      return WidgetList.findWhere({ parentWidget: this.uid() }).length > 0;
     }
   }
 });
