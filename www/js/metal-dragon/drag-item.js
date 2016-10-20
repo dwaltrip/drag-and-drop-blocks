@@ -97,16 +97,14 @@ export default {
     },
 
     _prepForDrag: function(event) {
-      var self = this;
+      this._dragData = {};
       var element = this._element;
-      var dragImage = this._setupDragImage(element);
       var rect = element.getBoundingClientRect();
       this.initialCursorOffset = {
         x: event.clientX - rect.left,
         y: event.clientY - rect.top
       };
-
-      this._dragData = {};
+      var dragImage = this._setupDragImage(element);
 
       // TODO: this works, however if I move the mouse up and down outside of the bounding container,
       // the widget dragging doesn't get re-ordered (even though the y-pos of my mouse is going thrugh
@@ -123,6 +121,7 @@ export default {
         };
       }
 
+      this._updateDragImagePos(event);
       this.manager._prepForDrag();
       document.addEventListener('mousemove', this._boundEventListeners.onmousemove, false);
       document.addEventListener('mouseup', this._boundEventListeners.onmouseup, false);
@@ -157,17 +156,10 @@ export default {
       var dragImageSource = this._findElementForDragImage ?
         this._findElementForDragImage(element) : element;
       var dragImage = this.dragImage = dragImageSource.cloneNode(true);
-
-      // TODO: ensure this is always rendered in front of every other DOM element (stacking contexts, etc)
       dragImage.style.position = 'absolute';
-      var rect = element.getBoundingClientRect();
-      dragImage.style.left = `-${rect.left}px`;
-      dragImage.style.top = `-${rect.top}px`;
       dragImage.style.pointerEvents = 'none';
-
       dragImage.classList.add(this.dragImageClass);
       document.body.appendChild(dragImage);
-
       return dragImage;
     },
 
@@ -179,23 +171,14 @@ export default {
       // NOTE: after the 'mousedown' event on a dragitem, we don't consider the drag
       // to have officially started until the first 'mousemove' event fires
       if (!this.manager.isMidDrag()) {
-        this.manager._startDrag(this);
+        this.manager._startDrag(this, event);
         if (this.userEvents.onDragStart) {
           this.userEvents.onDragStart(event);
         }
         document.documentElement.style.cursor = 'move';
       }
 
-      var newPosition = {
-        left: event.clientX - this.initialCursorOffset.x,
-        top: event.clientY - this.initialCursorOffset.y
-      };
-      if (this.isMovementConstrained) {
-        newPosition = this._constrainDragElement(newPosition);
-      }
-      this.dragImage.style.left = `${newPosition.left}px`;
-      this.dragImage.style.top = `${newPosition.top}px`;
-
+      this._updateDragImagePos(event);
       this.manager.manageRectBasedDragMoveEvents(this.dragImage.getBoundingClientRect());
     },
 
@@ -228,6 +211,19 @@ export default {
       }
 
       document.documentElement.style.cursor = '';
+    },
+
+    // TODO: ensure this is always rendered in front of every other DOM element (stacking contexts, etc)
+    _updateDragImagePos: function(event) {
+      var newPos = {
+        left: event.clientX - this.initialCursorOffset.x,
+        top: event.clientY - this.initialCursorOffset.y
+      };
+      if (this.isMovementConstrained) {
+        newPos = this._constrainDragElement(newPos);
+      }
+      this.dragImage.style.left = `${newPos.left}px`;
+      this.dragImage.style.top = `${newPos.top}px`;
     },
 
     _constrainDragElement: function(elementPosition) {

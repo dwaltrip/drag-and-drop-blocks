@@ -33,6 +33,7 @@ export default {
     activeDragItem: null,
     // TODO: not sure if this is the best name.
     // activeDropzones vs eligibleDropzones is slightly confusing
+    // TODO: rename to targetDropzones
     activeDropzones: null,
 
     _eligibleDropzones: null,
@@ -160,7 +161,7 @@ export default {
       this._dragState = DRAG_STATE_PRE_DRAG;
     },
 
-    _startDrag: function(dragItem) {
+    _startDrag: function(dragItem, event) {
       this._dragState = DRAG_STATE_MID_DRAG;
       this.activeDragItem = dragItem;
       this.activeDropzones = [];
@@ -174,7 +175,7 @@ export default {
 
       dropzones.forEach(dropzone => {
         if (dropzone.isEligible(dragItem)) {
-          dropzone._prepForDragAndDrop();
+          dropzone._prepForDragAndDrop(dragItem);
           this._eligibleDropzones.push(dropzone);
         } else {
           dropzone.disable();
@@ -183,6 +184,21 @@ export default {
       });
 
       this.isCheckingElementOverlap = !!this._eligibleDropzones.find(dz => dz.useDragElementOverlap);
+
+      // Upon drag start, identify dropzones that should be considered 'targeted' by dragItem
+      // and trigger 'dragEnter' for these dropzones.
+      var dragRect = dragItem.dragImage.getBoundingClientRect();
+      var mousePos = { x: event.clientX, y: event.clientY };
+      this._eligibleDropzones.forEach(dropzone => {
+        var dropzoneRect = dropzone._element.getBoundingClientRect()
+        var useOverlap = dropzone.useDragElementOverlap;
+
+        var doesOverlap = doRectsOverlap(dropzoneRect, dragRect);
+        var containsCursor = doesRectContainPoint(dropzoneRect, mousePos);
+        if ((useOverlap && doesOverlap) || (!useOverlap && containsCursor)) {
+          dropzone.handleDragEnter();
+        }
+      });
     },
 
     _postDragCleanup: function() {
@@ -211,4 +227,9 @@ function doRectsOverlap(rect1, rect2) {
     rect1.bottom  < rect2.top   ||
     rect1.top     > rect2.bottom
   );
+}
+
+function doesRectContainPoint(rect, point) {
+  return (rect.left <= point.x &&   point.x <= rect.right &&
+          rect.top  <= point.y &&   point.y <= rect.bottom);
 }
