@@ -31,14 +31,12 @@ function buildWidgetComponent(title, className) {
         this.dropzone = params.metalDragon.createDropzone({
           group: 'widget-row',
           itemData: { widget },
+          // TODO: this causes problems when the element is really large (lots of nested widgets)
+          // really, only a small rectangle in the top left corner should count for dropping
           useDragElementOverlap: true,
           isEligible: function(dragItem) {
             if (dragItem.group === TOOLBOX_WIDGETS) { return true; }
-            var dragWidget = dragItem.getItemData('widget')
-            // TODO: this is wrong. We should be able to drop onto the connect point of an ancestor
-            // We can fix the dragenter/dragleave problem by checking if the mouse is over any
-            // potential drop targets as soon as the drag begins, and calling dragEnter on them.
-            return widget !== dragWidget && !widget.isAncestorOf(dragWidget);
+            return widget !== dragItem.getItemData('widget');
           },
           onDrop: function(dragItem) {
             var dropzoneWidget = this.getItemData('widget');
