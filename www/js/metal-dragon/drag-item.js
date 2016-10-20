@@ -173,7 +173,7 @@ export default {
       if (!this.manager.isMidDrag()) {
         this.manager._startDrag(this, event);
         if (this.userEvents.onDragStart) {
-          this.userEvents.onDragStart(event);
+          this.userEvents.onDragStart.call(this, event);
         }
         document.documentElement.style.cursor = 'move';
       }
@@ -187,7 +187,7 @@ export default {
       if (this.manager.isMidDrag()) {
         this.manager.onDrop();
         if (this.userEvents.onDrop) {
-          this.userEvents.onDrop(event);
+          this.userEvents.onDrop.call(this, event);
         }
       }
 

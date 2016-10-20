@@ -175,7 +175,7 @@ export default {
 
       dropzones.forEach(dropzone => {
         if (dropzone.isEligible(dragItem)) {
-          dropzone._prepForDragAndDrop(dragItem);
+          dropzone._prepForDragAndDrop(event);
           this._eligibleDropzones.push(dropzone);
         } else {
           dropzone.disable();

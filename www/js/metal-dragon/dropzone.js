@@ -9,7 +9,9 @@ export default {
     instance.group = opts.group || DEFAULT_GROUP;
 
     instance.userEvents = {
+      onDragStart: opts.onDragStart,
       onDragEnter: opts.onDragEnter,
+      onDragLeave: opts.onDragLeave,
       onDrop: opts.onDrop
     };
 
@@ -91,7 +93,7 @@ export default {
       this.manager.removeDropzone(this);
     },
 
-    _prepForDragAndDrop: function(dragItem) {
+    _prepForDragAndDrop: function(event) {
       this._isReadyForDrop = true;
 
       if (!this.hasElement()) {
@@ -106,6 +108,10 @@ export default {
         this._element.addEventListener('mouseenter', this._boundEventListeners.onmouseenter, false);
         this._element.addEventListener('mouseleave', this._boundEventListeners.onmouseleave, false);
       }
+
+      if (this.userEvents.onDragStart) {
+        this.userEvents.onDragStart.call(this, this.manager.activeDragItem, event);
+      }
     },
 
     _onMouseenter: function(event) { this.handleDragEnter(event); },
@@ -117,7 +123,7 @@ export default {
         this.manager.onDragEnter(this);
 
         if (this.userEvents.onDragEnter) {
-          this.userEvents.onDragEnter(event, this.manager.activeDragItem);
+          this.userEvents.onDragEnter.call(this, this.manager.activeDragItem, event);
         }
       }
     },
@@ -126,6 +132,10 @@ export default {
       if (this._isEnabled) {
         this._isDraggingOver = false;
         this.manager.onDragLeave(this);
+
+        if (this.userEvents.onDragLeave) {
+          this.userEvents.onDragLeave.call(this, this.manager.activeDragItem, event);
+        }
       }
     },
 
