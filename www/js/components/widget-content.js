@@ -2,6 +2,35 @@ import m from 'mithril';
 
 import { WidgetTypes } from 'models/widget';
 
+// -------------------------------------------------------
+// TODO:
+//   * Make widgetSlot a component
+//   * Add dropzone for widgetSlot
+//   * Make component for nested widget list
+//   * Add dropzone for empty nested widget list
+//   -----------------------------------------------------
+//   * Shift click to multi-select all subsequent widgets
+//   * Add 'target zone' option on dragItem
+//   * Refactor home component (split into 2: widget-editor & workspace)
+//   * Refactor widgets component. We don't need the "component lookup" stuff
+//   * Evaluate project architecture, components, data models, etc
+//   * Clean up code
+// -------------------------------------------------------
+
+
+var WidgetSlot = {
+  controller: function(params) {
+    this.widget = params.widget;
+    this.dropzone = params.metalDragon.createDropzone({
+      group: 'widget-slot',
+    });
+  },
+  view: function() {
+    return m('.foo', 'FooA');
+  }
+};
+
+
 export default function(lookupWidgetComponent) {
 
   var ViewFunctionLookup = {
@@ -23,7 +52,7 @@ export default function(lookupWidgetComponent) {
 
     [WidgetTypes.WIDGET4]: (widget, opts)=> {
       var bazList = opts.isInWorkspace ? widget.inputs.bazWidgets : null;
-      return m('.inner-widget-section', bazList ?
+      return m('.nested-widget-list', bazList ?
         bazList.widgets.map(listWidget => nestedWidget(listWidget, opts)) :
         null
       );

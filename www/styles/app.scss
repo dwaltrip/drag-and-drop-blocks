@@ -42,7 +42,7 @@ $highlight-color: #ffd639;
       content: '';
       display: block;
       position: absolute;
-      left: 24px;
+      left: 19px;
       bottom: -5px;
       height: 5px;
       width: 2px;
@@ -164,7 +164,7 @@ $highlight-color: #ffd639;
   .widget-slots {
     align-self: stretch;display: flex;
   }
-  .widget-slot, .inner-widget-section {
+  .widget-slot, .nested-widget-list {
     display: flex;
     min-width: 50px;
     min-height: 25px;
@@ -176,7 +176,7 @@ $highlight-color: #ffd639;
   .widget-slot {
     border-radius: 6px;
   }
-  .inner-widget-section {
+  .nested-widget-list {
     display: flex;
     flex-direction: column;
     min-height: 40px;

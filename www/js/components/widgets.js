@@ -35,6 +35,9 @@ function buildWidgetComponent(title, className) {
           isEligible: function(dragItem) {
             if (dragItem.group === TOOLBOX_WIDGETS) { return true; }
             var dragWidget = dragItem.getItemData('widget')
+            // TODO: this is wrong. We should be able to drop onto the connect point of an ancestor
+            // We can fix the dragenter/dragleave problem by checking if the mouse is over any
+            // potential drop targets as soon as the drag begins, and calling dragEnter on them.
             return widget !== dragWidget && !widget.isAncestorOf(dragWidget);
           },
           onDrop: function(dragItem) {
