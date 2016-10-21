@@ -1,6 +1,6 @@
 import m from 'mithril';
 
-import { TOOLBOX_WIDGETS, WORKSPACE_WIDGETS } from 'app-constants';
+import { TOOLBOX_WIDGETS, WORKSPACE_WIDGETS, MOVE_WIDGET } from 'app-constants';
 import { WidgetTypes } from 'models/widget'
 
 import widgetContentBuilder from 'components/widget-content';
@@ -29,7 +29,7 @@ function buildWidgetComponent(title, className) {
 
       if (widget.parentList()) {
         this.dropzone = params.metalDragon.createDropzone({
-          group: 'widget-row',
+          group: MOVE_WIDGET,
           itemData: { widget },
           // TODO: this causes problems when the element is really large (lots of nested widgets)
           // really, only a small rectangle in the top left corner should count for dropping

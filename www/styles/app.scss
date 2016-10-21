@@ -150,10 +150,10 @@ $highlight-color: #ffd639;
 
 .widget-editor {
   .widget.is-dragging {
-    opacity: 0.4;
+    opacity: 0.3;
   }
 
-  &.is-targeting-trashcan, &.is-targeting-toolbox, &.is-targeting-widget-row {
+  &.is-targeting-trashcan, &.is-targeting-toolbox {
     .widget.is-dragging {
       opacity: 0;
     }

@@ -110,17 +110,35 @@ export default {
       }
     },
 
-    manageRectBasedDragMoveEvents: function(rect) {
-      if (this.isCheckingElementOverlap) {
+    onMouseMove: function(event) {
+      this.handleCustomEventConstraints();
+    },
+
+    isManuallyHandlingDragEvents: function() {
+      var isUsingDragZone = this.activeDragItem.hasTargetZone;
+      return this.isCheckingElementOverlap || isUsingDragZone;
+    },
+
+    // TODO: clarify this method. We are doing a few things all at once here.
+    handleCustomEventConstraints: function() {
+      var isUsingDragZone = this.activeDragItem.hasTargetZone;
+      var dragRect = this.activeDragItem.getDragRect();
+
+      if (this.isCheckingElementOverlap || isUsingDragZone) {
         this._eligibleDropzones.forEach(dropzone => {
-          if (dropzone.useDragElementOverlap && !dropzone.isUnderDragItem() &&
-          doRectsOverlap(rect, dropzone._element.getBoundingClientRect())) {
+          if (
+            (dropzone.useDragElementOverlap || isUsingDragZone) &&
+            !dropzone.isUnderDragItem() &&
+            doRectsOverlap(dragRect, dropzone._element.getBoundingClientRect())
+          ) {
             dropzone.handleDragEnter();
           }
         });
         this.activeDropzones.forEach(dropzone => {
-          if (dropzone.useDragElementOverlap &&
-          !doRectsOverlap(rect, dropzone._element.getBoundingClientRect())) {
+          if (
+            (dropzone.useDragElementOverlap || isUsingDragZone) &&
+            !doRectsOverlap(dragRect, dropzone._element.getBoundingClientRect())
+          ) {
             dropzone.handleDragLeave();
           }
         });
@@ -202,13 +220,13 @@ export default {
     },
 
     _postDragCleanup: function() {
-      this.activeDragItem = null;
-      this.activeDropzones = [];
-
       this._dragState = DRAG_STATE_NONE;
       this._eligibleDropzones.forEach(dropzone => dropzone._postDragCleanup());
       this._eligibleDropzones = [];
       this.isCheckingElementOverlap = false;
+      
+      this.activeDragItem = null;
+      this.activeDropzones = [];
 
       this._ineligibleDropzones.forEach(dropzone => dropzone.enable());
       this._ineligibleDropzones = [];

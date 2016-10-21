@@ -7,7 +7,7 @@ import handleWithRedraw from 'lib/m-utils/handle-with-redraw';
 import { lookupWidgetComponent } from 'components/widgets';
 import ToolboxWidgets from 'components/toolbox-widgets';
 import unicode from 'lib/unicode-characters';
-import { TOOLBOX_WIDGETS, WORKSPACE_WIDGETS } from 'app-constants';
+import { TOOLBOX_WIDGETS, WORKSPACE_WIDGETS, MOVE_WIDGET } from 'app-constants';
 
 import MetalDragon from 'metal-dragon';
 import { mithrilifyMetalDragon } from 'lib/m-utils/metal-dragon-helpers';
@@ -22,14 +22,16 @@ export default {
     var workspace = this.workspace = workspace;
     var widgetToMove = this.widgetToMove = m.prop();
 
-    this.metalDragon = mithrilifyMetalDragon(MetalDragon.create({ eventHandlerDecorator }));
+    window.metalDragon = this.metalDragon = mithrilifyMetalDragon(MetalDragon.create({ eventHandlerDecorator }));
 
     this.createToolboxWidgetDragItem = (widgetType)=> {
       return this.metalDragon.createDragItem({
         group: TOOLBOX_WIDGETS,
         itemData: { widgetType },
         dragHandle: 'widget-title',
-        boundingContainer: 'widget-editor'
+        boundingContainer: 'widget-editor',
+        // TODO: is there a better name than 'targetZone'?
+        targetZone: { top: 0, left: 0, height: 20, width: 25 }
       });
     };
 
@@ -39,6 +41,7 @@ export default {
         itemData: { widget },
         dragHandle: 'widget-title',
         boundingContainer: 'widget-editor',
+        targetZone: { top: 0, left: 0, height: 10, width: 25 },
         onDragStart: ()=> widgetToMove(widget),
         onDrop: ()=> widgetToMove(null)
       });
@@ -88,7 +91,7 @@ export default {
       !controller.widgetToMove().isLastWidget()
     );
 
-    var isOverWidgetRow = controller.metalDragon.isDraggingOverGroup('widget-row') ||
+    var isOverWidgetRow = controller.metalDragon.isDraggingOverGroup(MOVE_WIDGET) ||
       isWorkspaceMarginTarget;
 
     var widgetEditorClassList = [

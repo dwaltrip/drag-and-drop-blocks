@@ -104,7 +104,7 @@ export default {
         throw new Error(errorMsg);
       }
 
-      if (!this.useDragElementOverlap) {
+      if (!this.manager.isManuallyHandlingDragEvents()) {
         this._element.addEventListener('mouseenter', this._boundEventListeners.onmouseenter, false);
         this._element.addEventListener('mouseleave', this._boundEventListeners.onmouseleave, false);
       }
@@ -145,7 +145,7 @@ export default {
     },
 
     _postDragCleanup: function() {
-      if (!this.useDragElementOverlap) {
+      if (!this.manager.isManuallyHandlingDragEvents()) {
         this._element.removeEventListener('mouseenter', this._boundEventListeners.onmouseenter);
         this._element.removeEventListener('mouseleave', this._boundEventListeners.onmouseleave);
       }

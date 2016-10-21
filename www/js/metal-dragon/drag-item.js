@@ -29,6 +29,12 @@ export default {
       onDrop: opts.onDrop
     };
 
+    instance.hasTargetZone = !!opts.targetZone;
+    if (instance.hasTargetZone) {
+      instance._targetZone = opts.targetZone;
+      instance._validateTargetZone();
+    }
+
     instance.isMovementConstrained = false;
     if (opts.constraints || opts.boundingContainer) {
       instance.isMovementConstrained = true;
@@ -55,6 +61,7 @@ export default {
     _dragData: null,
     _element: null,
     _boundEventListeners: null,
+    _targetZone: null,
 
     isDragging: function() {
       return this === this.manager.activeDragItem;
@@ -62,6 +69,23 @@ export default {
 
     setDragData: function(key, value) {
       this._dragData[key] = value;
+    },
+
+    getDragRect: function() {
+      if (!this.manager.isMidDrag()) {
+        throw new Error('drag-item -- has no drag rect when not dragging.')
+      }
+      var dragImageRect = this.dragImage.getBoundingClientRect();
+      if (!this.hasTargetZone) {
+        return dragImageRect;
+      }
+      var targetZone = this._targetZone;
+      return {
+        top:      dragImageRect.top   + targetZone.top,
+        bottom:   dragImageRect.top   + targetZone.top    + targetZone.height,
+        left:     dragImageRect.left  + targetZone.left,
+        right:    dragImageRect.left  + targetZone.left   + targetZone.width
+      };
     },
 
     getDragData: function(key) {
@@ -179,7 +203,7 @@ export default {
       }
 
       this._updateDragImagePos(event);
-      this.manager.manageRectBasedDragMoveEvents(this.dragImage.getBoundingClientRect());
+      this.manager.onMouseMove(event);
     },
 
     // TODO: should this be here, in DragItem? or should it be in the manager class?
@@ -232,6 +256,16 @@ export default {
         left: clamp(elementPosition.left, rect.left, rect.right),
         top: clamp(elementPosition.top, rect.top, rect.bottom)
       }
+    },
+
+    _validateTargetZone: function() {
+      ['top', 'left', 'height', 'width'].forEach(attr => {
+        if (typeof this._targetZone[attr] === 'undefined') {
+          throw new Error(`drag-item -- '${attr}' is a required attribute for targetZone.`);
+        } else if (typeof this._targetZone[attr] !== 'number') {
+          throw new Error(`drag-item -- 'targetZone.${attr}' must be a number.`);
+        }
+      });
     }
   }
 };
