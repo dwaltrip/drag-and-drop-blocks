@@ -98,8 +98,9 @@ export default {
 
       if (!this.hasElement()) {
         var errorMsg = [
-          `Metal-Dragon: dropzone (id: ${this.id}, group: ${this.group} --`,
-          `accepts: ${this.accepts.join(', ')}) is not attached to an element`
+          `Metal-Dragon: dropzone (id: ${this.id}, group: ${this.group},`,
+          `accepts: ${this.accepts ? `[${this.accepts.join(', ')}]` : null}) is not attached to an element.`,
+          '\nDid you forget to call dropzone.destroy()?'
         ].join(' ');
         throw new Error(errorMsg);
       }

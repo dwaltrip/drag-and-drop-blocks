@@ -39,6 +39,8 @@ export default extendModel(Base, {
     remove: function(widget) {
       removeFromArray(this.widgets, widget);
       this.normalizePosValues();
+      widget.parentList(null);
+      widget.save();
     },
 
     createWidget: function(type) {

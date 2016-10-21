@@ -186,6 +186,14 @@ $highlight-color: #ffd639;
 }
 
 .workspace .widget-slot {
+  > .widget-row > .widget {
+    border: none;
+  }
+
+  &.is-drop-target {
+    border: 2px solid $highlight-color;
+  }
+
   &> .widget-row {
     margin: 0;
     padding: 0;

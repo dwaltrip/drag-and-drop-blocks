@@ -56,8 +56,12 @@ export default extendModel(Base, {
       return index >= 0 && index < widgets.length - 1 ? widgets[index + 1] : null;
     },
 
-    isFirstWidget: function() { return !!this.parentList() && !this.prevWidget(); },
-    isLastWidget: function()  { return !!this.parentList() && !this.nextWidget(); },
+    isFirstWidget:  function() { return !!this.parentList() && !this.prevWidget(); },
+    isLastWidget:   function() { return !!this.parentList() && !this.nextWidget(); },
+
+    setInput:     proxyToInputs('setInput'),
+    getInput:     proxyToInputs('getInput'),
+    createInput:  proxyToInputs('createInput'),
 
     isAncestorOf: function(widget) {
       var ancestor = widget.getContainingWidget();
@@ -65,6 +69,17 @@ export default extendModel(Base, {
         ancestor = ancestor.getContainingWidget();
       }
       return ancestor === this;
+    },
+
+    insertAfterInNearestParentList: function(widgetToInsert) {
+      var referenceWidget = this;
+      var parentList = referenceWidget.getParentList();
+      while (!parentList) {
+        referenceWidget = referenceWidget.getParentWidget();
+        if (!referenceWidget) { throw new Error('This should not happen!'); }
+        parentList = referenceWidget.getParentList();
+      }
+      parentList.insertAfter(widgetToInsert, referenceWidget);
     },
 
     _getInputsContainer: function() {
@@ -83,3 +98,9 @@ export default extendModel(Base, {
     }
   }
 });
+
+function proxyToInputs(fnName) {
+  return function() {
+    return this.inputs[fnName].apply(this.inputs, arguments);
+  }
+}

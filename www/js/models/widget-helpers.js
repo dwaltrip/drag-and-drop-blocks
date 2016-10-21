@@ -11,12 +11,7 @@ export function buildWidgetInputClass(opts) {
 
   var widgetInputs = widgetNames.map(name => {
     var nameCapitalized = capitalize1stLetter(name);
-    return {
-      name,
-      getterFnName: `_get${nameCapitalized}`,
-      creatorFnName: `create${nameCapitalized}`,
-      idField: `${name}Id`
-    };
+    return { name, idField: `${name}Id`, getterFnName: `_get${nameCapitalized}` };
   });
   var widgetListInputs = widgetListNames.map(name => {
     var nameCapitalized = capitalize1stLetter(name);
@@ -35,26 +30,56 @@ export function buildWidgetInputClass(opts) {
       return this.class.widgetListInputs.map(input => this[input.name]);
     },
 
+    getInput: function(inputName) {
+      var input = this._fetchInput(inputName);
+      return this[input.name];
+    },
+
+    setInput: function(inputName, widget) {
+      var input = this._fetchInput(inputName);
+      var idProp = this[input.idField];
+      if (idProp()) {
+        var widgetToReplace = this[input.name];
+        this.removeInput(widgetToReplace);
+        this.getWidget().insertAfterInNearestParentList(widgetToReplace);
+      }
+      idProp(widget.uid());
+      this[input.name] = widget;
+      this.save();
+      widget.parentWidget(this.parentWidget());
+      widget.save();
+    },
+
+    createInput: function(inputName, widgetType) {
+      var input = this._fetchInput(inputName);
+      var idProp = this[input.idField];
+      if (idProp()) {
+        this.removeInput(this[input.name]);
+      }
+      var widget = Widget.create({
+        type: widgetType,
+        parentWidget: this.parentWidget(),
+        workspace: this.getWidget().workspace()
+      });
+      idProp(widget.uid());
+      this[input.name] = widget;
+      this.save();
+      return widget;
+    },
+
     removeInput: function(widget) {
       if (this.isChild(widget)) {
-        this.class.widgetInputs.forEach(input => {
-          if (this[input.name] === widget) {
-            this[input.name] = null;
-            this[input.idField](null);
-          }
-        });
+        var input = this.class.widgetInputs.find(input => this[input.name] === widget);
+        this[input.name] = null;
+        this[input.idField](null);
         this.save();
         widget.parentWidget(null);
         widget.save();
       } else if (this.isInChildList(widget)) {
-        this.class.widgetListInputs.forEach(input => {
-          var list = this[input.name];
-          if (list.contains(widget)) {
-            list.remove(widget);
-          }
-          widget.parentList(null);
-          widget.save();
-        });
+        var input = this.class.widgetListInputs.find(input => this[input.name].contains(widget));
+        this[input.name].remove(widget);
+        widget.parentList(null);
+        widget.save();
       } else {
         throw new Error('Cannot remove widget that is not an input.');
       }
@@ -66,9 +91,34 @@ export function buildWidgetInputClass(opts) {
 
     isInChildList: function(widget) {
       return !!this.widgetLists().find(list => list.contains(widget));
+    },
+
+    _setupWidgetLists: function() {
+      this.class.widgetListInputs.forEach(input => {
+        var idProp = this[input.idField];
+        if (!idProp()) {
+          var list = WidgetList.create({ name: input.name, parentWidget: this.parentWidget() });
+          idProp(list.uid());
+          this.save();
+        } else {
+          var list = WidgetList.findByUID(idProp());
+        }
+        this[input.name] = list;
+      });
+    },
+
+    _fetchInput: function(inputName) {
+      var input = this.class.widgetInputs.find(input => input.name === inputName);
+      if (!input) {
+        throw new Error(`setInput -- Widget '${this.parentWidget()}' does not have an input with the name '${inputName}'`);
+      }
+      return input;
     }
   };
 
+  // TODO: get rid of creating a getterFn for each widget input
+  // Also, I think having a single generic fetcher fn would be better
+  // than having to manage an instance property for each widget input.
   widgetInputs.forEach(input => {
     instancePrototype[input.name] = null;
 
@@ -76,38 +126,9 @@ export function buildWidgetInputClass(opts) {
       var widgetId = this[input.idField]();
       return widgetId ? Widget.findByUID(widgetId) : null;
     };
-
-    instancePrototype[input.creatorFnName] = function(type) {
-      var idProp = this[input.idField];
-      if (idProp()) {
-        this.removeInput(this[input.name]);
-      }
-      var widget = Widget.create({
-        type,
-        parentWidget: this.getWidget().uid(),
-        workspace: this.getWidget().workspace()
-      });
-      idProp(widget.uid());
-      this.save();
-      return widget;
-    };
   });
 
   widgetListInputs.forEach(input => instancePrototype[input.name] = null);
-
-  instancePrototype.setupWidgetLists = function() {
-    this.class.widgetListInputs.forEach(input => {
-      var idProp = this[input.idField];
-      if (!idProp()) {
-        var list = WidgetList.create({ name: input.name, parentWidget: this.parentWidget() });
-        idProp(list.uid());
-        this.save();
-      } else {
-        var list = WidgetList.findByUID(idProp());
-      }
-      this[input.name] = list;
-    });
-  };
 
   return extendModel(Base, {
     _fields: opts.fields,
@@ -120,7 +141,7 @@ export function buildWidgetInputClass(opts) {
       this.widgetInputs.forEach(input => {
         instance[input.name] = instance[input.getterFnName]();
       });
-      instance.setupWidgetLists();
+      instance._setupWidgetLists();
       return instance;
     },
 
