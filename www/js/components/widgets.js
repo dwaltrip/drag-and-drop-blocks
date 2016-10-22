@@ -9,10 +9,11 @@ import widgetContentBuilder from 'components/widget-content';
 var widgetContent = widgetContentBuilder(lookupWidgetComponent);
 
 var WidgetComponents = {
-  [WidgetTypes.WIDGET1]: buildWidgetComponent('Widget 1', '.widget-1'),
-  [WidgetTypes.WIDGET2]: buildWidgetComponent('Widget 2', '.widget-2'),
-  [WidgetTypes.WIDGET3]: buildWidgetComponent('Widget 3', '.widget-3'),
-  [WidgetTypes.WIDGET4]: buildWidgetComponent('Widget 4', '.widget-4')
+  [WidgetTypes.WIDGET1]: buildWidgetComponent('Little Fella', '.widget-1'),
+  [WidgetTypes.WIDGET2]: buildWidgetComponent('Single Slot', '.widget-2'),
+  [WidgetTypes.WIDGET3]: buildWidgetComponent('Double Slot', '.widget-3'),
+  [WidgetTypes.WIDGET4]: buildWidgetComponent('Widget List', '.widget-4'),
+  [WidgetTypes.WIDGET5]: buildWidgetComponent('Two Lists', '.widget-5')
 };
 
 

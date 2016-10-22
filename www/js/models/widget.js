@@ -11,7 +11,8 @@ const WidgetTypes = {
   WIDGET1: 'widget1',
   WIDGET2: 'widget2',
   WIDGET3: 'widget3',
-  WIDGET4: 'widget4'
+  WIDGET4: 'widget4',
+  WIDGET5: 'widget5'
 };
 
 // Widget1 doesn't have widget inputs, so it doesn't have any custom behavior.
@@ -19,7 +20,8 @@ var WidgetClasses = {
   [WidgetTypes.WIDGET1]: BaseWidget,
   [WidgetTypes.WIDGET2]: defineWidgetClass(WIDGET_INPUTS.widget2),
   [WidgetTypes.WIDGET3]: defineWidgetClass(WIDGET_INPUTS.widget3),
-  [WidgetTypes.WIDGET4]: defineWidgetClass(WIDGET_INPUTS.widget4)
+  [WidgetTypes.WIDGET4]: defineWidgetClass(WIDGET_INPUTS.widget4),
+  [WidgetTypes.WIDGET5]: defineWidgetClass(WIDGET_INPUTS.widget5)
 };
 
 // This class exists to provide a single interface for querying and creating widgets.

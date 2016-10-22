@@ -40,7 +40,6 @@ export default {
         group: WORKSPACE_WIDGETS,
         itemData: { widget },
         dragHandle: 'widget-title',
-        boundingContainer: 'widget-editor',
         targetZone: { top: 0, left: 0, height: 10, width: 25 },
         onDragStart: ()=> widgetToMove(widget),
         onDrop: ()=> widgetToMove(null)

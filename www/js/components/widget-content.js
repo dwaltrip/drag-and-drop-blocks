@@ -12,6 +12,7 @@ import { WidgetTypes } from 'models/widget';
 //  [X] Implement "bump out" functionality for widget slots
 //  [X] Make component for nested widget list
 //  [X] Add dropzone for empty nested widget list
+//  [ ] Implement "add to front of list" UI (this is the only basic feature that is missing)
 //  ------------------------------------------------------
 //  [X] Add 'target zone' option on dragItem
 //  [ ] Refactor widgets component. We don't need the "component lookup" stuff
@@ -25,6 +26,7 @@ import { WidgetTypes } from 'models/widget';
 //  [ ] Evaluate project architecture, components, data models, etc
 //  [ ] Refefactor models/widget-helpers, models/widget
 //  ------------------------------------------------------
+//  [ ] DRY up widget type definition. Should only need to change 10 LOC total over 3 spots.
 //  [ ] Try adding a few more widget types
 //  [ ] Any extra cleanup
 //--------------------------------------------------------
@@ -142,6 +144,13 @@ export default function(lookupWidgetComponent) {
 
     [WidgetTypes.WIDGET4]: (widget, opts)=> {
       return m(WidgetList, merge(opts, { parentWidget: widget, listName: 'bazWidgets' }));
+    },
+
+    [WidgetTypes.WIDGET5]: (widget, opts)=> {
+      return m('.widget-list-row', [
+        m(WidgetList, merge(opts, { parentWidget: widget, listName: 'list1' })),
+        m(WidgetList, merge(opts, { parentWidget: widget, listName: 'list2' }))
+      ])
     }
   };
 
