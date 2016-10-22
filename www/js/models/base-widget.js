@@ -64,6 +64,14 @@ export default extendModel(Base, {
     createInput:    proxyToInputs('createInput'),
     getInputList:   proxyToInputs('getInputList'),
 
+    delete: function() {
+      // In the actual code-blocks app, I think all blocks will have an input
+      if (this.inputs) {
+        this.inputs.delete.apply(this.inputs, arguments);
+      }
+      return Base.instance.delete.apply(this, arguments);
+    },
+
     isAncestorOf: function(widget) {
       var ancestor = widget.getContainingWidget();
       while(ancestor && ancestor !== this) {

@@ -63,8 +63,7 @@ export default {
     this.trashcanDropzone = this.createTrashcanDropzone();
     this.toolboxDropzone = this.createTrashcanDropzone();
 
-    // TODO: I should be able to make this attach to the entire workspace, instead of the blank space only?
-    // The widget rows should take precedence over the workspace container.
+    // TODO: rename this to 'bottomOfListDropzone'
     this.workspaceMarginDZ = this.metalDragon.createDropzone({
       accepts: [WORKSPACE_WIDGETS, TOOLBOX_WIDGETS],
       onDrop: (dragItem)=> {

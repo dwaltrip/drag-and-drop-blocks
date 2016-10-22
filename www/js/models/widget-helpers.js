@@ -1,3 +1,4 @@
+import { argsToArray } from 'lib/utils';
 import { Base, extendModel } from 'models/base';
 import Widget from 'models/widget';
 import WidgetList from 'models/widget-list';
@@ -28,6 +29,21 @@ export function buildWidgetInputClass(opts) {
     },
     widgetLists: function() {
       return this.class.widgetListInputs.map(input => this[input.name]);
+    },
+
+    delete: function() {
+      var deleteArgs = argsToArray(arguments);
+      this.class.widgetInputs.forEach(input => {
+        var inputWidget = this[input.name];
+        if (inputWidget) {
+          inputWidget.delete.apply(inputWidget, deleteArgs);
+        }
+      });
+      this.class.widgetListInputs.forEach(input => {
+        var list = this[input.name];
+        list.delete.apply(list, deleteArgs);
+      });
+      return Base.instance.delete.apply(this, deleteArgs);
     },
 
     getInput: function(inputName) {

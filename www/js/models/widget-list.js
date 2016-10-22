@@ -1,5 +1,5 @@
 import { extendModel, Base } from 'models/base';
-import { removeFromArray } from 'lib/utils';
+import { argsToArray, removeFromArray } from 'lib/utils';
 import { TABLES } from 'models/db-schema';
 
 // circular dependency
@@ -32,6 +32,14 @@ export default extendModel(Base, {
         query: widget => widget.parentList === this.uid(),
         sort: [['pos', 'ASC']]
       });
+    },
+
+    delete: function() {
+      var deleteArgs = argsToArray(arguments);
+      this.getWidgets().forEach(widget => {
+        widget.delete.apply(widget, deleteArgs);
+      });
+      return Base.instance.delete.apply(this, deleteArgs);
     },
 
     contains: function(widget) {
