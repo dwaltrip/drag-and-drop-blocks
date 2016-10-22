@@ -59,9 +59,10 @@ export default extendModel(Base, {
     isFirstWidget:  function() { return !!this.parentList() && !this.prevWidget(); },
     isLastWidget:   function() { return !!this.parentList() && !this.nextWidget(); },
 
-    setInput:     proxyToInputs('setInput'),
-    getInput:     proxyToInputs('getInput'),
-    createInput:  proxyToInputs('createInput'),
+    setInput:       proxyToInputs('setInput'),
+    getInput:       proxyToInputs('getInput'),
+    createInput:    proxyToInputs('createInput'),
+    getInputList:   proxyToInputs('getInputList'),
 
     isAncestorOf: function(widget) {
       var ancestor = widget.getContainingWidget();

@@ -10,8 +10,8 @@ import { WidgetTypes } from 'models/widget';
 //  [X]  Make widgetSlot a component
 //  [X] Add dropzone for widgetSlot
 //  [X] Implement "bump out" functionality for widget slots
-//  [ ] Make component for nested widget list
-//  [ ] Add dropzone for empty nested widget list
+//  [X] Make component for nested widget list
+//  [X] Add dropzone for empty nested widget list
 //  ------------------------------------------------------
 //  [X] Add 'target zone' option on dragItem
 //  [ ] Refactor widgets component. We don't need the "component lookup" stuff
@@ -74,23 +74,55 @@ export default function(lookupWidgetComponent) {
       };
     },
     view: function(controller, params) {
-      // var widget = controller.widget;
-      // var slotContent = params.isInWorkspace && widget ?
-      //   m(lookupWidgetComponent(widget.type()), {
-      //     key: widget.uid(),
-      //     widget,
-      //     widgetToMove: params.widgetToMove,
-      //     createDragItem: params.createDragItem,
-      //     metalDragon: params.metalDragon
-      //   }) : null;
-      // return m('.widget-slot', slotContent);
-
       var widget = controller.parentWidget.getInput &&
         controller.parentWidget.getInput(controller.inputName);
       return m('.widget-slot' + controller.cssClasses(), {
         key: `widget-slot-${params.inputName}`,
         config: controller.dropzone ? controller.dropzone.attachToElement : null
       }, nestedWidget(widget, params));
+    }
+  };
+
+
+  var WidgetList = {
+    controller: function(params) {
+      var self = this;
+      this.parentWidget = params.parentWidget;
+      this.listName = params.listName;
+      this.widgetList = this.parentWidget.getInputList &&
+        this.parentWidget.getInputList(this.listName);
+
+      if (params.isInWorkspace) {
+        this.dropzone = params.metalDragon.createDropzone({
+          group: 'widget-list',
+          isEligible: ()=> this.widgetList.isEmpty(),
+          onDrop: function(dragItem) {
+            if (dragItem.group === TOOLBOX_WIDGETS) {
+              var widgetToAdd = self.widgetList.createWidget(dragItem.getItemData('widgetType'));
+            } else {
+              var widgetToAdd = dragItem.getItemData('widget');
+              widgetToAdd.disconnect();
+            }
+            self.widgetList.appendWidget(widgetToAdd);
+          }
+        });
+        this.onunload = ()=> this.dropzone.destroy();
+      }
+
+      this.cssClasses = ()=> {
+        return [
+          this.dropzone && this.dropzone.isDropTarget() ? '.is-drop-target' : '',
+        ].join('');
+      };
+    },
+
+    view: function(controller, params) {
+      return m('.nested-widget-list' + controller.cssClasses(), {
+        config: controller.dropzone ? controller.dropzone.attachToElement : null
+      }, controller.widgetList ?
+        controller.widgetList.widgets.map(widget => nestedWidget(widget, params)) :
+        null
+      );
     }
   };
 
@@ -109,11 +141,7 @@ export default function(lookupWidgetComponent) {
     },
 
     [WidgetTypes.WIDGET4]: (widget, opts)=> {
-      var bazList = opts.isInWorkspace ? widget.inputs.bazWidgets : null;
-      return m('.nested-widget-list', bazList ?
-        bazList.widgets.map(listWidget => nestedWidget(listWidget, opts)) :
-        null
-      );
+      return m(WidgetList, merge(opts, { parentWidget: widget, listName: 'bazWidgets' }));
     }
   };
 
@@ -147,9 +175,5 @@ export default function(lookupWidgetComponent) {
         metalDragon: opts.metalDragon
       }) : null;
     }
-  }
-
-  function widgetSlot(slotContent) {
-    return m('.widget-slot', slotContent);
   }
 };

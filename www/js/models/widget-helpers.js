@@ -67,6 +67,14 @@ export function buildWidgetInputClass(opts) {
       return widget;
     },
 
+    getInputList: function(listName) {
+      var input = this.class.widgetListInputs.find(input => input.name === listName);
+      if (!input) {
+        throw new Error(`Widget '${this.parentWidget()}' does not have an input list with the name '${listName}'`);
+      }
+      return this[input.name];
+    },
+
     removeInput: function(widget) {
       if (this.isChild(widget)) {
         var input = this.class.widgetInputs.find(input => this[input.name] === widget);
@@ -110,7 +118,7 @@ export function buildWidgetInputClass(opts) {
     _fetchInput: function(inputName) {
       var input = this.class.widgetInputs.find(input => input.name === inputName);
       if (!input) {
-        throw new Error(`setInput -- Widget '${this.parentWidget()}' does not have an input with the name '${inputName}'`);
+        throw new Error(`Widget '${this.parentWidget()}' does not have an input widget with the name '${inputName}'`);
       }
       return input;
     }

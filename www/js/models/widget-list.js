@@ -21,6 +21,8 @@ export default extendModel(Base, {
     widgets: null,
     workspace: null,
 
+    isEmpty: function() { return this.widgets.length === 0; },
+
     getParentWidget: function() {
       return Widget.findByUID(this.parentWidget());
     },
