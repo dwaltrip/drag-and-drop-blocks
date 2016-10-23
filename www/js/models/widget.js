@@ -30,6 +30,8 @@ var WidgetClasses = {
 // All widget data is stored in the BaseWidget table, regardless of the widget type
 // The different widget classes enable the different behavior between widget types.
 var Widget = extend(BaseWidget, {
+  types: Object.keys(WidgetTypes).map(name => WidgetTypes[name]),
+
   create: function(data) {
     if (!data.type) {
       throw new Error(`Widget.create - 'type' is a required field`);

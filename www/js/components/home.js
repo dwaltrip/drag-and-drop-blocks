@@ -1,11 +1,12 @@
 import m from 'mithril';
 
-import Widget from 'models/widget';
+import Widget from 'models/widget'
 import Workspace from 'models/workspace';
 
 import handleWithRedraw from 'lib/m-utils/handle-with-redraw';
-import { lookupWidgetComponent } from 'components/widgets';
-import ToolboxWidgets from 'components/toolbox-widgets';
+import WidgetComponent from 'components/widget';
+import ToolboxWidget from 'components/toolbox-widget';
+
 import unicode from 'lib/unicode-characters';
 import { TOOLBOX_WIDGETS, WORKSPACE_WIDGETS, MOVE_WIDGET } from 'app-constants';
 
@@ -102,8 +103,9 @@ export default {
     return m('.widget-editor.no-text-select' + widgetEditorClassList, [
       m('.toolbox', { config: controller.toolboxDropzone.attachToElement }, [
         m('.toolbox-header', 'Toolbox'),
-        m('.toolbox-widgets', ToolboxWidgets.map(Component => {
-          return m('.toolbox-section', m(Component, {
+        m('.toolbox-widgets', Widget.types.map(widgetType => {
+          return m('.toolbox-section', m(ToolboxWidget, {
+            widgetType,
             createDragItem: controller.createToolboxWidgetDragItem
           }))
         }))
@@ -113,7 +115,7 @@ export default {
       // also, rename Home component to WidgetEditor component
       m('.workspace', [
         m('.widget-list', widgets.map(widget => {
-          return m(lookupWidgetComponent(widget.type()), {
+          return m(WidgetComponent, {
             key: widget.uid(),
             widget,
             workspace,
