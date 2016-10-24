@@ -1,3 +1,6 @@
+
+
+
 --------------------------------------------------------
  Todos
 --------------------------------------------------------
@@ -9,13 +12,16 @@
   [ ] Implement "add to front of list" UI (this is the only basic feature that is missing)
   ------------------------------------------------------
   [X] Add 'target zone' option on dragItem
-  [ ] Refactor widgets component. We don't need the "component lookup" stuff
+  [/] Refactor widgets component. We don't need the "component lookup" stuff
+  [ ] Clean up all of the CSS classes. Should our Metal-Dragon API be handling more of that work?
   [ ] Refactor home component (split into 2: widget-editor & workspace)
   [ ] Refactor widget-slots and widget-list components
-  ------------------------------------------------------
   [ ] Implement multi-select (shift click on a widget?)
+  ------------------------------------------------------
+  DONT SPEND MUCH TIME TRYING TO FINISH. We need to move forward & start working on code-blocks.
+  ------------------------------------------------------
   [ ] Implement undo (cmd+Z, cmd+Y)
-  [ ] Implement copy/cut & paste (cmd+C, cmd+V)
+  [ ] Implement copy & paste (cmd+C, cmd+V)
   ------------------------------------------------------
   [ ] Evaluate project architecture, components, data models, etc
   [ ] Refefactor models/widget-helpers, models/widget

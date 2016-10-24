@@ -82,11 +82,15 @@ export default {
       return newDropzone;
     },
 
-    isDraggingOverGroup: function(group) {
+    hasActiveDropzone: function() {
+      return this.activeDropzones && this.activeDropzones.length > 0;
+    },
+
+    isTargetingDropzoneGroup: function(group) {
       if (!this.isMidDrag()) { return false; }
 
       var targetDropzone = this.targetDropzone();
-      return targetDropzone && targetDropzone.group === group;
+      return !!targetDropzone && targetDropzone.group === group;
     },
 
     removeDragItem: function(dragItem) {

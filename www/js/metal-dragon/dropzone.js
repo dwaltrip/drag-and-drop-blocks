@@ -79,14 +79,16 @@ export default {
       this._itemData[key] = value;
     },
 
-    getItemData: function(key) {
-      if (!(key in this._itemData)) {
+    getItemData: function(key, defaultValue) {
+      var hasDefault = typeof defaultValue !== 'undefined';
+      if (!(key in this._itemData) && !hasDefault) {
         throw new Error([
-          `DragItem ${this.id} has no itemData for key: ${key}.`,
+          `Dropzone ${this.id} has no itemData for key: ${key}.`,
           `Existing keys: ${Object.keys(this._itemData)}`
         ].join(' '));
       }
-      return this._itemData[key];
+      var val = this._itemData[key];
+      return typeof val === 'undefined' && hasDefault ? defaultValue : val;
     },
 
     destroy: function() {

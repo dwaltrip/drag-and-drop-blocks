@@ -11,6 +11,7 @@ var WidgetSlot = {
   // because if the slotWidget is moved somewhere else,
   // we don't have a good way of clearing it out in the old controller
   // Thus, in the UI, it will be present in both the old slot and in its new position.
+  // So we must re-fetch the widget input in the view for each render (as we don't know if it's been removed or not)
   controller: function(params) {
     var self = this;
     this.parentWidget = params.parentWidget;
@@ -48,13 +49,10 @@ var WidgetSlot = {
   },
 
   view: function(controller, params) {
-    var widget = controller.parentWidget.getInput &&
-      controller.parentWidget.getInput(controller.inputName);
-
+    var widget = controller.parentWidget.getInput(controller.inputName);
     var content = widget ? m(WidgetComponent, {
       key: widget.uid(),
       widget,
-      widgetToMove: params.widgetToMove,
       createDragItem: params.createDragItem,
       metalDragon: params.metalDragon
     }) : null;
@@ -64,10 +62,6 @@ var WidgetSlot = {
       key: `widget-slot-${params.inputName}`,
       config: controller.dropzone.attachToElement
     });
-    // return m('.widget-slot' + controller.cssClasses(), {
-    //   key: `widget-slot-${params.inputName}`,
-    //   config: controller.dropzone.attachToElement
-    // }, nestedWidget(widget, params));
   }
 };
 
@@ -75,9 +69,7 @@ var WidgetList = {
   controller: function(params) {
     var self = this;
     this.parentWidget = params.parentWidget;
-    this.listName = params.listName;
-    this.widgetList = this.parentWidget.getInputList &&
-      this.parentWidget.getInputList(this.listName);
+    this.widgetList = this.parentWidget.getInputList(params.listName);
 
     this.dropzone = params.metalDragon.createDropzone({
       group: 'widget-list',
@@ -106,32 +98,15 @@ var WidgetList = {
       return m(WidgetComponent, {
         key: widget.uid(),
         widget,
-        widgetToMove: params.widgetToMove,
         createDragItem: params.createDragItem,
         metalDragon: params.metalDragon
       });
-      // return nestedWidget(widget, params)
     });
     return widgetListLayout(content, {
       cssClasses: controller.cssClasses(),
       config: controller.dropzone.attachToElement
     });
-    // return m('.nested-widget-list' + controller.cssClasses(), {
-    //   config: controller.dropzone.attachToElement
-    // }, controller.widgetList ?
-    //   controller.widgetList.widgets.map(widget => nestedWidget(widget, params)) :
-    // );
   }
 };
 
 export { WidgetSlot, WidgetList };
-
-// function nestedWidget(widget, opts) {
-//   return m(WidgetComponent, {
-//     key: widget.uid(),
-//     widget,
-//     widgetToMove: opts.widgetToMove,
-//     createDragItem: opts.createDragItem,
-//     metalDragon: opts.metalDragon
-//   });
-// }

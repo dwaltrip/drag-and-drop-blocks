@@ -179,10 +179,29 @@ export function callOnEach(fnOrFnName) {
 }
 
 export function merge(obj1, obj2) {
-  return [obj1, obj2].reduce((newObj, obj) => {
+  return [obj1 || {}, obj2 || {}].reduce((newObj, obj) => {
     for (var prop in obj) {
       newObj[prop] = obj[prop]
     }
     return newObj;
   }, {});
 }
+
+export function timeit(iterations, testFunction) {
+  var results = [];
+  var total = 0;
+  for (var i = 0; i < iterations; i++) {
+    var start = performance.now();
+    testFunction();
+    var end = performance.now();
+    var duration = end - start;
+    results.push(duration);
+    total += duration;
+  }
+  var result = {
+    results : results,
+    total : total,
+    avg : total / results.length
+  }
+  return result;
+};

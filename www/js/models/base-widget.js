@@ -3,6 +3,7 @@ import { TABLES } from 'models/db-schema';
 
 // circular dependency
 import WidgetList from 'models/widget-list';
+import Workspace from 'models/workspace';
 
 
 export default extendModel(Base, {
@@ -42,6 +43,9 @@ export default extendModel(Base, {
     getContainingWidget: function() {
       return this.getParentWidget() || this.getParentList().getParentWidget();
     },
+
+    isInList: function() { return !!this.parentList(); },
+    isInSlot: function() { return !!this.parentWidget(); },
 
     prevWidget: function() {
       if (!this.parentList()) { return; }

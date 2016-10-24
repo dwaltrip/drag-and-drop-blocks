@@ -1,4 +1,7 @@
 
+// TODO: change toolbox widgets form .widget -> .toolbox-widget
+// Then fix the style bugs we have for widget lists and widget slots in the drag images
+
 $border-color: #555;
 $lighter-border-color: #999;
 
@@ -38,6 +41,19 @@ $highlight-color: #ffd639;
   background-color: $workspace-bg;
 
   .widget-row {
+    padding: 5px;
+    padding-bottom: 0;
+    display: flex;
+    position: relative;
+
+    &:last-child { margin-bottom: 5px; }
+
+    &.is-in-slot {
+      margin: 0;
+      padding: 0;
+      .widget { border: none; }
+    }
+
     &.has-bottom-connector::after {
       content: '';
       display: block;
@@ -67,6 +83,11 @@ $highlight-color: #ffd639;
     border-top-right-radius: 5px;
     border: 1px solid $lighter-border-color;
   }
+}
+
+.toolbox .widget-row {
+  margin: 10px;
+  display: flex;
 }
 
 .widget-editor {
@@ -99,25 +120,11 @@ $highlight-color: #ffd639;
     border-top: 1px solid $border-color;
     justify-content: space-around;
     align-items: center;
+
+    &.is-drop-target {
+      background-color: #f3a2a2;
+    }
   }
-
-  &.is-dragging-over-trashcan .trashcan {
-    background-color: #f3a2a2;
-  }
-}
-
-.workspace .widget-row {
-  padding: 5px;
-  padding-bottom: 0;
-  display: flex;
-  position: relative;
-
-  &:last-child { margin-bottom: 5px; }
-}
-
-.toolbox .widget-row {
-  margin: 10px;
-  display: flex;
 }
 
 .widget {
@@ -149,14 +156,12 @@ $highlight-color: #ffd639;
 }
 
 .widget-editor {
-  .widget.is-dragging {
+  .widget.is-selected {
     opacity: 0.3;
   }
 
-  &.is-targeting-trashcan, &.is-targeting-toolbox {
-    .widget.is-dragging {
-      opacity: 0;
-    }
+  &.is-targeting-a-dropzone .widget.is-selected {
+    opacity: 0;
   }
 }
 
@@ -164,6 +169,7 @@ $highlight-color: #ffd639;
   .widget-slots {
     align-self: stretch;display: flex;
   }
+
   .widget-slot, .nested-widget-list {
     display: flex;
     min-width: 50px;
@@ -173,9 +179,15 @@ $highlight-color: #ffd639;
     border: 1px solid $lighter-border-color;
     align-self: stretch;
   }
+
   .widget-slot {
     border-radius: 6px;
+
+    &.is-drop-target {
+      border: 2px solid $highlight-color;
+    }
   }
+
   .nested-widget-list {
     display: flex;
     flex-direction: column;
@@ -187,29 +199,12 @@ $highlight-color: #ffd639;
       border: 2px solid $highlight-color;
     }
   }
+
   .widget-list-row {
     display: flex;
   }
 }
 
-.workspace .widget-slot {
-  > .widget-row > .widget {
-    border: none;
-  }
-
-  &.is-drop-target {
-    border: 2px solid $highlight-color;
-  }
-
-  &> .widget-row {
-    margin: 0;
-    padding: 0;
-
-    &.has-bottom-connector::after {
-      display: none;
-    }
-  }
-}
 
 .widget-1 { background-color: #7bd887; }
 .widget-2 { background-color: #89c2ea; }

@@ -1,3 +1,6 @@
+// -----------------------------------------------
+//  TODO: rename this file. It isn't the best name
+// -----------------------------------------------
 import m from 'mithril';
 
 import { merge } from 'lib/utils';

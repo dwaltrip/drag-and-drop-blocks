@@ -1,7 +1,7 @@
 import m from 'mithril';
 
-import Home from 'components/home';
+import Editor from 'components/editor';
 
 export default {
-  '/': Home
+  '/': Editor
 };
