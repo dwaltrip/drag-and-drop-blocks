@@ -160,7 +160,7 @@ $highlight-color: #ffd639;
     opacity: 0.3;
   }
 
-  &.is-targeting-a-dropzone .widget.is-selected {
+  &.will-target-dropzone-displace-widget .widget.is-selected {
     opacity: 0;
   }
 }

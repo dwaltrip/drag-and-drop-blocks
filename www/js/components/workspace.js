@@ -52,9 +52,7 @@ export default {
         });
       })),
 
-      m('.workspace-margin', {
-        config: controller.bottomOfWorkspaceDropzone.attachToElement
-      }),
+      m('.workspace-margin', { config: controller.bottomOfWorkspaceDropzone.attachToElement }),
 
       m('.trashcan' + (isTrashcanDropTarget ? '.is-drop-target' : ''), {
         config: controller.trashcanDropzone.attachToElement

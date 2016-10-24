@@ -52,12 +52,12 @@ export default {
   view: function(controller, params) {
     var params = params || {};
     var widget = controller.widget;
-    var isDragging = controller.dragItem.isDragging();
+    var isSelected = controller.dragItem.isDragging();
     var viewDetails = viewDetailsForWidgetType(widget.type());
 
     var widgetClasses = [
       viewDetails.className || '',
-      isDragging ? '.is-selected' : ''
+      isSelected ? '.is-selected' : ''
     ].join('');
 
     var selectedWidget = params.metalDragon.activeDragItem &&
@@ -67,14 +67,16 @@ export default {
     var isTargetingWorkspaceMargin = params.metalDragon.isTargetingDropzoneGroup('bottom-of-workspace');
     var isBeforeSelectedWidget = selectedWidget && widget.nextWidget() === selectedWidget;
 
-    var isTargetRow = controller.isDropTarget() || (isLastWorkSpaceWidget && isTargetingWorkspaceMargin);
-    var noBottomConnector = isDragging || widget.isLastWidget() ||
+    var isTargetRow = controller.isDropTarget() || (
+      !isSelected && isTargetingWorkspaceMargin && isLastWorkSpaceWidget
+    );
+    var noBottomConnector = isSelected || widget.isLastWidget() ||
       controller.isDropTarget() || isBeforeSelectedWidget || widget.isInSlot();
 
     var widgetRowClasses = [
-      isTargetRow        ? '.is-drop-target' : '',
-      !noBottomConnector  ? '.has-bottom-connector' : '',
-      widget.isInSlot() ? '.is-in-slot' : ''
+      isTargetRow           ? '.is-drop-target' : '',
+      !noBottomConnector    ? '.has-bottom-connector' : '',
+      widget.isInSlot()     ? '.is-in-slot' : ''
     ].join('')
 
     var viewFn = viewFunctionLookup[widget.type()];

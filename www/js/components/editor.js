@@ -61,10 +61,19 @@ export default {
     var workspace = controller.workspace;
     window.workspace = workspace;
     var widgets = workspace.getWidgets();
+    var md = controller.metalDragon;
+
+    var selectedWidget = md.activeDragItem && md.activeDragItem.getItemData('widget', null);
+    var isLastWorkspaceWidgetDraggingOverBottomOfWorkspace = (
+      !!selectedWidget && selectedWidget === workspace.getWidgets().slice(-1).pop() &&
+      md.isTargetingDropzoneGroup('bottom-of-workspace')
+    );
+    var doesTargetDropzoneDisplaceWidget = md.hasActiveDropzone() &&
+      !isLastWorkspaceWidgetDraggingOverBottomOfWorkspace;
 
     var widgetEditorClassList = [
-      controller.metalDragon.isMidDrag()          ? '.is-dragging' : '',
-      controller.metalDragon.hasActiveDropzone()  ? '.is-targeting-a-dropzone' : ''
+      md.isMidDrag() ? '.is-dragging' : '',
+      doesTargetDropzoneDisplaceWidget ? '.will-target-dropzone-displace-widget' : ''
     ].join('')
 
     return m('.widget-editor.no-text-select' + widgetEditorClassList, [
