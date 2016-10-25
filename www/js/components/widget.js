@@ -81,7 +81,7 @@ export default {
 
     var viewFn = viewFunctionLookup[widget.type()];
     var content = [
-      // m('.widget-title', `${viewDetails.title} -- ${widget.uid()} -- ${widget.pos()}`),
+      // m('.widget-title', `${viewDetails.title} -- ${widget.uid()}`),
       m('.widget-title', viewDetails.title),
       viewFn(widget, {
         metalDragon: params.metalDragon,

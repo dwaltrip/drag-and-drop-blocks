@@ -51,7 +51,6 @@ $highlight-color: #ffd639;
     &.is-in-slot {
       margin: 0;
       padding: 0;
-      .widget { border: none; }
     }
 
     &.has-bottom-connector::after {
@@ -182,6 +181,10 @@ $highlight-color: #ffd639;
 
   .widget-slot {
     border-radius: 6px;
+
+    &.has-widget {
+      border: none;
+    }
 
     &.is-drop-target {
       border: 2px solid $highlight-color;

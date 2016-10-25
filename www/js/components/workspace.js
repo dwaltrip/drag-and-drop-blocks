@@ -10,13 +10,6 @@ export default {
     this.workspace = params.workspace;
     this.trashcanDropzone = params.createTrashcanDropzone();
 
-    // TODO: implement the `onDrop` fanciness to make this code work
-    // this.bottomOfWorkspaceDropzone = params.metalDragon.createDropzone({
-    //   onDrop: {
-    //     [WORKSPACE_WIDGETS]:  dragItem => workspace.append(dragItem.getData('widget')),
-    //     [TOOLBOX_WIDGETS]:    dragItem => workspace.appendNew(dragItem.getData('widgetType'))
-    //   }
-    // });
 
     this.bottomOfWorkspaceDropzone = params.metalDragon.createDropzone({
       accepts: [WORKSPACE_WIDGETS, TOOLBOX_WIDGETS],

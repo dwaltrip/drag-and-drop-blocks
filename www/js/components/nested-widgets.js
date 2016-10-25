@@ -44,20 +44,14 @@ var WidgetSlot = {
     this.cssClasses = ()=> {
       return [
         this.dropzone && this.dropzone.isDropTarget() ? '.is-drop-target' : '',
+        !!this.parentWidget.getInput(params.inputName) ? '.has-widget' : ''
       ].join('');
     };
   },
 
   view: function(controller, params) {
     var widget = controller.parentWidget.getInput(controller.inputName);
-    var content = widget ? m(WidgetComponent, {
-      key: widget.uid(),
-      widget,
-      createDragItem: params.createDragItem,
-      metalDragon: params.metalDragon
-    }) : null;
-
-    return widgetSlotLayout(content, {
+    return widgetSlotLayout(widget ? nestedWidget(widget, params) : null, {
       cssClasses: controller.cssClasses(),
       key: `widget-slot-${params.inputName}`,
       config: controller.dropzone.attachToElement
@@ -94,19 +88,21 @@ var WidgetList = {
   },
 
   view: function(controller, params) {
-    var content = controller.widgetList.widgets.map(widget => {
-      return m(WidgetComponent, {
-        key: widget.uid(),
-        widget,
-        createDragItem: params.createDragItem,
-        metalDragon: params.metalDragon
-      });
-    });
-    return widgetListLayout(content, {
+    var widgets = controller.widgetList.widgets;
+    return widgetListLayout(widgets.map(widget => nestedWidget(widget, params)), {
       cssClasses: controller.cssClasses(),
       config: controller.dropzone.attachToElement
     });
   }
 };
+
+function nestedWidget(widget, params) {
+  return m(WidgetComponent, {
+    key: widget.uid(),
+    widget,
+    createDragItem: params.createDragItem,
+    metalDragon: params.metalDragon
+  });
+}
 
 export { WidgetSlot, WidgetList };
