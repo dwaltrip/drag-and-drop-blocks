@@ -5,6 +5,7 @@ import { WidgetTypes } from 'models/widget'
 
 import { viewDetailsForWidgetType, viewFunctionLookup } from 'components/widget-type-details';
 import { widgetLayout } from 'components/widget-layout';
+import createOrMoveWidgets from 'components/create-or-move-widgets';
 
 export default {
   controller: function(params) {
@@ -23,18 +24,11 @@ export default {
           if (dragItem.group === TOOLBOX_WIDGETS) { return true; }
           return widget !== dragItem.getItemData('widget');
         },
-        onDrop: function(dragItem) {
-          var dropzoneWidget = this.getItemData('widget');
-          var targetList = dropzoneWidget.getParentList();
-          if (dragItem.group === WORKSPACE_WIDGETS) {
-            var dragWidget = dragItem.getItemData('widget');
-            dragWidget.disconnect();
-            targetList.insertAfter(dragWidget, dropzoneWidget);
-          } else {
-            var newWidget = targetList.createWidget(dragItem.getItemData('widgetType'))
-            targetList.insertAfter(newWidget, dropzoneWidget);
-          }
-        }
+        onDrop: (dragItem)=> createOrMoveWidgets.afterWidgetInList({
+          dragItem,
+          list: widget.getParentList(),
+          referenceWidget: widget
+        })
       });
     }
 

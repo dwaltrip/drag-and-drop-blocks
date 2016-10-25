@@ -3,6 +3,7 @@ import m from 'mithril';
 import { TOOLBOX_WIDGETS, WORKSPACE_WIDGETS, MOVE_WIDGET } from 'app-constants';
 import { WidgetTypes } from 'models/widget';
 
+import createOrMoveWidgets from 'components/create-or-move-widgets';
 import { widgetSlotLayout, widgetListLayout } from 'components/widget-layout';
 import WidgetComponent from 'components/widget';
 
@@ -29,15 +30,11 @@ var WidgetSlot = {
           dragWidget !== self.parentWidget &&
           !dragWidget.isAncestorOf(self.parentWidget);
       },
-      onDrop: function(dragItem) {
-        if (dragItem.group === TOOLBOX_WIDGETS) {
-          self.parentWidget.createInput(self.inputName, dragItem.getItemData('widgetType'));
-        } else {
-          var dragWidget = dragItem.getItemData('widget');
-          dragWidget.disconnect();
-          self.parentWidget.setInput(self.inputName, dragWidget);
-        }
-      }
+      onDrop: (dragItem)=> createOrMoveWidgets.toWidgetSlot({
+        dragItem,
+        parentWidget: this.parentWidget,
+        slotName: this.inputName
+      })
     });
     this.onunload = ()=> this.dropzone.destroy();
 
@@ -68,15 +65,10 @@ var WidgetList = {
     this.dropzone = params.metalDragon.createDropzone({
       group: 'widget-list',
       isEligible: ()=> this.widgetList.isEmpty(),
-      onDrop: function(dragItem) {
-        if (dragItem.group === TOOLBOX_WIDGETS) {
-          var widgetToAdd = self.widgetList.createWidget(dragItem.getItemData('widgetType'));
-        } else {
-          var widgetToAdd = dragItem.getItemData('widget');
-          widgetToAdd.disconnect();
-        }
-        self.widgetList.appendWidget(widgetToAdd);
-      }
+      onDrop: (dragItem)=> createOrMoveWidgets.toEndOfList({
+        dragItem,
+        list: this.widgetList
+      })
     });
     this.onunload = ()=> this.dropzone.destroy();
 

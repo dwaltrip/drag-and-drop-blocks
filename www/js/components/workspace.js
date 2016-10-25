@@ -1,5 +1,6 @@
 import m from 'mithril';
 
+import createOrMoveWidgets from 'components/create-or-move-widgets';
 import unicode from 'lib/unicode-characters';
 import WidgetComponent from 'components/widget';
 
@@ -14,16 +15,10 @@ export default {
     this.bottomOfWorkspaceDropzone = params.metalDragon.createDropzone({
       accepts: [WORKSPACE_WIDGETS, TOOLBOX_WIDGETS],
       group: 'bottom-of-workspace',
-      onDrop: (dragItem)=> {
-        if (dragItem.group === WORKSPACE_WIDGETS) {
-          var widget = dragItem.getItemData('widget');
-          widget.disconnect();
-          workspace.appendWidget(widget);
-        } else {
-          var newWidget = workspace.createWidget(dragItem.getItemData('widgetType'))
-          workspace.appendWidget(newWidget);
-        }
-      }
+      onDrop: (dragItem)=> createOrMoveWidgets.toEndOfList({
+        dragItem,
+        list: workspace.getWidgetList()
+      })
     });
 
     this.onunload = ()=> {
