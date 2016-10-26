@@ -44,6 +44,10 @@ export default extendModel(Base, {
       return this.getParentWidget() || this.getParentList().getParentWidget();
     },
 
+    isRoot: function() {
+      return this.getParentList() === this.getWorkspace().getWidgetList();
+    },
+
     isInList: function() { return !!this.parentList(); },
     isInSlot: function() { return !!this.parentWidget(); },
 
@@ -62,6 +66,14 @@ export default extendModel(Base, {
 
     isFirstWidget:  function() { return !!this.parentList() && !this.prevWidget(); },
     isLastWidget:   function() { return !!this.parentList() && !this.nextWidget(); },
+
+    // is inclusive, includes this widget itself
+    getRestOfParentList: function() {
+      if (!this.isInList()) {
+        return [this];
+      }
+      return this.getParentList().widgets.slice(this.pos());
+    },
 
     setInput:       proxyToInputs('setInput'),
     getInput:       proxyToInputs('getInput'),
@@ -93,6 +105,14 @@ export default extendModel(Base, {
         parentList = referenceWidget.getParentList();
       }
       parentList.insertAfter(widgetToInsert, referenceWidget);
+    },
+
+    findAncestorWidget: function(filterFn) {
+      var ancestor = this.getContainingWidget();
+      while(ancestor) {
+        if (filterFn(ancestor)) { return ancestor; }
+        ancestor = ancestor.getContainingWidget();
+      }
     },
 
     _getInputsContainer: function() {

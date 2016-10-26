@@ -22,7 +22,10 @@ var AppInspector = {
   },
 
   component: {
-    view: function() {
+    controller: function() {
+      this.isVisible = m.prop(false);
+    },
+    view: function(controller ) {
       var data = AppInspector.getData();
       return m('.debug-display', {
         style: {
@@ -34,13 +37,26 @@ var AppInspector = {
           opacity: 0.8
         },
       }, [
-        m('', { style: { padding: '5px', borderBottom: '1px solid #ccc' } }, 'App-Inspector'),
-        m('', { style: { display: 'table' } }, data.map(datum => {
+        m('', {
+          style: {
+            padding: '5px',
+            borderBottom: '1px solid #ccc',
+            display: 'flex',
+            justifyContent: 'space-between'
+          }
+        }, [
+          m('span', 'App-Inspector'),
+          m('span', {
+            style: { marginLeft: '10px' },
+            onclick: ()=> controller.isVisible(!controller.isVisible())
+          }, controller.isVisible() ? 'hide' : 'show')
+        ]),
+        controller.isVisible() ? m('', { style: { display: 'table' } }, data.map(datum => {
           return tableRow([
             tableCell(datum.key),
             tableCell(datum.value)
           ]);
-        }))
+        })) : null
       ]);
     }
   }

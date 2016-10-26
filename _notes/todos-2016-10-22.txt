@@ -16,7 +16,7 @@
   [/] Clean up all of the CSS classes. Should our Metal-Dragon API be handling more of that work?
   [X] Refactor home component (split into 2: widget-editor & workspace)
   [/] Refactor widget-slots and widget-list components
-  [ ] Implement multi-select (shift click on a widget?)
+  [X] Implement multi-select (shift click on a widget?)
   ------------------------------------------------------
   DONT SPEND MUCH TIME TRYING TO FINISH. We need to move forward & start working on code-blocks.
   ------------------------------------------------------

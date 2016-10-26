@@ -23,8 +23,9 @@ export default extendModel(Base, {
 
     isEmpty: function() { return this.widgets.length === 0; },
 
+    // only the top level list does not have a parent widget
     getParentWidget: function() {
-      return Widget.findByUID(this.parentWidget());
+      return Widget.findByUID(this.parentWidget()) || null;
     },
 
     getWidgets: function() {

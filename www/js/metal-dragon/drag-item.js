@@ -8,7 +8,7 @@ export default {
     instance.manager = manager;
     instance.group = opts.group || DEFAULT_GROUP;
 
-    instance._findElementForDragImage = opts.findElementForDragImage;
+    instance._findElementForDragImage = opts.getDragImageSourceNode;
     instance._dragHandleClass = opts.dragHandle;
     instance.dragImageClass = opts.dragImageClass || 'drag-image';
 
@@ -25,8 +25,10 @@ export default {
     };
 
     instance.userEvents = {
+      onDragInit: opts.onDragInit,
       onDragStart: opts.onDragStart,
-      onDrop: opts.onDrop
+      onDrop: opts.onDrop,
+      afterDrop: opts.afterDrop
     };
 
     instance.hasTargetZone = !!opts.targetZone;
@@ -130,7 +132,7 @@ export default {
         x: event.clientX - rect.left,
         y: event.clientY - rect.top
       };
-      var dragImage = this._setupDragImage(element);
+      var dragImage = this._setupDragImage(element, event);
 
       // TODO: this works, however if I move the mouse up and down outside of the bounding container,
       // the widget dragging doesn't get re-ordered (even though the y-pos of my mouse is going thrugh
@@ -178,9 +180,9 @@ export default {
       throw new Error(`-- drag-item -- getBoundingElement must be specified in 'contraints' hash.`);
     },
 
-    _setupDragImage: function(element) {
+    _setupDragImage: function(element, event) {
       var dragImageSource = this._findElementForDragImage ?
-        this._findElementForDragImage(element) : element;
+        this._findElementForDragImage(element, event) : element;
       var dragImage = this.dragImage = dragImageSource.cloneNode(true);
       dragImage.style.position = 'absolute';
       dragImage.style.pointerEvents = 'none';
@@ -191,16 +193,20 @@ export default {
 
     _onMousedown: function(event) {
       this._prepForDrag(event);
+
+      if (this.userEvents.onDragInit) {
+        this.userEvents.onDragInit.call(this, event);
+      }
     },
 
     _onMousemove: function(event) {
       // NOTE: after the 'mousedown' event on a dragitem, we don't consider the drag
       // to have officially started until the first 'mousemove' event fires
       if (!this.manager.isMidDrag()) {
-        this.manager._startDrag(this, event);
         if (this.userEvents.onDragStart) {
           this.userEvents.onDragStart.call(this, event);
         }
+        this.manager._startDrag(this, event);
         document.documentElement.style.cursor = 'move';
       }
 
@@ -215,8 +221,10 @@ export default {
         if (this.userEvents.onDrop) {
           this.userEvents.onDrop.call(this, event);
         }
+        if (this.userEvents.afterDrop) {
+          this.userEvents.afterDrop.call(this, event);
+        }
       }
-
       this._postDragCleanup();
     },
 

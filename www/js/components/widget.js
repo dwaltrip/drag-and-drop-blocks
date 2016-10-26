@@ -22,7 +22,7 @@ export default {
         useDragElementOverlap: true,
         isEligible: function(dragItem) {
           if (dragItem.group === TOOLBOX_WIDGETS) { return true; }
-          return widget !== dragItem.getItemData('widget');
+          return !self.isSelected(params.selectionDetails);
         },
         onDrop: (dragItem)=> createOrMoveWidgets.afterWidgetInList({
           dragItem,
@@ -41,45 +41,76 @@ export default {
       if (this.dropzone) { this.dropzone.destroy(); }
     };
 
+    this.isSelected = (selectionDetails)=> {
+      var selectedIds = params.selectionDetails().widgetUIDs;
+      var isDirectlySelected = widget.uid() in selectedIds;
+      var isChildOfSelected = !!widget.findAncestorWidget(parent => parent.uid() in selectedIds);
+      return isDirectlySelected || isChildOfSelected;
+    };
   },
 
+  // TODO: Analyze the complexity of this view... can we simplify these boolean expressions?!
   view: function(controller, params) {
     var params = params || {};
     var widget = controller.widget;
-    var isSelected = controller.dragItem.isDragging();
+    var isDragging = controller.dragItem.isDragging();
+    var isSelected = controller.isSelected(params.selectionDetails);
     var viewDetails = viewDetailsForWidgetType(widget.type());
 
     var widgetClasses = [
       viewDetails.className || '',
+      isDragging ? '.is-dragging' : '',
       isSelected ? '.is-selected' : ''
     ].join('');
 
     var selectedWidget = params.metalDragon.activeDragItem &&
       params.metalDragon.activeDragItem.getItemData('widget', null);
 
-    var isLastWorkSpaceWidget = widget === widget.getWorkspace().getWidgets().slice(-1).pop();
-    var isTargetingWorkspaceMargin = params.metalDragon.isTargetingDropzoneGroup('bottom-of-workspace');
-    var isBeforeSelectedWidget = selectedWidget && widget.nextWidget() === selectedWidget;
+    var selectedWidget = params.selectionDetails().widgets[0]
+    var isRootLevelMultiSelect = (
+      selectedWidget &&
+      selectedWidget.isRoot() &&
+      params.selectionDetails().isMultiSelect
+    );
+    var isTargetingWorkspaceMargin = !isRootLevelMultiSelect &&
+      params.metalDragon.isTargetingDropzoneGroup('bottom-of-workspace');
+    var isLastWorkspaceWidget = widget === widget.getWorkspace().getWidgets().slice(-1).pop();
 
     var isTargetRow = controller.isDropTarget() || (
-      !isSelected && isTargetingWorkspaceMargin && isLastWorkSpaceWidget
+      isTargetingWorkspaceMargin &&
+      isLastWorkspaceWidget &&
+      !isDragging
     );
-    var noBottomConnector = isSelected || widget.isLastWidget() ||
-      controller.isDropTarget() || isBeforeSelectedWidget || widget.isInSlot();
+
+    var lastSelectedWidget = params.selectionDetails().widgets.slice(-1).pop();
+    var isLastSelectedWidget = widget === lastSelectedWidget;
+    var isBeforeSelectedWidget = selectedWidget && widget.nextWidget() === selectedWidget;
+
+    // TODO: debug this, after some widget re-arrangements it sometimes breaks
+    var noBottomConnector = (
+      widget.isLastWidget() ||
+      controller.isDropTarget() ||
+      widget.isInSlot() ||
+      (params.metalDragon.isMidDrag() && isBeforeSelectedWidget) ||
+      (params.metalDragon.isMidDrag() && isLastSelectedWidget)
+    );
 
     var widgetRowClasses = [
       isTargetRow           ? '.is-drop-target' : '',
+      isSelected            ? '.is-selected' : '',
       !noBottomConnector    ? '.has-bottom-connector' : '',
       widget.isInSlot()     ? '.is-in-slot' : ''
     ].join('')
 
     var viewFn = viewFunctionLookup[widget.type()];
     var content = [
+      // m('.widget-title', `${viewDetails.title} -- ${widget.uid()} -- ${widget.pos()}`),
       // m('.widget-title', `${viewDetails.title} -- ${widget.uid()}`),
       m('.widget-title', viewDetails.title),
       viewFn(widget, {
-        metalDragon: params.metalDragon,
-        createDragItem: params.createDragItem
+        selectionDetails: params.selectionDetails,
+        createDragItem: params.createDragItem,
+        metalDragon: params.metalDragon
       })
     ];
 

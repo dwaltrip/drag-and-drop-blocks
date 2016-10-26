@@ -13,11 +13,35 @@ import { TOOLBOX_WIDGETS, WORKSPACE_WIDGETS, MOVE_WIDGET } from 'app-constants';
 
 export default {
   controller: function() {
+    var self = this;
     var workspace = Workspace.query()[0];
     if (!workspace) {
       workspace = Workspace.create({name: 'test workspace' });
     }
     var workspace = this.workspace = workspace;
+
+    this.selectionDetails = m.prop({
+      widgets: [],
+      widgetUIDs: {},
+      isMultiSelect: false
+    });
+
+    this.selectWidgets = (opts)=> {
+      if (opts) {
+        var isMultiSelect = opts.isMultiSelect || false;
+        var widget = opts.widget;
+        if (isMultiSelect) {
+          var widgets = widget.getRestOfParentList();
+        } else {
+          var widgets = widget ? [widget] : [];
+        }
+        var widgetUIDs = {};
+        widgets.forEach(widget => widgetUIDs[widget.uid()] = true);
+        this.selectionDetails({ widgets, widgetUIDs, isMultiSelect });
+      } else {
+        this.selectionDetails({ widgets: [], widgetUIDs: {}, isMultiSelect: false });
+      }
+    };
 
     this.metalDragon = mithrilifyMetalDragon(MetalDragon.create({ eventHandlerDecorator }));
 
@@ -25,16 +49,37 @@ export default {
       group: TOOLBOX_WIDGETS,
       itemData: { widgetType },
       dragHandle: 'widget-title',
-      boundingContainer: 'widget-editor',
+      // boundingContainer: 'widget-editor',
       // TODO: is there a better name than 'targetZone'?
-      targetZone: { top: 0, left: 0, height: 10, width: 25 }
+      targetZone: { top: 0, left: 0, height: 10, width: 25 },
+      onDragStart: ()=> this.selectWidgets(null),
+      afterDrop: function() {
+        self.selectWidgets({ widget: this.getDragData('newWidget') });
+      }
     });
 
     this.createWorkspaceWidgetDragItem = (widget)=> this.metalDragon.createDragItem({
       group: WORKSPACE_WIDGETS,
       itemData: { widget },
       dragHandle: 'widget-title',
-      targetZone: { top: 0, left: 0, height: 10, width: 25 }
+      targetZone: { top: 0, left: 0, height: 10, width: 25 },
+      getDragImageSourceNode: function(element, event) {
+        if (!isMultiSelectEvent(event)) { return element; }
+        // multi-select
+        var selectedWidgets = document.createElement('div');
+        selectedWidgets.classList.add('drag-image-widget-list');
+
+        var nextWidgetRow = element.parentElement;
+        while (nextWidgetRow) {
+          selectedWidgets.appendChild(nextWidgetRow.cloneNode(true));
+          nextWidgetRow = nextWidgetRow.nextSibling;
+        }
+        return selectedWidgets;
+      },
+      onDragInit: function(event) {
+        self.selectWidgets({ widget, isMultiSelect: isMultiSelectEvent(event) });
+        this.setDragData('widgets', self.selectionDetails().widgets);
+      }
     });
 
     this.createTrashcanDropzone = ()=> {
@@ -91,7 +136,9 @@ export default {
         workspace,
         metalDragon: controller.metalDragon,
         createDragItem: controller.createWorkspaceWidgetDragItem,
-        createTrashcanDropzone: controller.createTrashcanDropzone
+        createTrashcanDropzone: controller.createTrashcanDropzone,
+        selectWidgets: controller.selectWidgets,
+        selectionDetails: controller.selectionDetails
       })
     ]);
   }
@@ -112,3 +159,7 @@ function eventHandlerDecorator(eventName, handler) {
 
 window.globals = (window.globals || {});
 window.globals.Widget = Widget;
+
+function isMultiSelectEvent(event) {
+  return !!event.shiftKey;
+}

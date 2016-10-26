@@ -39,7 +39,9 @@ $highlight-color: #ffd639;
   border-left: none;
   overflow: auto;
   background-color: $workspace-bg;
+}
 
+.workspace, .drag-image-widget-list {
   .widget-row {
     padding: 5px;
     padding-bottom: 0;
@@ -82,6 +84,10 @@ $highlight-color: #ffd639;
     border-top-right-radius: 5px;
     border: 1px solid $lighter-border-color;
   }
+}
+
+.drag-image-widget-list .widget {
+  margin-right: auto;
 }
 
 .toolbox .widget-row {
@@ -144,7 +150,6 @@ $highlight-color: #ffd639;
   .widget-content { display: flex; }
 
   &.drag-image {
-    z-index: 1001;
     border: 3px solid $highlight-color;
     opacity: 0.85;
   }
@@ -154,12 +159,23 @@ $highlight-color: #ffd639;
   }
 }
 
+.drag-image {
+  z-index: 101;
+}
+
 .widget-editor {
   .widget.is-selected {
+    border: 3px solid $highlight-color;
+  }
+
+  .widget.is-dragging,
+  &.is-dragging .widget.is-selected {
     opacity: 0.3;
   }
 
-  &.will-target-dropzone-displace-widget .widget.is-selected {
+  // TODO: this should be on the widget row so we can hide bottom-connectors
+  // when doing a multi-select drag
+  &.will-target-dropzone-displace-widget .widget-row.is-selected {
     opacity: 0;
   }
 }

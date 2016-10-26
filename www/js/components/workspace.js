@@ -11,10 +11,17 @@ export default {
     this.workspace = params.workspace;
     this.trashcanDropzone = params.createTrashcanDropzone();
 
-
     this.bottomOfWorkspaceDropzone = params.metalDragon.createDropzone({
       accepts: [WORKSPACE_WIDGETS, TOOLBOX_WIDGETS],
       group: 'bottom-of-workspace',
+      isEligible: (dragItem)=> {
+        if (dragItem.group === TOOLBOX_WIDGETS) { return true; }
+        var dragWidget = dragItem.getItemData('widget');
+        if (dragWidget.isRoot()) {
+          return !(params.selectionDetails().isMultiSelect || dragWidget.isLastWidget());
+        }
+        return true;
+      },
       onDrop: (dragItem)=> createOrMoveWidgets.toEndOfList({
         dragItem,
         list: workspace.getWidgetList()
@@ -35,6 +42,7 @@ export default {
         return m(WidgetComponent, {
           key: widget.uid(),
           widget,
+          selectionDetails: params.selectionDetails,
           createDragItem: params.createDragItem,
           metalDragon:    params.metalDragon
         });

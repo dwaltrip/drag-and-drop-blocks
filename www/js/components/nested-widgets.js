@@ -26,7 +26,8 @@ var WidgetSlot = {
         if (dragItem.group === TOOLBOX_WIDGETS) { return true; }
         var dragWidget = dragItem.getItemData('widget')
         var slotWidget = self.parentWidget.getInput(self.inputName);
-        return dragWidget !== slotWidget &&
+        return !params.selectionDetails().isMultiSelect &&
+          dragWidget !== slotWidget &&
           dragWidget !== self.parentWidget &&
           !dragWidget.isAncestorOf(self.parentWidget);
       },
@@ -64,7 +65,15 @@ var WidgetList = {
 
     this.dropzone = params.metalDragon.createDropzone({
       group: 'widget-list',
-      isEligible: ()=> this.widgetList.isEmpty(),
+      isEligible: ()=> {
+        var parentWidget = this.widgetList.getParentWidget();
+        var selectedIds = params.selectionDetails().widgetUIDs;
+        var parentWidgetIsSelected = parentWidget && (
+          parentWidget.uid() in selectedIds ||
+          parentWidget.findAncestorWidget(parent => parent in selectedIds)
+        );
+        return this.widgetList.isEmpty() && !parentWidgetIsSelected;
+      },
       onDrop: (dragItem)=> createOrMoveWidgets.toEndOfList({
         dragItem,
         list: this.widgetList
@@ -92,9 +101,21 @@ function nestedWidget(widget, params) {
   return m(WidgetComponent, {
     key: widget.uid(),
     widget,
+    selectionDetails: params.selectionDetails,
     createDragItem: params.createDragItem,
     metalDragon: params.metalDragon
   });
 }
 
 export { WidgetSlot, WidgetList };
+
+// TODO: potentially delete this
+// function isNestedUnderSelectedWidget(widget, selectionDetails) {
+//   var parentWidget = widget;
+//   var isParentSelected = parentWidget.uid() in selectionDetails().widgetUIDs;
+//   while(parentWidget && !isParentSelected) {
+//     parentWidget = parentWidget.getContainingWidget()
+//     isParentSelected = parentWidget && parentWidget.uid() in selectionDetails().widgetUIDs;
+//   }
+//   return isParentSelected;
+// }
