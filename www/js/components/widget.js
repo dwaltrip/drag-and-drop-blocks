@@ -22,7 +22,10 @@ export default {
         useDragElementOverlap: true,
         isEligible: function(dragItem) {
           if (dragItem.group === TOOLBOX_WIDGETS) { return true; }
-          return !self.isSelected(params.selectionDetails);
+          return !(
+            self.isSelected(params.selectionDetails) ||
+            self.isChildOfSelected(params.selectionDetails)
+          );
         },
         onDrop: (dragItem)=> createOrMoveWidgets.afterWidgetInList({
           dragItem,
@@ -41,11 +44,13 @@ export default {
       if (this.dropzone) { this.dropzone.destroy(); }
     };
 
+    this.isChildOfSelected = (selectionDetails)=> {
+      var selectedIds = selectionDetails().widgetUIDs;
+      return !!widget.findAncestorWidget(parent => parent.uid() in selectedIds);
+    };
+
     this.isSelected = (selectionDetails)=> {
-      var selectedIds = params.selectionDetails().widgetUIDs;
-      var isDirectlySelected = widget.uid() in selectedIds;
-      var isChildOfSelected = !!widget.findAncestorWidget(parent => parent.uid() in selectedIds);
-      return isDirectlySelected || isChildOfSelected;
+      return widget.uid() in selectionDetails().widgetUIDs;;
     };
   },
 
@@ -59,8 +64,7 @@ export default {
 
     var widgetClasses = [
       viewDetails.className || '',
-      isDragging ? '.is-dragging' : '',
-      isSelected ? '.is-selected' : ''
+      isDragging ? '.is-dragging' : ''
     ].join('');
 
     var selectedWidget = params.metalDragon.activeDragItem &&
@@ -76,29 +80,12 @@ export default {
       params.metalDragon.isTargetingDropzoneGroup('bottom-of-workspace');
     var isLastWorkspaceWidget = widget === widget.getWorkspace().getWidgets().slice(-1).pop();
 
-    var isTargetRow = controller.isDropTarget() || (
-      isTargetingWorkspaceMargin &&
-      isLastWorkspaceWidget &&
-      !isDragging
-    );
-
-    var lastSelectedWidget = params.selectionDetails().widgets.slice(-1).pop();
-    var isLastSelectedWidget = widget === lastSelectedWidget;
-    var isBeforeSelectedWidget = selectedWidget && widget.nextWidget() === selectedWidget;
-
-    // TODO: debug this, after some widget re-arrangements it sometimes breaks
-    var noBottomConnector = (
-      widget.isLastWidget() ||
-      controller.isDropTarget() ||
-      widget.isInSlot() ||
-      (params.metalDragon.isMidDrag() && isBeforeSelectedWidget) ||
-      (params.metalDragon.isMidDrag() && isLastSelectedWidget)
-    );
+    var isTargetRow = controller.isDropTarget() ||
+      (isTargetingWorkspaceMargin && isLastWorkspaceWidget && !isDragging);
 
     var widgetRowClasses = [
       isTargetRow           ? '.is-drop-target' : '',
       isSelected            ? '.is-selected' : '',
-      !noBottomConnector    ? '.has-bottom-connector' : '',
       widget.isInSlot()     ? '.is-in-slot' : ''
     ].join('')
 

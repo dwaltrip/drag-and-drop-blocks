@@ -218,11 +218,14 @@ export default {
     _onMouseup: function(event) {
       if (this.manager.isMidDrag()) {
         this.manager.onDrop();
-        if (this.userEvents.onDrop) {
-          this.userEvents.onDrop.call(this, event);
-        }
-        if (this.userEvents.afterDrop) {
-          this.userEvents.afterDrop.call(this, event);
+
+        if (this.manager.hasTargetDropzone()) {
+          if (this.userEvents.onDrop) {
+            this.userEvents.onDrop.call(this, event);
+          }
+          if (this.userEvents.afterDrop) {
+            this.userEvents.afterDrop.call(this, event);
+          }
         }
       }
       this._postDragCleanup();

@@ -64,15 +64,23 @@ export default {
       dragHandle: 'widget-title',
       targetZone: { top: 0, left: 0, height: 10, width: 25 },
       getDragImageSourceNode: function(element, event) {
-        if (!isMultiSelectEvent(event)) { return element; }
-        // multi-select
         var selectedWidgets = document.createElement('div');
-        selectedWidgets.classList.add('drag-image-widget-list');
+        selectedWidgets.classList.add('drag-cursor');
+        var widgetRow = element.parentElement;
 
-        var nextWidgetRow = element.parentElement;
-        while (nextWidgetRow) {
-          selectedWidgets.appendChild(nextWidgetRow.cloneNode(true));
-          nextWidgetRow = nextWidgetRow.nextSibling;
+        // TODO: fix this need to manually add the class to the drag cursor nodes
+        if (!isMultiSelectEvent(event)) {
+          var clone = widgetRow.cloneNode(true);
+          clone.classList.add('is-selected');
+          selectedWidgets.appendChild(clone);
+        }
+        else {
+          while (widgetRow) {
+            var clone = widgetRow.cloneNode(true);
+            clone.classList.add('is-selected');
+            selectedWidgets.appendChild(clone);
+            widgetRow = widgetRow.nextSibling;
+          }
         }
         return selectedWidgets;
       },
@@ -113,7 +121,7 @@ export default {
       !!selectedWidget && selectedWidget === workspace.getWidgets().slice(-1).pop() &&
       md.isTargetingDropzoneGroup('bottom-of-workspace')
     );
-    var doesTargetDropzoneDisplaceWidget = md.hasActiveDropzone() &&
+    var doesTargetDropzoneDisplaceWidget = md.hasTargetDropzone() &&
       !isLastWorkspaceWidgetDraggingOverBottomOfWorkspace;
 
     var widgetEditorClassList = [

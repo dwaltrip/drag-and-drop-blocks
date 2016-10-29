@@ -28,6 +28,8 @@ export default {
     var widgetType = this.widgetType = params.widgetType
     this.dragItem = params.createDragItem(widgetType);
     this.widget = { type: m.prop(widgetType) };
+
+    this.onunload = ()=> this.dragItem.destroy();
   },
 
   view: function(controller) {
@@ -42,10 +44,5 @@ export default {
       widgetClasses: viewDetails.className,
       dragItemConfig: controller.dragItem.attachToElement
     });
-    // return m('.widget-row',
-    //   m('.widget' + (viewDetails.className || ''), {
-    //     config: controller.dragItem.attachToElement
-    //   }, widgetContent(widget, title))
-    // );
   }
 };

@@ -7,4 +7,4 @@ m.route(document.getElementById('app'), '/', routes);
 
 // for debugging only
 import Inspector from 'app-state-inspector';
-Inspector.mount();
+// Inspector.mount();

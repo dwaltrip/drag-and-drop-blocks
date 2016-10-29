@@ -30,6 +30,7 @@ export default {
 
     this.onunload = ()=> {
       this.trashcanDropzone.destroy();
+      this.bottomOfWorkspaceDropzone.destroy();
     };
   },
 

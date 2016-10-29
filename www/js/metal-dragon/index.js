@@ -82,7 +82,7 @@ export default {
       return newDropzone;
     },
 
-    hasActiveDropzone: function() {
+    hasTargetDropzone: function() {
       return this.activeDropzones && this.activeDropzones.length > 0;
     },
 

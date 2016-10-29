@@ -41,29 +41,18 @@ $highlight-color: #ffd639;
   background-color: $workspace-bg;
 }
 
-.workspace, .drag-image-widget-list {
+.workspace, .drag-cursor {
   .widget-row {
-    padding: 5px;
+    padding: 4px;
     padding-bottom: 0;
     display: flex;
     position: relative;
 
-    &:last-child { margin-bottom: 5px; }
+    &:last-child { margin-bottom: 4px; }
 
     &.is-in-slot {
       margin: 0;
       padding: 0;
-    }
-
-    &.has-bottom-connector::after {
-      content: '';
-      display: block;
-      position: absolute;
-      left: 19px;
-      bottom: -5px;
-      height: 5px;
-      width: 2px;
-      background-color: $lighter-border-color;
     }
   }
 
@@ -86,7 +75,7 @@ $highlight-color: #ffd639;
   }
 }
 
-.drag-image-widget-list .widget {
+.drag-cursor .widget {
   margin-right: auto;
 }
 
@@ -163,13 +152,20 @@ $highlight-color: #ffd639;
   z-index: 101;
 }
 
-.widget-editor {
-  .widget.is-selected {
+.widget-editor, .drag-cursor {
+  .widget-row.is-selected > .widget {
     border: 3px solid $highlight-color;
   }
 
+  // TODO!!
+  // This is really messy. It should be possible to prevent
+  // the nested widgets from having the `is-selected` class.
+  .widget-row.is-selected .widget-row.is-selected .widget {
+    border: 1px solid $lighter-border-color;
+  }
+
   .widget.is-dragging,
-  &.is-dragging .widget.is-selected {
+  &.is-dragging .widget-row.is-selected > .widget {
     opacity: 0.3;
   }
 
