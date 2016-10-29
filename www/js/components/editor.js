@@ -90,20 +90,16 @@ export default {
       }
     });
 
-    this.createTrashcanDropzone = ()=> {
-      return this.metalDragon.createDropzone({
-        accepts: WORKSPACE_WIDGETS,
-        group: 'trashcan',
-        // TODO: this doesnt allow us to trash toolbox widgets
-        onDrop: (dragItem) => {
-          var dragWidget = dragItem.getItemData('widget')
-          dragWidget.disconnect();
-          dragWidget.delete();
-        }
-      });
-    };
-
-    this.toolboxDropzone = this.createTrashcanDropzone();
+    this.toolboxDropzone = this.metalDragon.createDropzone({
+      accepts: WORKSPACE_WIDGETS,
+      group: 'trashcan',
+      // TODO: this doesnt allow us to trash toolbox widgets
+      onDrop: (dragItem) => {
+        var dragWidget = dragItem.getItemData('widget')
+        dragWidget.disconnect();
+        dragWidget.delete();
+      }
+    });
 
     this.onunload = ()=> {
       this.toolboxDropzone.destroy();
@@ -144,7 +140,6 @@ export default {
         workspace,
         metalDragon: controller.metalDragon,
         createDragItem: controller.createWorkspaceWidgetDragItem,
-        createTrashcanDropzone: controller.createTrashcanDropzone,
         selectWidgets: controller.selectWidgets,
         selectionDetails: controller.selectionDetails
       })

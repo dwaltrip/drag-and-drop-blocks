@@ -105,20 +105,6 @@ $highlight-color: #ffd639;
       height: 7px;
     }
   }
-
-  .trashcan {
-    display: flex;
-    flex-grow: 0;
-    padding: 10px;
-    background-color: $trashcan-bg;
-    border-top: 1px solid $border-color;
-    justify-content: space-around;
-    align-items: center;
-
-    &.is-drop-target {
-      background-color: #f3a2a2;
-    }
-  }
 }
 
 .widget {

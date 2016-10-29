@@ -1,7 +1,6 @@
 import m from 'mithril';
 
 import createOrMoveWidgets from 'components/create-or-move-widgets';
-import unicode from 'lib/unicode-characters';
 import WidgetComponent from 'components/widget';
 
 import { TOOLBOX_WIDGETS, WORKSPACE_WIDGETS, MOVE_WIDGET } from 'app-constants';
@@ -9,7 +8,6 @@ import { TOOLBOX_WIDGETS, WORKSPACE_WIDGETS, MOVE_WIDGET } from 'app-constants';
 export default {
   controller: function(params) {
     this.workspace = params.workspace;
-    this.trashcanDropzone = params.createTrashcanDropzone();
 
     this.bottomOfWorkspaceDropzone = params.metalDragon.createDropzone({
       accepts: [WORKSPACE_WIDGETS, TOOLBOX_WIDGETS],
@@ -29,14 +27,12 @@ export default {
     });
 
     this.onunload = ()=> {
-      this.trashcanDropzone.destroy();
       this.bottomOfWorkspaceDropzone.destroy();
     };
   },
 
   view: function(controller, params) {
     var widgets = controller.workspace.getWidgets();
-    var isTrashcanDropTarget = controller.trashcanDropzone.isDropTarget();
 
     return m('.workspace', [
       m('.widget-list', widgets.map(widget => {
@@ -49,15 +45,9 @@ export default {
         });
       })),
 
-      m('.workspace-margin', { config: controller.bottomOfWorkspaceDropzone.attachToElement }),
-
-      m('.trashcan' + (isTrashcanDropTarget ? '.is-drop-target' : ''), {
-        config: controller.trashcanDropzone.attachToElement
-      }, [
-        m('.arrow', m.trust(unicode.rightArrowWhite)),
-        m('.text', m.trust(`${unicode.wasteBasket} Remove`)),
-        m('.arrow', m.trust(unicode.leftArrowWhite))
-      ])
+      m('.workspace-margin', {
+        config: controller.bottomOfWorkspaceDropzone.attachToElement
+      })
     ])
   }
 };
