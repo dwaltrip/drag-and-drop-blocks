@@ -65,7 +65,6 @@ export default {
       targetZone: { top: 0, left: 0, height: 10, width: 25 },
       getDragImageSourceNode: function(element, event) {
         var selectedWidgets = document.createElement('div');
-        selectedWidgets.classList.add('drag-cursor');
         var widgetRow = element.parentElement;
 
         // TODO: fix this need to manually add the class to the drag cursor nodes
@@ -95,9 +94,10 @@ export default {
       group: 'trashcan',
       // TODO: this doesnt allow us to trash toolbox widgets
       onDrop: (dragItem) => {
-        var dragWidget = dragItem.getItemData('widget')
-        dragWidget.disconnect();
-        dragWidget.delete();
+        dragItem.getDragData('widgets').forEach(dragWidget => {
+          dragWidget.disconnect();
+          dragWidget.delete();
+        });
       }
     });
 

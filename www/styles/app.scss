@@ -123,24 +123,20 @@ $highlight-color: #ffd639;
   }
 
   .widget-content { display: flex; }
-
-  &.drag-image {
-    border: 3px solid $highlight-color;
-    opacity: 0.85;
-  }
-  &.drag-image.drop-target--trashcan {
-    border: 3px solid #e01d1d;
-    opacity: 0.65;
-  }
 }
 
-.drag-image {
+.drag-cursor {
   z-index: 101;
 }
 
 .widget-editor, .drag-cursor {
   .widget-row.is-selected > .widget {
     border: 3px solid $highlight-color;
+  }
+
+  &.drop-target--trashcan > .widget-row.is-selected > .widget {
+    border: 3px solid #e01d1d;
+    opacity: 0.65;
   }
 
   // TODO!!

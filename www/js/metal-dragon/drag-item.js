@@ -10,7 +10,7 @@ export default {
 
     instance._findElementForDragImage = opts.getDragImageSourceNode;
     instance._dragHandleClass = opts.dragHandle;
-    instance.dragImageClass = opts.dragImageClass || 'drag-image';
+    instance.dragImageClass = opts.dragImageClass || 'drag-cursor';
 
     if (manager.eventHandlerDecorator) {
       var decorator = manager.eventHandlerDecorator;

@@ -55,6 +55,7 @@ export default {
   },
 
   // TODO: Analyze the complexity of this view... can we simplify these boolean expressions?!
+  // TODO: SIMPLIFY THIS.
   view: function(controller, params) {
     var params = params || {};
     var widget = controller.widget;
