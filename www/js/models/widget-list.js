@@ -58,7 +58,7 @@ export default extendModel(Base, {
       return Widget.create({
         type,
         parentList: this.uid(),
-        workspace: this.workspaceUID()
+        workspace: this.workspaceId()
       });
     },
 
@@ -93,13 +93,13 @@ export default extendModel(Base, {
       // add to the list if it's not in the list
       if (this.widgets.indexOf(widget) < 0) {
         this.widgets.push(widget);
-        widget.workspace(this.workspaceUID());
+        widget.workspace(this.workspaceId());
         widget.parentList(this.uid());
         widget.save();
       }
     },
 
-    workspaceUID: function() {
+    workspaceId: function() {
       return this.workspace ? this.workspace.uid() : this.getParentWidget().workspace();
     },
 

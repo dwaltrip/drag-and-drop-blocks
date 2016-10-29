@@ -41,6 +41,7 @@
   "dependencies": {
     "express": "^4.12.3",
     "mithril": "^0.2.5",
+    "mousetrap": "^1.6.0",
     "node-sass": "^3.10.0",
     "nodemon": "^1.10.2",
     "npm-run-all": "^3.1.0"

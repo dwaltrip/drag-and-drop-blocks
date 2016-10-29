@@ -1,6 +1,7 @@
 import m from 'mithril';
 import MetalDragon from 'metal-dragon';
 import { mithrilifyMetalDragon } from 'lib/m-utils/metal-dragon-helpers';
+import Mousetrap from 'mousetrap';
 
 import Widget from 'models/widget'
 import Workspace from 'models/workspace';
@@ -10,6 +11,8 @@ import { merge } from 'lib/utils';
 import ToolboxWidget from 'components/toolbox-widget';
 import WorkspaceComponent from 'components/workspace';
 import { TOOLBOX_WIDGETS, WORKSPACE_WIDGETS, MOVE_WIDGET } from 'app-constants';
+
+import { serializeWidget, deserializeWidget } from 'models/widget-serializer';
 
 export default {
   controller: function() {
@@ -101,8 +104,41 @@ export default {
       }
     });
 
+    this.copiedWidgets = null;
+    this.copyWidgets = ()=> {
+      this.copiedWidgets = this.selectionDetails().widgets.map(serializeWidget);
+    };
+
+    this.pasteWidgets = ()=> {
+      if (this.copiedWidgets) {
+        m.startComputation();
+        var newWidgets = this.copiedWidgets.map(widgetData => {
+          return deserializeWidget(widgetData, workspace.uid());
+        });
+
+        var selectedWidgets = this.selectionDetails().widgets;
+        var widgetToPasteAfter = selectedWidgets.length > 0 ?
+          selectedWidgets.slice(-1).pop() :
+          null;
+
+        if (widgetToPasteAfter) {
+          newWidgets.reverse().forEach(widget => {
+            widgetToPasteAfter.insertAfterInNearestParentList(widget);
+          });
+        } else {
+          newWidgets.reverse().forEach(widget => workspace.appendChild(widget));
+        }
+        m.endComputation();
+      }
+    };
+
+    Mousetrap.bind('command+c', this.copyWidgets);
+    Mousetrap.bind('command+v', this.pasteWidgets);
+
     this.onunload = ()=> {
       this.toolboxDropzone.destroy();
+      Mousetrap.unbind('command+c', this.copyWidgets);
+      Mousetrap.unbind('command+v', this.pasteWidgets);
     };
   },
 

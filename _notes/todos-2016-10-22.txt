@@ -17,11 +17,13 @@
   [X] Refactor home component (split into 2: widget-editor & workspace)
   [/] Refactor widget-slots and widget-list components
   [X] Implement multi-select (shift click on a widget?)
+  [X] Implement dropping widget multi-selection on trashcan
   ------------------------------------------------------
   DONT SPEND MUCH TIME TRYING TO FINISH. We need to move forward & start working on code-blocks.
   ------------------------------------------------------
   [ ] Implement undo (cmd+Z, cmd+Y)
-  [ ] Implement copy & paste (cmd+C, cmd+V)
+  [X] Implement copy & paste (cmd+C, cmd+V)
+  [ ] Add animation and perhaps some notificaiton text for widgets that are "copied".
   ------------------------------------------------------
   [ ] Evaluate project architecture, components, data models, etc
   [ ] Refefactor models/widget-helpers, models/widget
