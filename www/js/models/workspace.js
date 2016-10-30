@@ -43,6 +43,7 @@ export default extendModel(Base, {
     createWidget:   proxyToWidgetList('createWidget'),
     insertAfter:    proxyToWidgetList('insertAfter'),
     sortWidgets:    proxyToWidgetList('sort'),
+    prepend:        proxyToWidgetList('prepend'),
     appendWidget:   proxyToWidgetList('appendWidget'),
 
     // TODO: this fn is not used. is it still needed?

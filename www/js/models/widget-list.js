@@ -1,3 +1,4 @@
+import assert from 'lib/assert';
 import { extendModel, Base } from 'models/base';
 import { argsToArray, removeFromArray } from 'lib/utils';
 import { TABLES } from 'models/db-schema';
@@ -33,6 +34,13 @@ export default extendModel(Base, {
         query: widget => widget.parentList === this.uid(),
         sort: [['pos', 'ASC']]
       });
+    },
+
+    slice: function() { return this.widgets.slice.apply(this.widgets, arguments); },
+
+    getPos: function(pos) {
+      assert(pos >= 0 && pos < this.widgets.length, 'getPos -- out of range');
+      return this.widgets[pos];
     },
 
     delete: function() {

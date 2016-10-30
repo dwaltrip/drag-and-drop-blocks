@@ -23,7 +23,7 @@ export default extendModel(Base, {
     disconnect: function() {
       if (this.parentList()) {
         this.getParentList().remove(this);
-      } else {
+      } else if (this.parentWidget()) {
         this.getParentWidget().inputs.removeInput(this);
       }
     },
@@ -50,6 +50,14 @@ export default extendModel(Base, {
 
     isInList: function() { return !!this.parentList(); },
     isInSlot: function() { return !!this.parentWidget(); },
+
+    slotName: function() {
+      if (!this.isInSlot()) { return null; }
+      var parentWidget = this.getParentWidget();
+      return parentWidget.inputs.class.widgetInputs.find(input => {
+        return parentWidget.getInput(input.name) === this;
+      }).name;
+    },
 
     prevWidget: function() {
       if (!this.parentList()) { return; }
@@ -80,6 +88,7 @@ export default extendModel(Base, {
     createInput:    proxyToInputs('createInput'),
     getInputList:   proxyToInputs('getInputList'),
 
+    // TODO: should this also call disconnect?
     delete: function() {
       // In the actual code-blocks app, I think all blocks will have an input
       if (this.inputs) {

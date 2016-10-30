@@ -8,20 +8,16 @@ import Workspace from 'models/workspace';
 
 import handleWithRedraw from 'lib/m-utils/handle-with-redraw';
 import { merge } from 'lib/utils';
+import { serializeWidget } from 'models/widget-serializer';
 import ToolboxWidget from 'components/toolbox-widget';
 import WorkspaceComponent from 'components/workspace';
 import { TOOLBOX_WIDGETS, WORKSPACE_WIDGETS, MOVE_WIDGET } from 'app-constants';
-
-import { serializeWidget } from 'models/widget-serializer';
+import { UndoService } from 'services';
 
 export default {
   controller: function() {
     var self = this;
-    var workspace = Workspace.query()[0];
-    if (!workspace) {
-      workspace = Workspace.create({name: 'test workspace' });
-    }
-    var workspace = this.workspace = workspace;
+    var workspace = this.workspace = Workspace.query()[0];;
 
     this.selectionDetails = m.prop({
       widgets: [],
@@ -97,7 +93,9 @@ export default {
       group: 'trashcan',
       // TODO: this doesnt allow us to trash toolbox widgets
       onDrop: (dragItem) => {
-        dragItem.getDragData('widgets').forEach(dragWidget => {
+        var widgets = dragItem.getDragData('widgets')
+        UndoService.recordDeleteAction({ widgets });
+        widgets.forEach(dragWidget => {
           dragWidget.disconnect();
           dragWidget.delete();
         });
@@ -109,29 +107,36 @@ export default {
       this.copiedWidgets = this.selectionDetails().widgets.map(serializeWidget);
     };
 
-    this.pasteWidgets = ()=> {
+    this.pasteWidgets = withRedraw(()=> {
       if (this.copiedWidgets) {
         var selectedWidgets = this.selectionDetails().widgets;
         var widgetToPasteAfter = selectedWidgets.length > 0 ?
           selectedWidgets.slice(-1).pop() :
           null;
-        m.startComputation();
         createOrMoveWidgets.afterTargetFromClipboard({
           copiedData: this.copiedWidgets,
           referenceWidget: widgetToPasteAfter,
           workspace
         });
-        m.endComputation();
       }
-    };
+    });
+
+    this.undo = withRedraw(()=> UndoService.undo());
+    this.redo = withRedraw(()=> UndoService.redo());
 
     Mousetrap.bind('command+c', this.copyWidgets);
     Mousetrap.bind('command+v', this.pasteWidgets);
+
+    Mousetrap.bind('command+z', this.undo);
+    Mousetrap.bind('command+y', this.redo);
 
     this.onunload = ()=> {
       this.toolboxDropzone.destroy();
       Mousetrap.unbind('command+c', this.copyWidgets);
       Mousetrap.unbind('command+v', this.pasteWidgets);
+
+      Mousetrap.unbind('command+z', this.undo);
+      Mousetrap.unbind('command+y', this.redo);
     };
   },
 
@@ -194,4 +199,12 @@ window.globals.Widget = Widget;
 
 function isMultiSelectEvent(event) {
   return !!event.shiftKey;
+}
+
+function withRedraw(fn) {
+  return function() {
+    m.startComputation();
+    fn();
+    m.endComputation();
+  }
 }
