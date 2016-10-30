@@ -1,0 +1,41 @@
+
+Things to undo
+--------------
+
+1. create a new widget(s) (by dragging toolbox widget or pasting copied widget data)
+
+2. moving an existing widget
+
+3. deleting a set of widgets
+
+Data model for state change:
+  * action-type
+  * nested-widget-data
+  * source-coord
+  * dest-coord
+
+Examples
+--------
+
+the coords are always for the first widget in the list
+
+1. {
+  type:           CREATE_WIDGETS,
+  widget-data:    [{ ... }, { ... }, ...]
+  source-coord:   null,
+  dest-coord:     coord1
+}
+
+2. {
+  type:           MOVE_WIDGETS,
+  widget-data:    [{ ... }, { ... }, ...]
+  source-coord:   coord1
+  dest-coord:     coord2
+}
+
+3. {
+  type:           DELETE_WIDGETS
+  widget-data:    [{ ... }, { ... }, ...]
+  source-coord:   coord1
+  dest-coord:     null
+}

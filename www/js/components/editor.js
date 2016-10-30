@@ -12,7 +12,7 @@ import ToolboxWidget from 'components/toolbox-widget';
 import WorkspaceComponent from 'components/workspace';
 import { TOOLBOX_WIDGETS, WORKSPACE_WIDGETS, MOVE_WIDGET } from 'app-constants';
 
-import { serializeWidget, deserializeWidget } from 'models/widget-serializer';
+import { serializeWidget } from 'models/widget-serializer';
 
 export default {
   controller: function() {
@@ -111,23 +111,16 @@ export default {
 
     this.pasteWidgets = ()=> {
       if (this.copiedWidgets) {
-        m.startComputation();
-        var newWidgets = this.copiedWidgets.map(widgetData => {
-          return deserializeWidget(widgetData, workspace.uid());
-        });
-
         var selectedWidgets = this.selectionDetails().widgets;
         var widgetToPasteAfter = selectedWidgets.length > 0 ?
           selectedWidgets.slice(-1).pop() :
           null;
-
-        if (widgetToPasteAfter) {
-          newWidgets.reverse().forEach(widget => {
-            widgetToPasteAfter.insertAfterInNearestParentList(widget);
-          });
-        } else {
-          newWidgets.reverse().forEach(widget => workspace.appendChild(widget));
-        }
+        m.startComputation();
+        createOrMoveWidgets.afterTargetFromClipboard({
+          copiedData: this.copiedWidgets,
+          referenceWidget: widgetToPasteAfter,
+          workspace
+        });
         m.endComputation();
       }
     };

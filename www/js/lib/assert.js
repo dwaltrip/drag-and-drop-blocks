@@ -1,4 +1,4 @@
-function assert(condition, message) {
+export default function assert(condition, message) {
   if (!condition) {
     message = message || "Assertion failed";
     if (typeof Error !== "undefined") {

@@ -1,4 +1,5 @@
 import { argsToArray } from 'lib/utils';
+import assert from 'lib/assert';
 import { Base, extendModel } from 'models/base';
 import Widget from 'models/widget';
 import WidgetList from 'models/widget-list';
@@ -54,11 +55,8 @@ export function buildWidgetInputClass(opts) {
     setInput: function(inputName, widget) {
       var input = this._fetchInput(inputName);
       var idProp = this[input.idField];
-      if (idProp()) {
-        var widgetToReplace = this[input.name];
-        this.removeInput(widgetToReplace);
-        this.getWidget().insertAfterInNearestParentList(widgetToReplace);
-      }
+      assert(!idProp(), `setInput - the '${input.name}' slot already has a widget.`);
+
       idProp(widget.uid());
       this[input.name] = widget;
       this.save();
@@ -69,9 +67,8 @@ export function buildWidgetInputClass(opts) {
     createInput: function(inputName, widgetType) {
       var input = this._fetchInput(inputName);
       var idProp = this[input.idField];
-      if (idProp()) {
-        this.removeInput(this[input.name]);
-      }
+      assert(!idProp(), `createInput - the '${input.name}' slot already has a widget.`);
+
       var widget = Widget.create({
         type: widgetType,
         parentWidget: this.parentWidget(),

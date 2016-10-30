@@ -1,0 +1,42 @@
+
+5goj:         at 0
+5slm:         at 1
+  tcZc:       in 1, list "list1" at 0
+    zoM7:     in 1, list "list1" in 0, list "list1" at 0
+  Eu8j:       in 1, list "list1" at 1
+  aVtN:       in 1, list "list2" at 0
+    G4Ee:     in 1, list "list2" in 0, at slot "foo"
+bj0o:         at 2
+  C3V6:       in 2, list "bazWidgets" at 0
+N_0s:         at 3
+  nc8k:       in 3, at slot "secondWidget"
+_H5l:         at 4
+  asJy:       in 4, list "bazWidgets" at 0
+  LOt6:       in 4, list "bazWidgets" at 1
+    PpTe:     in 4, list "bazWidgets" in 1, at slot "foo"
+  AAnb:       in 4, list "bazWidgets" at 2
+    tazX:     in 4, list "bazWidgets" in 2, at slot "firstWidget"
+      j0DA:   in 4, list "bazWidgets" in 2, in slot "firstWidget", list "bazWidgets" at 0
+--------------------
+5goj:         0
+5slm:         1
+  tcZc:       1, list=list1, 0
+    zoM7:     1, list=list1, 0, list=list1, 0
+  Eu8j:       1, list=list1, 1
+  aVtN:       1, list=list2, 0
+    G4Ee:     1, list=list2, 0, slot=foo,
+bj0o:         2
+  C3V6:       2, list=bazWidgets, 0
+N_0s:         3
+  nc8k:       3, slot=secondWidget
+_H5l:         4
+  asJy:       4, list=bazWidgets, 0
+  LOt6:       4, list=bazWidgets, 1
+    PpTe:     4, list=bazWidgets, 1, slot=foo
+  AAnb:       4, list=bazWidgets, 2
+    tazX:     4, list=bazWidgets, 2, slot=firstWidget
+      j0DA:   4, list=bazWidgets, 2, slot=firstWidget, list=bazWidgets, 0
+--------------------
+#     -> list | slot
+list  -> #
+slot  -> list | slot

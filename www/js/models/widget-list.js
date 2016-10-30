@@ -63,6 +63,9 @@ export default extendModel(Base, {
     },
 
     insertAfter: function(widget, referenceWidget) {
+      if (!(this.widgets.indexOf(referenceWidget) > -1) || referenceWidget.parentList() !== this.uid()) {
+        throw new Error('insertAfter -- referenceWidget is not in list.');
+      }
       widget.pos(referenceWidget.pos() + 0.5);
       this.addWidgetIfNeeded(widget);
       this.sort();
