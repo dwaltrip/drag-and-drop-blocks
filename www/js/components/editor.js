@@ -121,6 +121,7 @@ export default {
       }
     });
 
+    // TODO: set 'selectedWidgets' properly after an undo/redo
     this.undo = withRedraw(()=> UndoService.undo());
     this.redo = withRedraw(()=> UndoService.redo());
 

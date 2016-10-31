@@ -119,7 +119,7 @@ export default {
     // Private methods
 
     _undoCreate: function(action) {
-      var widgets = this._fetchWidgetsFromActionDest(action);
+      var widgets = this._findWidgetsAtCoord(action.dest, action.count);
       widgets.forEach(widget => {
         widget.disconnect();
         widget.delete();
@@ -134,14 +134,14 @@ export default {
     },
 
     _undoMove: function(action) {
-      var widgets = this._fetchWidgetsFromActionDest(action);
+      var widgets = this._findWidgetsAtCoord(action.dest, action.count);
       widgets.forEach(widget => widget.disconnect());
       this._moveWidgets(widgets, action.source);
     },
 
     _moveWidgets: function(widgets, dest) {
       if (doesPointToSlot(dest)) {
-        var parentWidget = this._findWidgetAtCoord(dest.slice(0, -1));
+        var parentWidget = this._findSingleWidgetAtCoord(dest.slice(0, -1));
         parentWidget.setInput(getSlotName(dest), widgets[0])
       } else {
         if (dest.length === 1) {
@@ -149,7 +149,8 @@ export default {
           var pos = dest[0];
         } else {
           var listDetails = getListDetails(dest);
-          var list = this._findWidgetAtCoord(dest.slice(0, -1)).getInputList(listDetails.name);
+          var parentWidget = this._findSingleWidgetAtCoord(dest.slice(0, -1))
+          var list = parentWidget.getInputList(listDetails.name);
           var pos = listDetails.pos;
         }
 
@@ -162,18 +163,18 @@ export default {
       }
     },
 
-    _fetchWidgetsFromActionDest: function(action) {
-      var firstWidget = this._findWidgetAtCoord(action.dest);
+    _findWidgetsAtCoord: function(coord, count) {
+      var firstWidget = this._findSingleWidgetAtCoord(coord);
       if (firstWidget.isInSlot()) {
-        assert(action.count === 1, 'Slots can only have 1 widget');
+        assert(count === 1, 'Slots can only have 1 widget');
         return [firstWidget];
       } else {
         var pos = firstWidget.pos();
-        return firstWidget.getParentList().slice(pos, pos + action.count);
+        return firstWidget.getParentList().slice(pos, pos + count);
       }
     },
 
-    _findWidgetAtCoord: function(parts) {
+    _findSingleWidgetAtCoord: function(parts) {
       var rootPos = parseInt(parts[0]);
       var currentWidget = this.workspace.getWidgetList().widgets[rootPos];
       parts.slice(1).forEach(part => {
