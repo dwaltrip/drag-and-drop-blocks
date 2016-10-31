@@ -113,7 +113,7 @@ export default {
         var widgetToPasteAfter = selectedWidgets.length > 0 ?
           selectedWidgets.slice(-1).pop() :
           null;
-        createOrMoveWidgets.afterTargetFromClipboard({
+        createOrMoveWidgets.fromClipboard({
           copiedData: this.copiedWidgets,
           referenceWidget: widgetToPasteAfter,
           workspace

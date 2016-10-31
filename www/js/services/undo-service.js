@@ -27,20 +27,24 @@ export default {
     workspace: null,
     undoStack: null,
     redoStack: null,
+    isInTransaction: false,
+    transactionActions: null,
 
     // Public methods
 
     undo: function() {
-      var action = this.undoStack.pop();
-      if (!action) { return; }
-      assert(action.type in this.class.ACTION_TYPES,
-        `UndoService.undo -- invalid action type '${action.type}'`);
+      var actions = this.undoStack.pop();
+      if (!actions) { return; }
 
-      if      (action.type === CREATE)  { this._undoCreate(action); }
-      else if (action.type === DELETE)  { this._undoDelete(action); }
-      else if (action.type === MOVE)    { this._undoMove(action); }
-
-      this.redoStack.push(action);
+      // need to undo in the opposite order
+      actions.reverse().forEach(action => {
+        assert(action.type in this.class.ACTION_TYPES,
+          `UndoService.undo -- invalid action type '${action.type}'`);
+        if      (action.type === CREATE)  { this._undoCreate(action); }
+        else if (action.type === DELETE)  { this._undoDelete(action); }
+        else if (action.type === MOVE)    { this._undoMove(action); }
+      });
+      this.redoStack.push(actions);
     },
 
     redo: function() {
@@ -49,7 +53,11 @@ export default {
 
     recordAction: function(action) {
       assertRequired(action, ['type', 'source', 'dest', 'count', 'widgetData'], 'recordAction');
-      this.undoStack.push(action);
+      if (this.isInTransaction) {
+        this.transactionActions.push(action);
+      } else {
+        this.undoStack.push([action]);
+      }
     },
 
     recordCreateAction: function(opts) {
@@ -92,6 +100,20 @@ export default {
         parent = parent.getContainingWidget();
       }
       return parts.reverse();
+    },
+
+    asTransaction: function(fn) {
+      var undoService = this;
+      return function() {
+        undoService.isInTransaction = true;
+        undoService.transactionActions = [];
+
+        fn.apply(this, arguments);
+        undoService.undoStack.push(undoService.transactionActions);
+
+        undoService.isInTransaction = false;
+        undoService.transactionActions = null;
+      };
     },
 
     // Private methods
