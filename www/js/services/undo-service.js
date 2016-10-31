@@ -37,7 +37,7 @@ export default {
       if (!actions) { return; }
 
       // need to undo in the opposite order
-      actions.reverse().forEach(action => {
+      actions.slice().reverse().forEach(action => {
         assert(action.type in this.class.ACTION_TYPES,
           `UndoService.undo -- invalid action type '${action.type}'`);
         if      (action.type === CREATE)  { this._undoCreate(action); }
@@ -48,7 +48,15 @@ export default {
     },
 
     redo: function() {
-      // the opposite of undo!
+      var actions = this.redoStack.pop();
+      if (!actions) { return; }
+
+      actions.forEach(action => {
+        if      (action.type === CREATE)  { this._redoCreate(action); }
+        else if (action.type === DELETE)  { this._redoDelete(action); }
+        else if (action.type === MOVE)    { this._redoMove(action); }
+      });
+      this.undoStack.push(actions);
     },
 
     recordAction: function(action) {
@@ -58,6 +66,8 @@ export default {
       } else {
         this.undoStack.push([action]);
       }
+      // new actions invalidate all of the stored redos (as they may conflict)
+      this.redoStack = [];
     },
 
     recordCreateAction: function(opts) {
@@ -119,27 +129,49 @@ export default {
     // Private methods
 
     _undoCreate: function(action) {
-      var widgets = this._findWidgetsAtCoord(action.dest, action.count);
-      widgets.forEach(widget => {
+      this._deleteWidgets(action.dest, action.count);
+    },
+    _redoDelete: function(action) {
+      this._deleteWidgets(action.source, action.count);
+    },
+
+    _undoDelete: function(action) {
+      this._createWidgets(action.widgetData, action.source);
+    },
+    _redoCreate: function(action) {
+      this._createWidgets(action.widgetData, action.dest);
+    },
+
+    _undoMove: function(action) {
+      // for an undo, source and dest are swapped
+      this._moveWidgets({ source: action.dest, dest: action.source, count: action.count });
+    },
+    _redoMove: function(action) {
+      // for a redo, use source and dest exactly as in the original action
+      this._moveWidgets(action);
+    },
+
+    _createWidgets: function(widgetData, coord) {
+      var newWidgets = widgetData.map(data => {
+        return deserializeWidget(data, this.workspace.uid());
+      });
+      this._putWidgets(newWidgets, coord);
+    },
+
+    _deleteWidgets: function(coord, count) {
+      this._findWidgetsAtCoord(coord, count).forEach(widget => {
         widget.disconnect();
         widget.delete();
       });
     },
 
-    _undoDelete: function(action) {
-      var undeletedWidgets = action.widgetData.map(data => {
-        return deserializeWidget(data, this.workspace.uid());
-      });
-      this._moveWidgets(undeletedWidgets, action.source);
-    },
-
-    _undoMove: function(action) {
-      var widgets = this._findWidgetsAtCoord(action.dest, action.count);
+    _moveWidgets: function(opts) {
+      var widgets = this._findWidgetsAtCoord(opts.source, opts.count);
       widgets.forEach(widget => widget.disconnect());
-      this._moveWidgets(widgets, action.source);
+      this._putWidgets(widgets, opts.dest);
     },
 
-    _moveWidgets: function(widgets, dest) {
+    _putWidgets: function(widgets, dest) {
       if (doesPointToSlot(dest)) {
         var parentWidget = this._findSingleWidgetAtCoord(dest.slice(0, -1));
         parentWidget.setInput(getSlotName(dest), widgets[0])

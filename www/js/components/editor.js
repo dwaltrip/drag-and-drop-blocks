@@ -123,7 +123,10 @@ export default {
 
     // TODO: set 'selectedWidgets' properly after an undo/redo
     this.undo = withRedraw(()=> UndoService.undo());
-    this.redo = withRedraw(()=> UndoService.redo());
+    this.redo = withRedraw(()=> {
+      UndoService.redo();
+      return false;
+    });
 
     Mousetrap.bind('command+c', this.copyWidgets);
     Mousetrap.bind('command+v', this.pasteWidgets);
@@ -205,7 +208,8 @@ function isMultiSelectEvent(event) {
 function withRedraw(fn) {
   return function() {
     m.startComputation();
-    fn();
+    var retValue = fn.apply(this, arguments);
     m.endComputation();
+    return retValue;
   }
 }

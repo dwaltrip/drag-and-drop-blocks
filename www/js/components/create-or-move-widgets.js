@@ -38,7 +38,6 @@ export default {
     if (widgetToReplace) {
       var source = UndoService.getCoord(widgetToReplace);
       widgetToReplace.disconnect();
-      // insertAfterInNearestParentList(widgetToReplace, parent);
       parent.insertAfterInNearestParentList(widgetToReplace);
       UndoService.recordMoveAction({
         source,
@@ -99,12 +98,11 @@ export default {
     });
 
     if (opts.referenceWidget) {
-      newWidgets.reverse().forEach(widget => {
-        // insertAfterInNearestParentList(widget, otps.referenceWidget);
+      newWidgets.slice().reverse().forEach(widget => {
         opts.referenceWidget.insertAfterInNearestParentList(widget);
       });
     } else {
-      newWidgets.reverse().forEach(widget => opts.workspace.appendChild(widget));
+      newWidgets.slice().reverse().forEach(widget => opts.workspace.appendChild(widget));
     }
     UndoService.recordCreateAction({ widgets: newWidgets });
   }
