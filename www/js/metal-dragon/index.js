@@ -31,10 +31,7 @@ export default {
     eventHandlerDecorator: null,
 
     activeDragItem: null,
-    // TODO: not sure if this is the best name.
-    // activeDropzones vs eligibleDropzones is slightly confusing
-    // TODO: rename to targetDropzones
-    activeDropzones: null,
+    targetDropzones: null,
 
     _eligibleDropzones: null,
     _ineligibleDropzones: null,
@@ -83,7 +80,7 @@ export default {
     },
 
     hasTargetDropzone: function() {
-      return this.activeDropzones && this.activeDropzones.length > 0;
+      return this.targetDropzones && this.targetDropzones.length > 0;
     },
 
     isTargetingDropzoneGroup: function(group) {
@@ -109,7 +106,7 @@ export default {
 
     onDrop: function() {
       var targetDropzone = this.targetDropzone();
-      if (targetDropzone && targetDropzone.userEvents.onDrop) {
+      if (targetDropzone) {
         targetDropzone.userEvents.onDrop.call(targetDropzone, this.activeDragItem);
       }
     },
@@ -119,28 +116,27 @@ export default {
     },
 
     isManuallyHandlingDragEvents: function() {
-      var isUsingDragZone = this.activeDragItem.hasTargetZone;
-      return this.isCheckingElementOverlap || isUsingDragZone;
+      return this.isCheckingElementOverlap || this.activeDragItem.hasCustomDragRect;
     },
 
     // TODO: clarify this method. We are doing a few things all at once here.
     handleCustomEventConstraints: function() {
-      var isUsingDragZone = this.activeDragItem.hasTargetZone;
+      var hasCustomDragRect = this.activeDragItem.hasCustomDragRect;
       var dragRect = this.activeDragItem.getDragRect();
 
-      if (this.isCheckingElementOverlap || isUsingDragZone) {
+      if (this.isCheckingElementOverlap || hasCustomDragRect) {
         this._eligibleDropzones.forEach(dropzone => {
           if (
-            (dropzone.useDragElementOverlap || isUsingDragZone) &&
+            (dropzone.useDragElementOverlap || hasCustomDragRect) &&
             !dropzone.isUnderDragItem() &&
             doRectsOverlap(dragRect, dropzone._element.getBoundingClientRect())
           ) {
             dropzone.handleDragEnter();
           }
         });
-        this.activeDropzones.forEach(dropzone => {
+        this.targetDropzones.forEach(dropzone => {
           if (
-            (dropzone.useDragElementOverlap || isUsingDragZone) &&
+            (dropzone.useDragElementOverlap || hasCustomDragRect) &&
             !doRectsOverlap(dragRect, dropzone._element.getBoundingClientRect())
           ) {
             dropzone.handleDragLeave();
@@ -149,33 +145,30 @@ export default {
       }
     },
 
-    // `activeDropzones` is essentially a stack of dropzones we have enetered.
+    // `targetDropzones` is essentially a stack of dropzones we have enetered.
     // Only the most recently entered one is used.
     // The assumption that this is the sensible and always desired has not been fully validated.
     targetDropzone: function() {
-      if (this.activeDropzones && this.activeDropzones.length > 0) {
-        return this.activeDropzones[this.activeDropzones.length - 1];
-      }
-      return null;
+      return (this.targetDropzones || []).slice(-1).pop() || null;
     },
 
     onDragEnter: function(dropzone) {
       if (this.targetDropzone()) {
-        this.activeDragItem.dragImage.classList.remove(getDropTargetClass(this.targetDropzone()));
+        this.activeDragItem.dragCursor.classList.remove(getDropTargetClass(this.targetDropzone()));
       }
-      this.activeDropzones.push(dropzone);
+      this.targetDropzones.push(dropzone);
       var dragOverClass = getDropTargetClass(dropzone);
-      this.activeDragItem.dragImage.classList.add(dragOverClass);
+      this.activeDragItem.dragCursor.classList.add(dragOverClass);
     },
 
     onDragLeave: function(dropzone) {
-      var wasRemoved = removeFromArray(this.activeDropzones, dropzone);
+      var wasRemoved = removeFromArray(this.targetDropzones, dropzone);
       if (!wasRemoved) {
-        throw new Error('onmouseleave -- wtf, dropzone not in activeDropzones list');
+        throw new Error('onmouseleave -- this should not happen. dropzone not in targetDropzones list');
       }
-      this.activeDragItem.dragImage.classList.remove(getDropTargetClass(dropzone));
+      this.activeDragItem.dragCursor.classList.remove(getDropTargetClass(dropzone));
       if (this.targetDropzone()) {
-        this.activeDragItem.dragImage.classList.add(getDropTargetClass(this.targetDropzone()));
+        this.activeDragItem.dragCursor.classList.add(getDropTargetClass(this.targetDropzone()));
       }
     },
 
@@ -186,7 +179,7 @@ export default {
     _startDrag: function(dragItem, event) {
       this._dragState = DRAG_STATE_MID_DRAG;
       this.activeDragItem = dragItem;
-      this.activeDropzones = [];
+      this.targetDropzones = [];
 
       this._eligibleDropzones = [];
       this._ineligibleDropzones = [];
@@ -196,7 +189,7 @@ export default {
       );
 
       dropzones.forEach(dropzone => {
-        if (dropzone.isEligible(dragItem)) {
+        if (dropzone.canDrop(dragItem)) {
           dropzone._prepForDragAndDrop(event);
           this._eligibleDropzones.push(dropzone);
         } else {
@@ -209,15 +202,16 @@ export default {
 
       // Upon drag start, identify dropzones that should be considered 'targeted' by dragItem
       // and trigger 'dragEnter' for these dropzones.
-      var dragRect = dragItem.dragImage.getBoundingClientRect();
       var mousePos = { x: event.clientX, y: event.clientY };
+      var dragRect = dragItem.dragCursor.getBoundingClientRect();
       this._eligibleDropzones.forEach(dropzone => {
         var dropzoneRect = dropzone._element.getBoundingClientRect()
-        var useOverlap = dropzone.useDragElementOverlap;
+        var isCheckingOverlap = dropzone.useDragElementOverlap;
 
         var doesOverlap = doRectsOverlap(dropzoneRect, dragRect);
         var containsCursor = doesRectContainPoint(dropzoneRect, mousePos);
-        if ((useOverlap && doesOverlap) || (!useOverlap && containsCursor)) {
+
+        if ((isCheckingOverlap && doesOverlap) || (!isCheckingOverlap && containsCursor)) {
           dropzone.handleDragEnter();
         }
       });
@@ -230,7 +224,7 @@ export default {
       this.isCheckingElementOverlap = false;
       
       this.activeDragItem = null;
-      this.activeDropzones = [];
+      this.targetDropzones = [];
 
       this._ineligibleDropzones.forEach(dropzone => dropzone.enable());
       this._ineligibleDropzones = [];

@@ -21,8 +21,7 @@ var WidgetSlot = {
     this.dropzone = params.metalDragon.createDropzone({
       group: 'widget-slot',
       itemData: { parentWidget: this.parentWidget },
-      // TODO: rename 'isEligible' to 'canDrop'
-      isEligible: function(dragItem) {
+      canDrop: function(dragItem) {
         if (dragItem.group === TOOLBOX_WIDGETS) { return true; }
         var dragWidget = dragItem.getItemData('widget')
         var slotWidget = self.parentWidget.getInput(self.inputName);
@@ -65,7 +64,7 @@ var WidgetList = {
 
     this.dropzone = params.metalDragon.createDropzone({
       group: 'widget-list',
-      isEligible: ()=> {
+      canDrop: ()=> {
         var parentWidget = this.widgetList.getParentWidget();
         var selectedIds = params.selectionDetails().widgetUIDs;
         var parentWidgetIsSelected = parentWidget && (

@@ -20,7 +20,7 @@ export default {
         group: MOVE_WIDGET,
         itemData: { widget },
         useDragElementOverlap: true,
-        isEligible: function(dragItem) {
+        canDrop: function(dragItem) {
           if (dragItem.group === TOOLBOX_WIDGETS) { return true; }
           return !(
             self.isSelected(params.selectionDetails) ||

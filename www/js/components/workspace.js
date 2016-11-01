@@ -12,7 +12,7 @@ export default {
     this.bottomOfWorkspaceDropzone = params.metalDragon.createDropzone({
       accepts: [WORKSPACE_WIDGETS, TOOLBOX_WIDGETS],
       group: 'bottom-of-workspace',
-      isEligible: (dragItem)=> {
+      canDrop: (dragItem)=> {
         if (dragItem.group === TOOLBOX_WIDGETS) { return true; }
         var dragWidget = dragItem.getItemData('widget');
         if (dragWidget.isRoot()) {

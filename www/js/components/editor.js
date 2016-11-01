@@ -51,9 +51,7 @@ export default {
       group: TOOLBOX_WIDGETS,
       itemData: { widgetType },
       dragHandle: 'widget-title',
-      // boundingContainer: 'widget-editor',
-      // TODO: is there a better name than 'targetZone'?
-      targetZone: { top: 0, left: 0, height: 10, width: 25 },
+      dragRect: { top: 0, left: 0, height: 10, width: 25 },
       onDragStart: ()=> this.selectWidgets(null),
       afterDrop: function() {
         self.selectWidgets({ widget: this.getDragData('newWidget') });
@@ -64,8 +62,8 @@ export default {
       group: WORKSPACE_WIDGETS,
       itemData: { widget },
       dragHandle: 'widget-title',
-      targetZone: { top: 0, left: 0, height: 10, width: 25 },
-      getDragImageSourceNode: function(element, event) {
+      dragRect: { top: 0, left: 0, height: 10, width: 25 },
+      getDragCursorSourceNode: function(element, event) {
         var selectedWidgets = document.createElement('div');
         var widgetRow = element.parentElement;
 
@@ -85,7 +83,7 @@ export default {
         }
         return selectedWidgets;
       },
-      onDragInit: function(event) {
+      beforeDrag: function(event) {
         self.selectWidgets({ widget, isMultiSelect: isMultiSelectEvent(event) });
         this.setDragData('widgets', self.selectionDetails().widgets);
       }

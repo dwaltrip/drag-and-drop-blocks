@@ -1,4 +1,4 @@
-
+import { assert } from './utils';
 import { DEFAULT_GROUP, DRAG_HANDLE_CSS_CLASS } from './constants';
 
 export default {
@@ -8,9 +8,9 @@ export default {
     instance.manager = manager;
     instance.group = opts.group || DEFAULT_GROUP;
 
-    instance._findElementForDragImage = opts.getDragImageSourceNode;
+    instance._getDragCursorSourceNode = opts.getDragCursorSourceNode || (el => el);
     instance._dragHandleClass = opts.dragHandle;
-    instance.dragImageClass = opts.dragImageClass || 'drag-cursor';
+    instance.dragCursorClass = opts.dragCursorClass || 'drag-cursor';
 
     if (manager.eventHandlerDecorator) {
       var decorator = manager.eventHandlerDecorator;
@@ -25,16 +25,16 @@ export default {
     };
 
     instance.userEvents = {
-      onDragInit: opts.onDragInit,
-      onDragStart: opts.onDragStart,
-      onDrop: opts.onDrop,
-      afterDrop: opts.afterDrop
+      beforeDrag: opts.beforeDrag || doNothing,
+      onDragStart: opts.onDragStart || doNothing,
+      onDrop: opts.onDrop || doNothing,
+      afterDrop: opts.afterDrop || doNothing
     };
 
-    instance.hasTargetZone = !!opts.targetZone;
-    if (instance.hasTargetZone) {
-      instance._targetZone = opts.targetZone;
-      instance._validateTargetZone();
+    instance.hasCustomDragRect = !!opts.dragRect;
+    if (instance.hasCustomDragRect) {
+      instance._dragRect = opts.dragRect;
+      instance._validateDragRect();
     }
 
     instance.isMovementConstrained = false;
@@ -58,12 +58,12 @@ export default {
 
   instance: {
     manager: null,
-    dragImage: null,
+    dragCursor: null,
     _itemData: null,
     _dragData: null,
     _element: null,
     _boundEventListeners: null,
-    _targetZone: null,
+    _dragRect: null,
 
     isDragging: function() {
       return this === this.manager.activeDragItem;
@@ -74,50 +74,38 @@ export default {
     },
 
     getDragRect: function() {
-      if (!this.manager.isMidDrag()) {
-        throw new Error('drag-item -- has no drag rect when not dragging.')
-      }
-      var dragImageRect = this.dragImage.getBoundingClientRect();
-      if (!this.hasTargetZone) {
-        return dragImageRect;
-      }
-      var targetZone = this._targetZone;
+      var cursorRect = this.dragCursor.getBoundingClientRect();
+      if (!this.hasCustomDragRect) { return cursorRect; }
+
+      var dragRect = this._dragRect;
       return {
-        top:      dragImageRect.top   + targetZone.top,
-        bottom:   dragImageRect.top   + targetZone.top    + targetZone.height,
-        left:     dragImageRect.left  + targetZone.left,
-        right:    dragImageRect.left  + targetZone.left   + targetZone.width
+        top:      cursorRect.top    + dragRect.top,
+        bottom:   cursorRect.top    + dragRect.top    + dragRect.height,
+        left:     cursorRect.left   + dragRect.left,
+        right:    cursorRect.left   + dragRect.left   + dragRect.width
       };
     },
 
-    getDragData: function(key) {
-      if (!(key in this._dragData)) {
-        throw new Error([
-          `DragItem ${this.id} has no dragData for key: ${key}.`,
-          `Existing keys: ${Object.keys(this._dragData)}`
-        ].join(' '));
-      }
-      return this._dragData[key];
+    getDragData: function(key, defaultVal) {
+      var errorMsg = `DragItem.getDragData - Invalid key '${key}'. Valid keys: ${Object.keys(this._dragData)}`;
+      var hasDefault = typeof defaultVal !== 'undefined';
+      assert(key in this._dragData, errorMsg);
+      return key in this._dragData ? this._dragData[key] : defaultVal;
     },
 
     setItemData: function(key, value) {
       this._itemData[key] = value;
     },
 
-    getItemData: function(key, defaultValue) {
-      var hasDefault = typeof defaultValue !== 'undefined';
-      if (!(key in this._itemData) && !hasDefault) {
-        throw new Error([
-          `DragItem ${this.id} has no itemData for key: ${key}.`,
-          `Existing keys: ${Object.keys(this._itemData)}`
-        ].join(' '));
-      }
-      var val = this._itemData[key];
-      return typeof val === 'undefined' && hasDefault ? defaultValue : val;
+    getItemData: function(key, defaultVal) {
+      var errorMsg = `DragItem.getItemData - Invalid key '${key}'. Valid keys: ${Object.keys(this._itemData)}`;
+      var hasDefault = typeof defaultVal !== 'undefined';
+      assert(key in this._itemData || hasDefault, errorMsg);
+      return key in this._itemData ? this._itemData[key] : defaultVal;
     },
 
     isAboveGroup: function(group) {
-      return !!this.manager.activeDropzones.find(dz => dz.group === group);
+      return !!this.manager.targetDropzones.find(dz => dz.group === group);
     },
 
     destroy: function() {
@@ -132,24 +120,21 @@ export default {
         x: event.clientX - rect.left,
         y: event.clientY - rect.top
       };
-      var dragImage = this._setupDragImage(element, event);
+      var dragCursor = this._setupDragCursor(element, event);
 
-      // TODO: this works, however if I move the mouse up and down outside of the bounding container,
-      // the widget dragging doesn't get re-ordered (even though the y-pos of my mouse is going thrugh
-      // different widget rows)
       if (this.isMovementConstrained) {
         var container = this.getBoundingElement(element);
         var rect = container.getBoundingClientRect();
-        var dragImageSize = getFullSize(dragImage);
+        var cursorSize = getFullSize(dragCursor);
         this._boundingRect = {
           left: rect.left,
           top: rect.top,
-          right: rect.right - dragImageSize.width,
-          bottom: rect.bottom - dragImageSize.height
+          right: rect.right - cursorSize.width,
+          bottom: rect.bottom - cursorSize.height
         };
       }
 
-      this._updateDragImagePos(event);
+      this._updateDragCursorPos(event);
       this.manager._prepForDrag();
       document.addEventListener('mousemove', this._boundEventListeners.onmousemove, false);
       document.addEventListener('mouseup', this._boundEventListeners.onmouseup, false);
@@ -180,37 +165,31 @@ export default {
       throw new Error(`-- drag-item -- getBoundingElement must be specified in 'contraints' hash.`);
     },
 
-    _setupDragImage: function(element, event) {
-      var dragImageSource = this._findElementForDragImage ?
-        this._findElementForDragImage(element, event) : element;
-      var dragImage = this.dragImage = dragImageSource.cloneNode(true);
-      dragImage.style.position = 'absolute';
-      dragImage.style.pointerEvents = 'none';
-      dragImage.classList.add(this.dragImageClass);
-      document.body.appendChild(dragImage);
-      return dragImage;
+    _setupDragCursor: function(element, event) {
+      var sourceNode = this._getDragCursorSourceNode(element, event);
+      var dragCursor = this.dragCursor = sourceNode.cloneNode(true);
+      dragCursor.style.position = 'absolute';
+      dragCursor.style.pointerEvents = 'none';
+      dragCursor.classList.add(this.dragCursorClass);
+      document.body.appendChild(dragCursor);
+      return dragCursor;
     },
 
     _onMousedown: function(event) {
       this._prepForDrag(event);
-
-      if (this.userEvents.onDragInit) {
-        this.userEvents.onDragInit.call(this, event);
-      }
+      this.userEvents.beforeDrag.call(this, event);
     },
 
     _onMousemove: function(event) {
       // NOTE: after the 'mousedown' event on a dragitem, we don't consider the drag
       // to have officially started until the first 'mousemove' event fires
       if (!this.manager.isMidDrag()) {
-        if (this.userEvents.onDragStart) {
-          this.userEvents.onDragStart.call(this, event);
-        }
+        this.userEvents.onDragStart.call(this, event);
         this.manager._startDrag(this, event);
         document.documentElement.style.cursor = 'move';
       }
 
-      this._updateDragImagePos(event);
+      this._updateDragCursorPos(event);
       this.manager.onMouseMove(event);
     },
 
@@ -220,20 +199,16 @@ export default {
         this.manager.onDrop();
 
         if (this.manager.hasTargetDropzone()) {
-          if (this.userEvents.onDrop) {
-            this.userEvents.onDrop.call(this, event);
-          }
-          if (this.userEvents.afterDrop) {
-            this.userEvents.afterDrop.call(this, event);
-          }
+          this.userEvents.onDrop.call(this, event);
+          this.userEvents.afterDrop.call(this, event);
         }
       }
       this._postDragCleanup();
     },
 
     _postDragCleanup: function() {
-      this.dragImage.remove();
-      this.dragImage = null;
+      this.dragCursor.remove();
+      this.dragCursor = null;
       this._dragData = {};
 
       document.removeEventListener('mousemove', this._boundEventListeners.onmousemove)
@@ -251,7 +226,7 @@ export default {
     },
 
     // TODO: ensure this is always rendered in front of every other DOM element (stacking contexts, etc)
-    _updateDragImagePos: function(event) {
+    _updateDragCursorPos: function(event) {
       var newPos = {
         left: event.clientX - this.initialCursorOffset.x,
         top: event.clientY - this.initialCursorOffset.y
@@ -259,8 +234,8 @@ export default {
       if (this.isMovementConstrained) {
         newPos = this._constrainDragElement(newPos);
       }
-      this.dragImage.style.left = `${newPos.left}px`;
-      this.dragImage.style.top = `${newPos.top}px`;
+      this.dragCursor.style.left = `${newPos.left}px`;
+      this.dragCursor.style.top = `${newPos.top}px`;
     },
 
     _constrainDragElement: function(elementPosition) {
@@ -271,12 +246,12 @@ export default {
       }
     },
 
-    _validateTargetZone: function() {
+    _validateDragRect: function() {
       ['top', 'left', 'height', 'width'].forEach(attr => {
-        if (typeof this._targetZone[attr] === 'undefined') {
-          throw new Error(`drag-item -- '${attr}' is a required attribute for targetZone.`);
-        } else if (typeof this._targetZone[attr] !== 'number') {
-          throw new Error(`drag-item -- 'targetZone.${attr}' must be a number.`);
+        if (typeof this._dragRect[attr] === 'undefined') {
+          throw new Error(`drag-item -- '${attr}' is a required attribute for 'dragRect'.`);
+        } else if (typeof this._dragRect[attr] !== 'number') {
+          throw new Error(`drag-item -- 'dragRect.${attr}' must be a number.`);
         }
       });
     }
@@ -304,3 +279,5 @@ function findAncestorWithClass(el, cls) {
   while ((el = el.parentElement) && !el.classList.contains(cls));
   return el;
 }
+
+function doNothing() {}

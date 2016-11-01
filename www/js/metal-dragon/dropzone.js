@@ -1,4 +1,4 @@
-
+import { assert } from './utils';
 import { DEFAULT_GROUP } from './constants';
 
 export default {
@@ -9,10 +9,10 @@ export default {
     instance.group = opts.group || DEFAULT_GROUP;
 
     instance.userEvents = {
-      onDragStart: opts.onDragStart,
-      onDragEnter: opts.onDragEnter,
-      onDragLeave: opts.onDragLeave,
-      onDrop: opts.onDrop
+      onDragStart: opts.onDragStart || doNothing,
+      onDragEnter: opts.onDragEnter || doNothing,
+      onDragLeave: opts.onDragLeave || doNothing,
+      onDrop: opts.onDrop || doNothing
     };
 
     if (manager.eventHandlerDecorator) {
@@ -30,7 +30,7 @@ export default {
       instance.accepts = (accepts instanceof Array) ? accepts : [accepts];
       instance._restrictDropTypes = true;
     }
-    instance._isEligible = opts.isEligible;
+    instance._canDrop = opts.canDrop;
 
     instance.useDragElementOverlap = opts.useDragElementOverlap || false;
 
@@ -55,7 +55,7 @@ export default {
     _boundEventListeners: null,
     _isEnabled: true,
     _itemData: null,
-    _isEligible: null,
+    _canDrop: null,
 
     hasElement:       function() { return !!this._element; },
     isUnderDragItem:  function() { return this._isDraggingOver; },
@@ -67,9 +67,9 @@ export default {
       this._element = element;
     },
 
-    isEligible: function(dragItem) {
-      if (!this._isEligible) { return true; }
-      return this._isEligible(dragItem);
+    canDrop: function(dragItem) {
+      if (!this._canDrop) { return true; }
+      return this._canDrop(dragItem);
     },
 
     disable:  function() {this._isEnabled = false; },
@@ -80,15 +80,10 @@ export default {
     },
 
     getItemData: function(key, defaultValue) {
+      var errorMsg = `Dropzone.getItemData - Invalid key '${key}'. Valid keys: ${Object.keys(this._itemData)}`;
       var hasDefault = typeof defaultValue !== 'undefined';
-      if (!(key in this._itemData) && !hasDefault) {
-        throw new Error([
-          `Dropzone ${this.id} has no itemData for key: ${key}.`,
-          `Existing keys: ${Object.keys(this._itemData)}`
-        ].join(' '));
-      }
-      var val = this._itemData[key];
-      return typeof val === 'undefined' && hasDefault ? defaultValue : val;
+      assert(key in this._itemData || hasDefault, errorMsg);
+      return key in this._itemData ? this._itemData[key] : defaultValue;
     },
 
     destroy: function() {
@@ -112,9 +107,7 @@ export default {
         this._element.addEventListener('mouseleave', this._boundEventListeners.onmouseleave, false);
       }
 
-      if (this.userEvents.onDragStart) {
-        this.userEvents.onDragStart.call(this, this.manager.activeDragItem, event);
-      }
+      this.userEvents.onDragStart.call(this, this.manager.activeDragItem, event);
     },
 
     _onMouseenter: function(event) { this.handleDragEnter(event); },
@@ -124,10 +117,7 @@ export default {
       if (this._isEnabled) {
         this._isDraggingOver = true;
         this.manager.onDragEnter(this);
-
-        if (this.userEvents.onDragEnter) {
-          this.userEvents.onDragEnter.call(this, this.manager.activeDragItem, event);
-        }
+        this.userEvents.onDragEnter.call(this, this.manager.activeDragItem, event);
       }
     },
 
@@ -135,10 +125,7 @@ export default {
       if (this._isEnabled) {
         this._isDraggingOver = false;
         this.manager.onDragLeave(this);
-
-        if (this.userEvents.onDragLeave) {
-          this.userEvents.onDragLeave.call(this, this.manager.activeDragItem, event);
-        }
+        this.userEvents.onDragLeave.call(this, this.manager.activeDragItem, event);
       }
     },
 
@@ -162,3 +149,5 @@ export default {
     }
   }
 };
+
+function doNothing() {}
