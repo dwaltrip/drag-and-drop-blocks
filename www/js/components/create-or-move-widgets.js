@@ -71,7 +71,7 @@ export default {
     if (dragItem.group === TOOLBOX_WIDGETS) {
       var widgetToAdd = list.createWidget(dragItem.getItemData('widgetType'));
       dragItem.setDragData('newWidget', widgetToAdd);
-      list.appendWidget(widgetToAdd);
+      list.append(widgetToAdd);
       UndoService.recordCreateAction({ widgets: [widgetToAdd] });
     }
     else if (dragItem.group === WORKSPACE_WIDGETS) {
@@ -79,7 +79,7 @@ export default {
       var source = UndoService.getCoord(widgets[0]);
       widgets.forEach(widgetToAdd => {
         widgetToAdd.disconnect();
-        list.appendWidget(widgetToAdd);
+        list.append(widgetToAdd);
       });
       var workspaceId = widgets[0].workspace();
       UndoService.recordMoveAction({
@@ -90,10 +90,8 @@ export default {
     }
   },
 
-  // part of this method we will want to use to carry out "redos"
-  // as they both are operating on 'widgetData', not widgets
   fromClipboard: function(opts) {
-    var newWidgets = opts.copiedWidgets.map(widgetData => {
+    var newWidgets = opts.copiedWidgetData.map(widgetData => {
       return deserializeWidget(widgetData, opts.workspace.uid());
     });
 
@@ -102,8 +100,9 @@ export default {
         opts.referenceWidget.insertAfterInNearestParentList(widget);
       });
     } else {
-      newWidgets.slice().reverse().forEach(widget => opts.workspace.appendChild(widget));
+      newWidgets.slice().forEach(widget => opts.workspace.append(widget));
     }
     UndoService.recordCreateAction({ widgets: newWidgets });
+    return newWidgets;
   }
 };

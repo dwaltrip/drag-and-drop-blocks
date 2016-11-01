@@ -8,13 +8,11 @@ var Cache = {
 
   instance: {
     cache: null,
-
     get:        function(key)        { return this.cache[key]; },
     contains:   function(key)        { return key in this.cache; },
     add:        function(key, value) { this.cache[key] = value; }
   }
 };
-
 
 export default function addIdentityMap(Model) {
   var cache = Model._cache = Cache.create();

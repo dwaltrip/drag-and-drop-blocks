@@ -5,7 +5,6 @@ import { TABLES } from 'models/db-schema';
 import WidgetList from 'models/widget-list';
 import Workspace from 'models/workspace';
 
-
 export default extendModel(Base, {
   _fields: TABLES.baseWidgets.fields,
   tableName: TABLES.baseWidgets.name,
@@ -45,7 +44,7 @@ export default extendModel(Base, {
     },
 
     isRoot: function() {
-      return this.getParentList() === this.getWorkspace().getWidgetList();
+      return this.getParentList() === this.getWorkspace().widgetList();
     },
 
     isInList: function() { return !!this.parentList(); },

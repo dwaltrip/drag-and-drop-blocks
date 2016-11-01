@@ -79,7 +79,7 @@ export default {
     );
     var isTargetingWorkspaceMargin = !isRootLevelMultiSelect &&
       params.metalDragon.isTargetingDropzoneGroup('bottom-of-workspace');
-    var isLastWorkspaceWidget = widget === widget.getWorkspace().getWidgets().slice(-1).pop();
+    var isLastWorkspaceWidget = widget === widget.getWorkspace().widgets().slice(-1).pop();
 
     var isTargetRow = controller.isDropTarget() ||
       (isTargetingWorkspaceMargin && isLastWorkspaceWidget && !isDragging);
@@ -93,8 +93,8 @@ export default {
     var viewFn = viewFunctionLookup[widget.type()];
     var content = [
       // m('.widget-title', `${viewDetails.title} -- ${widget.uid()} -- ${widget.pos()}`),
-      m('.widget-title', `${viewDetails.title} -- ${widget.uid()}`),
-      // m('.widget-title', viewDetails.title),
+      // m('.widget-title', `${viewDetails.title} -- ${widget.uid()}`),
+      m('.widget-title', viewDetails.title),
       viewFn(widget, {
         selectionDetails: params.selectionDetails,
         createDragItem: params.createDragItem,

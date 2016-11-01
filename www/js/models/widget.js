@@ -6,7 +6,6 @@ import { WIDGET_INPUTS } from 'models/db-schema';
 // circular dependencies
 import { buildWidgetInputClass } from 'models/widget-helpers';
 
-
 const WidgetTypes = {
   WIDGET1: 'widget1',
   WIDGET2: 'widget2',
@@ -45,9 +44,7 @@ var Widget = extend(BaseWidget, {
   instance: null
 });
 
-
 export { Widget as default, WidgetTypes };
-
 
 function defineWidgetClass(opts) {
   return extendModel(BaseWidget, {

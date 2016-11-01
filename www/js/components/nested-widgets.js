@@ -60,22 +60,22 @@ var WidgetList = {
   controller: function(params) {
     var self = this;
     this.parentWidget = params.parentWidget;
-    this.widgetList = this.parentWidget.getInputList(params.listName);
+    this.list = this.parentWidget.getInputList(params.listName);
 
     this.dropzone = params.metalDragon.createDropzone({
       group: 'widget-list',
       canDrop: ()=> {
-        var parentWidget = this.widgetList.getParentWidget();
+        var parentWidget = this.list.getParentWidget();
         var selectedIds = params.selectionDetails().widgetUIDs;
         var parentWidgetIsSelected = parentWidget && (
           parentWidget.uid() in selectedIds ||
           parentWidget.findAncestorWidget(parent => parent in selectedIds)
         );
-        return this.widgetList.isEmpty() && !parentWidgetIsSelected;
+        return this.list.isEmpty() && !parentWidgetIsSelected;
       },
       onDrop: (dragItem)=> createOrMoveWidgets.toEndOfList({
         dragItem,
-        list: this.widgetList
+        list: this.list
       })
     });
     this.onunload = ()=> this.dropzone.destroy();
@@ -88,8 +88,8 @@ var WidgetList = {
   },
 
   view: function(controller, params) {
-    var widgets = controller.widgetList.widgets;
-    return widgetListLayout(widgets.map(widget => nestedWidget(widget, params)), {
+    var content = controller.list.map(widget => nestedWidget(widget, params));
+    return widgetListLayout(content, {
       cssClasses: controller.cssClasses(),
       config: controller.dropzone.attachToElement
     });
@@ -107,14 +107,3 @@ function nestedWidget(widget, params) {
 }
 
 export { WidgetSlot, WidgetList };
-
-// TODO: potentially delete this
-// function isNestedUnderSelectedWidget(widget, selectionDetails) {
-//   var parentWidget = widget;
-//   var isParentSelected = parentWidget.uid() in selectionDetails().widgetUIDs;
-//   while(parentWidget && !isParentSelected) {
-//     parentWidget = parentWidget.getContainingWidget()
-//     isParentSelected = parentWidget && parentWidget.uid() in selectionDetails().widgetUIDs;
-//   }
-//   return isParentSelected;
-// }

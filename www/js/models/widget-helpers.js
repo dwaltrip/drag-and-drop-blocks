@@ -4,9 +4,6 @@ import { Base, extendModel } from 'models/base';
 import Widget from 'models/widget';
 import WidgetList from 'models/widget-list';
 
-window.globals = (window.globals || {});
-window.globals.WidgetList = WidgetList;
-
 export function buildWidgetInputClass(opts) {
   var widgetNames = opts.widgetNames || [];
   var widgetListNames = opts.widgetListNames || [];
@@ -58,6 +55,7 @@ export function buildWidgetInputClass(opts) {
       assert(!idProp(), `setInput - the '${input.name}' slot already has a widget.`);
 
       idProp(widget.uid());
+      // TODO: can we get rid of having these manually managed instance properties?
       this[input.name] = widget;
       this.save();
       widget.parentWidget(this.parentWidget());

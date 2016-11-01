@@ -20,7 +20,7 @@ const WIDGET_INPUTS = {
 };
 
 var TABLE_FIELDS = {
-  workspaces:     ['name', 'widgetList'],
+  workspaces:     ['name', 'widgetListId'],
   baseWidgets:    ['type', 'pos', 'workspace', 'parentList', 'parentWidget'],
   // TODO: not sure if widgetLists needs 'name'
   widgetLists:    ['name', 'parentWidget'],

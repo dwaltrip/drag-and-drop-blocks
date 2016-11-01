@@ -6,54 +6,37 @@ import Widget from 'models/widget';
 import WidgetList from 'models/widget-list';
 import db from 'db';
 
-
 export default extendModel(Base, {
   _fields: TABLES.workspaces.fields,
   tableName: TABLES.workspaces.name,
 
   create: function(data) {
     var instance = Base.create.call(this, data);
-    instance._widgetList = instance._setupWidgetList();
+    instance._setupWidgetList();
     return instance;
   },
 
   instance: {
     _widgetList: null,
 
-    getWidgets: function() {
-      return this._widgetList.widgets;
-    },
-
-    getWidgetList: function() {
-      return this._widgetList;
-    },
-
-    _setupWidgetList: function() {
-      if (!this.widgetList()) {
-        var widgetList = WidgetList.create({ name: 'workspace-root' });
-        this.widgetList(widgetList.uid());
-        this.save();
-      } else {
-        var widgetList = WidgetList.findByUID(this.widgetList());
-      }
-      widgetList.workspace = this;
-      return widgetList;
-    },
+    widgets: function()     { return this._widgetList.widgets; },
+    widgetList: function()  { return this._widgetList; },
 
     createWidget:   proxyToWidgetList('createWidget'),
     insertAfter:    proxyToWidgetList('insertAfter'),
-    sortWidgets:    proxyToWidgetList('sort'),
     prepend:        proxyToWidgetList('prepend'),
-    appendWidget:   proxyToWidgetList('appendWidget'),
+    append:         proxyToWidgetList('append'),
 
-    // TODO: this fn is not used. is it still needed?
-    removeWidget: function(widgetToDelete) {
-      this.getWidgetList().remove(widgetToDelete)
-      widgetToDelete.delete();
-    },
-
-    allWidgets: function() {
-      return Widget.query({ query: { workspace: this.uid() } });
+    _setupWidgetList: function() {
+      if (!this.widgetListId()) {
+        var widgetList = WidgetList.create({ name: 'workspace-root' });
+        this.widgetListId(widgetList.uid());
+        this.save();
+      } else {
+        var widgetList = WidgetList.findByUID(this.widgetListId());
+      }
+      widgetList.workspace = this;
+      this._widgetList = widgetList;
     }
   }
 });

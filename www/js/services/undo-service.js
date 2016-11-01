@@ -188,7 +188,7 @@ export default {
         parentWidget.setInput(getSlotName(dest), widgets[0])
       } else {
         if (dest.length === 1) {
-          var list = this.workspace.getWidgetList();
+          var list = this.workspace.widgetList();
           var pos = dest[0];
         } else {
           var listDetails = getListDetails(dest);
@@ -198,10 +198,10 @@ export default {
         }
 
         if (pos === 0) {
-          widgets.reverse().forEach(widget => list.prepend(widget));
+          widgets.slice().reverse().forEach(widget => list.prepend(widget));
         } else {
           var refWidget = list.getPos(pos - 1);
-          widgets.reverse().forEach(widget => list.insertAfter(widget, refWidget));
+          widgets.slice().reverse().forEach(widget => list.insertAfter(widget, refWidget));
         }
       }
     },
@@ -219,7 +219,7 @@ export default {
 
     _findSingleWidgetAtCoord: function(parts) {
       var rootPos = parseInt(parts[0]);
-      var currentWidget = this.workspace.getWidgetList().widgets[rootPos];
+      var currentWidget = this.workspace.widgetList().widgets[rootPos];
       parts.slice(1).forEach(part => {
         if (part.substr(0,4) === 'slot') {
           var slotName = part.split('=')[1];

@@ -22,7 +22,7 @@ export default {
       },
       onDrop: (dragItem)=> createOrMoveWidgets.toEndOfList({
         dragItem,
-        list: workspace.getWidgetList()
+        list: this.workspace.widgetList()
       })
     });
 
@@ -32,10 +32,8 @@ export default {
   },
 
   view: function(controller, params) {
-    var widgets = controller.workspace.getWidgets();
-
     return m('.workspace', [
-      m('.widget-list', widgets.map(widget => {
+      m('.widget-list', controller.workspace.widgets().map(widget => {
         return m(WidgetComponent, {
           key: widget.uid(),
           widget,

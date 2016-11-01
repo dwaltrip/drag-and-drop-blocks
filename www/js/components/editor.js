@@ -100,25 +100,27 @@ export default {
           dragWidget.disconnect();
           dragWidget.delete();
         });
+        this.selectWidgets(null)
       }
     });
 
-    this.copiedWidgets = null;
+    this.copiedWidgetData = null;
     this.copyWidgets = ()=> {
-      this.copiedWidgets = this.selectionDetails().widgets.map(serializeWidget);
+      this.copiedWidgetData = this.selectionDetails().widgets.map(serializeWidget);
     };
 
     this.pasteWidgets = withRedraw(()=> {
-      if (this.copiedWidgets) {
+      if (this.copiedWidgetData) {
         var selectedWidgets = this.selectionDetails().widgets;
         var widgetToPasteAfter = selectedWidgets.length > 0 ?
           selectedWidgets.slice(-1).pop() :
           null;
-        createOrMoveWidgets.fromClipboard({
-          copiedWidgets: this.copiedWidgets,
+        var newWidgets = createOrMoveWidgets.fromClipboard({
+          copiedWidgetData: this.copiedWidgetData,
           referenceWidget: widgetToPasteAfter,
           workspace
         });
+        this.selectWidgets({ widgets: newWidgets, isMultiSelect: true });
       }
     });
 
@@ -157,13 +159,11 @@ export default {
 
   view: function(controller) {
     var workspace = controller.workspace;
-    window.workspace = workspace;
-    var widgets = workspace.getWidgets();
     var md = controller.metalDragon;
 
     var selectedWidget = md.activeDragItem && md.activeDragItem.getItemData('widget', null);
     var isLastWorkspaceWidgetDraggingOverBottomOfWorkspace = (
-      !!selectedWidget && selectedWidget === workspace.getWidgets().slice(-1).pop() &&
+      !!selectedWidget && selectedWidget === workspace.widgets().slice(-1).pop() &&
       md.isTargetingDropzoneGroup('bottom-of-workspace')
     );
     var doesTargetDropzoneDisplaceWidget = md.hasTargetDropzone() &&
@@ -208,9 +208,6 @@ function eventHandlerDecorator(eventName, handler) {
     throw new Error('mouseEventHandlerDecorator -- invalid event:', eventName)
   }
 }
-
-window.globals = (window.globals || {});
-window.globals.Widget = Widget;
 
 function isMultiSelectEvent(event) {
   return !!event.shiftKey;

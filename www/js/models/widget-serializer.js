@@ -21,10 +21,10 @@ function serializeWidget(widget) {
     } : null;
   }).filter(slot => !!slot);
 
-  var lists = widget.inputs.class.widgetListInputs.map(input => {
-    var widgets = widget.getInputList(input.name).getWidgets();
-    return { name: input.name, widgets: widgets.map(serializeWidget) };
-  });
+  var lists = widget.inputs.class.widgetListInputs.map(input => ({
+    name: input.name,
+    widgets: widget.getInputList(input.name).map(serializeWidget)
+  }));
 
   data.inputs = { slots, lists };
   return data;
@@ -67,7 +67,7 @@ function deserializeInputLists(widget, inputLists, workspaceId) {
         parentList: list.uid(),
         inputs: childWidgetData.inputs
       }, workspaceId);
-      list.appendWidget(childWidget);
+      list.append(childWidget);
     });
   });
 }

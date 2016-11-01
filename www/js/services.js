@@ -9,6 +9,5 @@ if (Workspace.query().length === 0) {
 var UndoService = UndoServiceFactory.create({
   workspace: Workspace.query()[0]
 });
-window.UndoService = UndoService;
 
 export { UndoService };

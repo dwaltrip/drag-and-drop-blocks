@@ -6,7 +6,6 @@ import extend from 'lib/object-extend';
 import { randBase64String, isUndefOrNull } from 'lib/utils';
 import helpers from 'lib/mithril-helpers';
 
-
 var Base = {
   _fields: [],
 
@@ -14,9 +13,6 @@ var Base = {
     var instance = Object.create(this.instance);
     instance.class = this;
     instance.setFields(data || {});
-
-    // NOTE: I just added this. So far, we never create a new record without saving it.
-    // Not sure if that assumption will always be true.
     if (instance.isNew()) { instance.save(); }
     return instance;
   },

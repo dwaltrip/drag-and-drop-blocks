@@ -7,14 +7,13 @@ import { TABLES } from 'models/db-schema';
 import Widget from 'models/widget';
 import db from 'db';
 
-
 export default extendModel(Base, {
   _fields: TABLES.widgetLists.fields,
   tableName: TABLES.widgetLists.name,
 
   create: function(data) {
     var instance = Base.create.call(this, data);
-    instance.widgets = instance.getWidgets();
+    instance.widgets = instance._getWidgets();
     return instance;
   },
 
@@ -23,20 +22,15 @@ export default extendModel(Base, {
     workspace: null,
 
     isEmpty: function() { return this.widgets.length === 0; },
+    contains: function(widget) { return widget.parentList() === this.uid(); },
 
     // only the top level list does not have a parent widget
     getParentWidget: function() {
       return Widget.findByUID(this.parentWidget()) || null;
     },
 
-    getWidgets: function() {
-      return Widget.query({
-        query: widget => widget.parentList === this.uid(),
-        sort: [['pos', 'ASC']]
-      });
-    },
-
-    slice: function() { return this.widgets.slice.apply(this.widgets, arguments); },
+    slice:  proxyToWidgetArray('slice'),
+    map:    proxyToWidgetArray('map'),
 
     getPos: function(pos) {
       assert(pos >= 0 && pos < this.widgets.length, 'getPos -- out of range');
@@ -45,14 +39,10 @@ export default extendModel(Base, {
 
     delete: function() {
       var deleteArgs = argsToArray(arguments);
-      this.getWidgets().forEach(widget => {
+      this.widgets.forEach(widget => {
         widget.delete.apply(widget, deleteArgs);
       });
       return Base.instance.delete.apply(this, deleteArgs);
-    },
-
-    contains: function(widget) {
-      return widget.parentList() === this.uid();
     },
 
     remove: function(widget) {
@@ -87,7 +77,7 @@ export default extendModel(Base, {
       this.sort();
     },
 
-    appendWidget: function(widget) {
+    append: function(widget) {
       var lastWidget = this.widgets.slice(-1).pop();
       widget.pos(lastWidget ? lastWidget.pos() + 1 : 1);
       widget.save();
@@ -122,6 +112,19 @@ export default extendModel(Base, {
         widget.save({ isBatch: true });
       });
       db.commit();
+    },
+
+    _getWidgets: function() {
+      return Widget.query({
+        query: widget => widget.parentList === this.uid(),
+        sort: [['pos', 'ASC']]
+      });
     }
   }
 });
+
+function proxyToWidgetArray(fnName) {
+  return function() {
+    return this.widgets[fnName].apply(this.widgets, arguments);
+  }
+}
