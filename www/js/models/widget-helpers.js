@@ -6,148 +6,10 @@ import WidgetList from 'models/widget-list';
 
 export function buildWidgetInputClass(opts) {
   var widgetNames = opts.widgetNames || [];
-  var widgetListNames = opts.widgetListNames || [];
+  var listNames = opts.widgetListNames || [];
 
-  var widgetInputs = widgetNames.map(name => {
-    var nameCapitalized = capitalize1stLetter(name);
-    return { name, idField: `${name}Id`, getterFnName: `_get${nameCapitalized}` };
-  });
-  var widgetListInputs = widgetListNames.map(name => {
-    var nameCapitalized = capitalize1stLetter(name);
-    return { name, idField: `${name}Id` };
-  });
-
-  var instancePrototype = {
-    widget: null,
-
-    getWidget: function() { return Widget.findByUID(this.parentWidget()); },
-
-    childWidgets: function() {
-      return this.class.widgetInputs.map(input => this[input.name]);
-    },
-    widgetLists: function() {
-      return this.class.widgetListInputs.map(input => this[input.name]);
-    },
-
-    delete: function() {
-      var deleteArgs = argsToArray(arguments);
-      this.class.widgetInputs.forEach(input => {
-        var inputWidget = this[input.name];
-        if (inputWidget) {
-          inputWidget.delete.apply(inputWidget, deleteArgs);
-        }
-      });
-      this.class.widgetListInputs.forEach(input => {
-        var list = this[input.name];
-        list.delete.apply(list, deleteArgs);
-      });
-      return Base.instance.delete.apply(this, deleteArgs);
-    },
-
-    getInput: function(inputName) {
-      var input = this._fetchInput(inputName);
-      return this[input.name];
-    },
-
-    setInput: function(inputName, widget) {
-      var input = this._fetchInput(inputName);
-      var idProp = this[input.idField];
-      assert(!idProp(), `setInput - the '${input.name}' slot already has a widget.`);
-
-      idProp(widget.uid());
-      // TODO: can we get rid of having these manually managed instance properties?
-      this[input.name] = widget;
-      this.save();
-      widget.parentWidget(this.parentWidget());
-      widget.save();
-    },
-
-    createInput: function(inputName, widgetType) {
-      var input = this._fetchInput(inputName);
-      var idProp = this[input.idField];
-      assert(!idProp(), `createInput - the '${input.name}' slot already has a widget.`);
-
-      var widget = Widget.create({
-        type: widgetType,
-        parentWidget: this.parentWidget(),
-        workspace: this.getWidget().workspace()
-      });
-      idProp(widget.uid());
-      this[input.name] = widget;
-      this.save();
-      return widget;
-    },
-
-    getInputList: function(listName) {
-      var input = this.class.widgetListInputs.find(input => input.name === listName);
-      if (!input) {
-        throw new Error(`Widget '${this.parentWidget()}' does not have an input list with the name '${listName}'`);
-      }
-      return this[input.name];
-    },
-
-    removeInput: function(widget) {
-      if (this.isChild(widget)) {
-        var input = this.class.widgetInputs.find(input => this[input.name] === widget);
-        this[input.name] = null;
-        this[input.idField](null);
-        this.save();
-        widget.parentWidget(null);
-        widget.save();
-      } else if (this.isInChildList(widget)) {
-        var input = this.class.widgetListInputs.find(input => this[input.name].contains(widget));
-        this[input.name].remove(widget);
-        widget.parentList(null);
-        widget.save();
-      } else {
-        throw new Error('Cannot remove widget that is not an input.');
-      }
-    },
-
-    isChild: function(widget) {
-      return !!this.childWidgets().find(child => child === widget);
-    },
-
-    isInChildList: function(widget) {
-      return !!this.widgetLists().find(list => list.contains(widget));
-    },
-
-    _setupWidgetLists: function() {
-      this.class.widgetListInputs.forEach(input => {
-        var idProp = this[input.idField];
-        if (!idProp()) {
-          var list = WidgetList.create({ name: input.name, parentWidget: this.parentWidget() });
-          idProp(list.uid());
-          this.save();
-        } else {
-          var list = WidgetList.findByUID(idProp());
-        }
-        this[input.name] = list;
-      });
-    },
-
-    _fetchInput: function(inputName) {
-      var input = this.class.widgetInputs.find(input => input.name === inputName);
-      if (!input) {
-        throw new Error(`Widget '${this.parentWidget()}' does not have an input widget with the name '${inputName}'`);
-      }
-      return input;
-    }
-  };
-
-  // TODO: get rid of creating a getterFn for each widget input
-  // Also, I think having a single generic fetcher fn would be better
-  // than having to manage an instance property for each widget input.
-  widgetInputs.forEach(input => {
-    instancePrototype[input.name] = null;
-
-    instancePrototype[input.getterFnName] = function() {
-      var widgetId = this[input.idField]();
-      return widgetId ? Widget.findByUID(widgetId) : null;
-    };
-  });
-
-  widgetListInputs.forEach(input => instancePrototype[input.name] = null);
+  var widgetInputs = widgetNames.map(name =>    ({ name, idField: `${name}Id` }));
+  var widgetListInputs = listNames.map(name =>  ({ name, idField: `${name}Id` }));
 
   return extendModel(Base, {
     _fields: opts.fields,
@@ -157,17 +19,129 @@ export function buildWidgetInputClass(opts) {
 
     create: function(data) {
       var instance = Base.create.call(this, data);
-      this.widgetInputs.forEach(input => {
-        instance[input.name] = instance[input.getterFnName]();
-      });
-      instance._setupWidgetLists();
+      instance._createWidgetLists();
+      instance._setupInputLookups();
       return instance;
     },
 
-    instance: instancePrototype
+    instance: {
+      widgetInputs,
+      widgetListInputs,
+      _inputsByName: null,
+      _inputListsByName: null,
+
+      // NOTE: We can't set this during create or else it start an infinite loop!
+      // It loops between: Widget.create <--> Widget.inputsClass.create
+      // I tried twice now and it was very annoying to debug both times
+      widget: function() { return Widget.findByUID(this.parentWidget()); },
+
+      delete: function() {
+        var deleteArgs = argsToArray(arguments);
+        this.widgetInputs.forEach(input => {
+          var inputWidget = this.getInput(input.name);
+          if (inputWidget) {
+            inputWidget.delete.apply(inputWidget, deleteArgs);
+          }
+        });
+        this.widgetListInputs.forEach(input => {
+          var list = this.getInputList(input.name);
+          list.delete.apply(list, deleteArgs);
+        });
+        return Base.instance.delete.apply(this, deleteArgs);
+      },
+
+      getInput: function(name) {
+        var errorMsg = `Widget '${this.parentWidget()}' has no input widget named '${name}'`;
+        assert(name in this._inputsByName, errorMsg);
+        return this._inputsByName[name];
+      },
+
+      getInputList: function(name) {
+        var errorMsg = `Widget '${this.parentWidget()}' has no input list named '${name}'`;
+        assert(name in this._inputListsByName, errorMsg);
+        return this._inputListsByName[name];
+      },
+
+      setInput: function(name, widget) {
+        var errorMsg = `Widget '${this.parentWidget()}' has no input list named '${name}'`;
+        var input = this._fetchInput(name);
+        var idProp = this[input.idField];
+        assert(!idProp(), `setInput - the '${name}' slot already has a widget.`);
+
+        idProp(widget.uid());
+        this._inputsByName[name] = widget;
+        this.save();
+        widget.parentWidget(this.parentWidget());
+        widget.save();
+      },
+
+      createInput: function(name, widgetType) {
+        var input = this._fetchInput(name);
+        var idProp = this[input.idField];
+        assert(!idProp(), `createInput - the '${name}' slot already has a widget.`);
+
+        var widget = Widget.create({
+          type: widgetType,
+          parentWidget: this.parentWidget(),
+          workspace: this.widget().workspace()
+        });
+        idProp(widget.uid());
+        this._inputsByName[name] = widget;
+        this.save();
+        return widget;
+      },
+
+      removeInput: function(widget) {
+        var inputListIds = this.widgetListInputs.map(input => this.getInputList(input.name).uid());
+
+        if (widget.getParentWidget() === this.widget()) {
+          var input = this.widgetInputs.find(input => this.getInput(input.name) === widget);
+          this[input.idField](null);
+          this._inputsByName[input.name] = null;
+          this.save();
+          widget.parentWidget(null);
+          widget.save();
+        } else if (inputListIds.indexOf(widget.parentList()) > -1) {
+          var input = this.widgetListInputs.find(input => {
+            return this.getInputList(input.name).uid() === widget.parentList();
+          });
+          this.getInputList(input.name).remove(widget);
+          widget.parentList(null);
+          widget.save();
+        } else {
+          throw new Error('Cannot remove widget that is not an input.');
+        }
+      },
+
+      _setupInputLookups: function() {
+        this._inputsByName = this.widgetInputs.reduce((lookup, input)=> {
+          var widgetId = this[input.idField]();
+          lookup[input.name] = widgetId ? Widget.findByUID(widgetId) : null;
+          return lookup;
+        }, {});
+        this._inputListsByName = this.widgetListInputs.reduce((lookup, input)=> {
+          var listId = this[input.idField]();
+          lookup[input.name] = listId ? WidgetList.findByUID(listId) : null;
+          return lookup;
+        }, {});
+      },
+
+      _createWidgetLists: function() {
+        this.widgetListInputs.forEach(input => {
+          var idProp = this[input.idField];
+          if (!idProp()) {
+            var list = WidgetList.create({ name: input.name, parentWidget: this.parentWidget() });
+            idProp(list.uid());
+            this.save();
+          }
+        });
+      },
+
+      _fetchInput: function(name) {
+        var input = this.widgetInputs.find(input => input.name === name);
+        assert(input, `Widget '${this.parentWidget()}' has no input widget named '${name}'`);
+        return input;
+      }
+    }
   });
 };
-
-function capitalize1stLetter(str) {
-  return `${(str[0] || '').toUpperCase()}${str.substring(1)}`;
-}

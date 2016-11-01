@@ -13,7 +13,7 @@ function serializeWidget(widget) {
     return data;
   }
 
-  var slots = widget.inputs.class.widgetInputs.map(input => {
+  var slots = widget.inputs.widgetInputs.map(input => {
     var inputWidget = widget.getInput(input.name);
     return inputWidget ? {
       name: input.name,
@@ -21,7 +21,7 @@ function serializeWidget(widget) {
     } : null;
   }).filter(slot => !!slot);
 
-  var lists = widget.inputs.class.widgetListInputs.map(input => ({
+  var lists = widget.inputs.widgetListInputs.map(input => ({
     name: input.name,
     widgets: widget.getInputList(input.name).map(serializeWidget)
   }));

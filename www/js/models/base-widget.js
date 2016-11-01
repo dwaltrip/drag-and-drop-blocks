@@ -1,3 +1,4 @@
+import assert from 'lib/assert';
 import { extendModel, Base } from 'models/base';
 import { TABLES } from 'models/db-schema';
 
@@ -53,7 +54,7 @@ export default extendModel(Base, {
     slotName: function() {
       if (!this.isInSlot()) { return null; }
       var parentWidget = this.getParentWidget();
-      return parentWidget.inputs.class.widgetInputs.find(input => {
+      return parentWidget.inputs.widgetInputs.find(input => {
         return parentWidget.getInput(input.name) === this;
       }).name;
     },
@@ -124,18 +125,11 @@ export default extendModel(Base, {
     },
 
     _getInputsContainer: function() {
-      if (!this.class.inputsClass) {
-        return null;
-      }
-
-      var inputs = this.class.inputsClass.findWhere({ parentWidget: this.uid() })
-      if (inputs.length === 1) {
-        return inputs[0];
-      } else if (inputs.length === 0) {
-        return this.class.inputsClass.create({ parentWidget: this.uid() });
-      } else {
-        throw new Error('This should never happen');
-      }
+      if (!this.class.inputsClass) { return null; }
+      var results = this.class.inputsClass.findWhere({ parentWidget: this.uid() });
+      assert(results.length === 0 || results.length === 1, 'This should never happen');
+      return results.length === 1 ? results[0] :
+        this.class.inputsClass.create({ parentWidget: this.uid() });
     }
   }
 });
