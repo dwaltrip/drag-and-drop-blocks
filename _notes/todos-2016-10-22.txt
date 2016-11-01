@@ -1,6 +1,4 @@
 
-
-
 --------------------------------------------------------
  Todos
 --------------------------------------------------------
@@ -21,7 +19,7 @@
   ------------------------------------------------------
   DONT SPEND MUCH TIME TRYING TO FINISH. We need to move forward & start working on code-blocks.
   ------------------------------------------------------
-  [ ] Implement undo (cmd+Z, cmd+Y)
+  [X] Implement undo (cmd+Z, cmd+Y)
   [X] Implement copy & paste (cmd+C, cmd+V)
   [ ] Add animation and perhaps some notificaiton text for widgets that are "copied".
   ------------------------------------------------------

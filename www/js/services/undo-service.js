@@ -36,27 +36,17 @@ export default {
       var actions = this.undoStack.pop();
       if (!actions) { return; }
 
-      // need to undo in the opposite order
-      actions.slice().reverse().forEach(action => {
-        assert(action.type in this.class.ACTION_TYPES,
-          `UndoService.undo -- invalid action type '${action.type}'`);
-        if      (action.type === CREATE)  { this._undoCreate(action); }
-        else if (action.type === DELETE)  { this._undoDelete(action); }
-        else if (action.type === MOVE)    { this._undoMove(action); }
-      });
       this.redoStack.push(actions);
+      // multi-step actions are undone in the reverse order
+      return actions.slice().reverse().map(this._performUndo.bind(this));
     },
 
     redo: function() {
       var actions = this.redoStack.pop();
       if (!actions) { return; }
 
-      actions.forEach(action => {
-        if      (action.type === CREATE)  { this._redoCreate(action); }
-        else if (action.type === DELETE)  { this._redoDelete(action); }
-        else if (action.type === MOVE)    { this._redoMove(action); }
-      });
       this.undoStack.push(actions);
+      return actions.map(this._performRedo.bind(this));
     },
 
     recordAction: function(action) {
@@ -128,27 +118,45 @@ export default {
 
     // Private methods
 
+    _performUndo: function(action) {
+      var fns = {
+        [CREATE]: this._undoCreate,
+        [DELETE]: this._undoDelete,
+        [MOVE]:   this._undoMove
+      };
+      return fns[action.type].call(this, action);
+    },
+
+    _performRedo: function(action) {
+      var fns = {
+        [CREATE]: this._redoCreate,
+        [DELETE]: this._redoDelete,
+        [MOVE]:   this._redoMove
+      };
+      return fns[action.type].call(this, action);
+    },
+
     _undoCreate: function(action) {
-      this._deleteWidgets(action.dest, action.count);
+      return this._deleteWidgets(action.dest, action.count);
     },
     _redoDelete: function(action) {
-      this._deleteWidgets(action.source, action.count);
+      return this._deleteWidgets(action.source, action.count);
     },
 
     _undoDelete: function(action) {
-      this._createWidgets(action.widgetData, action.source);
+      return this._createWidgets(action.widgetData, action.source);
     },
     _redoCreate: function(action) {
-      this._createWidgets(action.widgetData, action.dest);
+      return this._createWidgets(action.widgetData, action.dest);
     },
 
     _undoMove: function(action) {
       // for an undo, source and dest are swapped
-      this._moveWidgets({ source: action.dest, dest: action.source, count: action.count });
+      return this._moveWidgets({ source: action.dest, dest: action.source, count: action.count });
     },
     _redoMove: function(action) {
       // for a redo, use source and dest exactly as in the original action
-      this._moveWidgets(action);
+      return this._moveWidgets(action);
     },
 
     _createWidgets: function(widgetData, coord) {
@@ -156,6 +164,7 @@ export default {
         return deserializeWidget(data, this.workspace.uid());
       });
       this._putWidgets(newWidgets, coord);
+      return newWidgets;
     },
 
     _deleteWidgets: function(coord, count) {
@@ -163,12 +172,14 @@ export default {
         widget.disconnect();
         widget.delete();
       });
+      return null;
     },
 
     _moveWidgets: function(opts) {
       var widgets = this._findWidgetsAtCoord(opts.source, opts.count);
       widgets.forEach(widget => widget.disconnect());
       this._putWidgets(widgets, opts.dest);
+      return widgets;
     },
 
     _putWidgets: function(widgets, dest) {
@@ -247,21 +258,6 @@ function getListDetails(coord) {
   var [name, pos] = lastPart.split('&').map(attr => attr.split('=')[1]);
   return { name, pos: parseInt(pos) };
 }
-
-/*
-do a -- undo: [a]
-        redo: [a]
-do b -- undo: [a, b]
-        redo: [b]
-do c -- undo: [a, b, c]
-        redo: [c]
-
-undo -- undo: [a, b, c]
-        redo: [c]
-
-CAN_REPEAT_REDOS: false // if we have done one or more undos since the last new action
-CAN_REPEAT_REDOS: true // if we have zero undos since the last new actinon (no restriction on redos)
-*/
 
 function assertRequired(obj, attrs, prefix) {
   attrs.forEach(name => {

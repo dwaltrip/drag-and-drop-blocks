@@ -8,6 +8,8 @@ import Workspace from 'models/workspace';
 
 import handleWithRedraw from 'lib/m-utils/handle-with-redraw';
 import { merge } from 'lib/utils';
+
+import createOrMoveWidgets from 'components/create-or-move-widgets';
 import { serializeWidget } from 'models/widget-serializer';
 import ToolboxWidget from 'components/toolbox-widget';
 import WorkspaceComponent from 'components/workspace';
@@ -28,11 +30,12 @@ export default {
     this.selectWidgets = (opts)=> {
       if (opts) {
         var isMultiSelect = opts.isMultiSelect || false;
-        var widget = opts.widget;
         if (isMultiSelect) {
-          var widgets = widget.getRestOfParentList();
+          var widgets = opts.widgets ?
+            opts.widgets :
+            opts.widget.getRestOfParentList();
         } else {
-          var widgets = widget ? [widget] : [];
+          var widgets = opts.widget ? [opts.widget] : [];
         }
         var widgetUIDs = {};
         widgets.forEach(widget => widgetUIDs[widget.uid()] = true);
@@ -114,17 +117,27 @@ export default {
           selectedWidgets.slice(-1).pop() :
           null;
         createOrMoveWidgets.fromClipboard({
-          copiedData: this.copiedWidgets,
+          copiedWidgets: this.copiedWidgets,
           referenceWidget: widgetToPasteAfter,
           workspace
         });
       }
     });
 
-    // TODO: set 'selectedWidgets' properly after an undo/redo
-    this.undo = withRedraw(()=> UndoService.undo());
+    this.undo = withRedraw(()=> {
+      var widgetSets = UndoService.undo();
+      var changedWidgets = widgetSets ? widgetSets.slice(-1).pop() : null;
+      if (changedWidgets) {
+        this.selectWidgets({ widgets: changedWidgets, isMultiSelect: true });
+      }
+    });
     this.redo = withRedraw(()=> {
-      UndoService.redo();
+      var widgetSets = UndoService.redo();
+      var changedWidgets = widgetSets ? widgetSets[0] : null;
+      // This doesn't do exactly what one would want. But it's close enough. Foolish to keep working on it.
+      if (changedWidgets) {
+        this.selectWidgets({ widgets: changedWidgets, isMultiSelect: true });
+      }
       return false;
     });
 
