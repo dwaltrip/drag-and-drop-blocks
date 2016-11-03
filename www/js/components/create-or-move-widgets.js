@@ -2,6 +2,8 @@ import { deserializeWidget } from 'models/widget-serializer';
 import { TOOLBOX_WIDGETS, WORKSPACE_WIDGETS } from 'app-constants';
 import { UndoService } from 'services';
 
+import Widget from 'models/widget';
+
 export default {
   afterWidgetInList: function(opts) {
     var dragItem = opts.dragItem;
@@ -9,7 +11,7 @@ export default {
     var refWidget = opts.referenceWidget;
 
     if (dragItem.group === TOOLBOX_WIDGETS) {
-      var newWidget = list.createWidget(dragItem.getItemData('widgetType'))
+      var newWidget = Widget.create({ type: dragItem.getItemData('widgetType') });
       list.insertAfter(newWidget, refWidget);
       dragItem.setDragData('newWidget', newWidget);
       UndoService.recordCreateAction({ widgets: [newWidget] });
@@ -69,9 +71,9 @@ export default {
     var list = opts.list;
 
     if (dragItem.group === TOOLBOX_WIDGETS) {
-      var widgetToAdd = list.createWidget(dragItem.getItemData('widgetType'));
-      dragItem.setDragData('newWidget', widgetToAdd);
+      var widgetToAdd = Widget.create({ type: dragItem.getItemData('widgetType') });
       list.append(widgetToAdd);
+      dragItem.setDragData('newWidget', widgetToAdd);
       UndoService.recordCreateAction({ widgets: [widgetToAdd] });
     }
     else if (dragItem.group === WORKSPACE_WIDGETS) {

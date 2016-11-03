@@ -11,7 +11,6 @@ export default extendModel(Base, {
   tableName: TABLES.baseWidgets.name,
 
   create: function(data) {
-    if (!data.workspace) {  throw new Error("Widget.create - 'workspace' is a required field"); }
     var instance = Base.create.call(this, data);
     instance.inputs = instance._getInputsContainer();
     return instance;

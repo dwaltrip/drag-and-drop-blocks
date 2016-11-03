@@ -22,7 +22,7 @@ export default extendModel(Base, {
     workspace: null,
 
     isEmpty: function() { return this.widgets.length === 0; },
-    contains: function(widget) { return widget.parentList() === this.uid(); },
+    contains: function(widget) { return this.widgets.indexOf(widget) > -1; },
 
     // only the top level list does not have a parent widget
     getParentWidget: function() {
@@ -52,52 +52,37 @@ export default extendModel(Base, {
       widget.save();
     },
 
-    createWidget: function(type) {
-      return Widget.create({
-        type,
-        parentList: this.uid(),
-        workspace: this.workspaceId()
-      });
-    },
-
     insertAfter: function(widget, referenceWidget) {
-      if (!(this.widgets.indexOf(referenceWidget) > -1) || referenceWidget.parentList() !== this.uid()) {
-        throw new Error('insertAfter -- referenceWidget is not in list.');
-      }
+      var refIndex = this.widgets.indexOf(referenceWidget);
+      assert(refIndex > -1, 'insertAfter -- referenceWidget is not in list.');
+      assert(!this.contains(widget), 'insertAfter -- widget is already in list');
+      this.linkToSelf(widget);
+      this.widgets.splice(refIndex + 1, 0, widget);
       widget.pos(referenceWidget.pos() + 0.5);
-      this.addWidgetIfNeeded(widget);
-      this.sort();
+      this.normalizePosValues(); // this calls save on widget
     },
 
     prepend: function(widget) {
+      assert(!this.contains(widget), 'prepend -- widget is already in list');
+      this.linkToSelf(widget);
+      this.widgets.unshift(widget);
       var firstWidget = this.widgets[0];
       widget.pos(firstWidget ? firstWidget.pos() - 1 : 1);
-      widget.save();
-      this.addWidgetIfNeeded(widget);
-      this.sort();
+      this.normalizePosValues(); // this calls save on widget
     },
 
     append: function(widget) {
+      assert(!this.contains(widget), 'append -- widget is already in list');
+      this.linkToSelf(widget);
+      this.widgets.push(widget);
       var lastWidget = this.widgets.slice(-1).pop();
       widget.pos(lastWidget ? lastWidget.pos() + 1 : 1);
-      widget.save();
-      this.addWidgetIfNeeded(widget);
-      this.sort();
+      this.normalizePosValues(); // this calls save on widget
     },
 
-    sort: function() {
-      this.widgets.sort((w1, w2) => w1.pos() - w2.pos());
-      this.normalizePosValues();
-    },
-
-    addWidgetIfNeeded: function(widget) {
-      // add to the list if it's not in the list
-      if (this.widgets.indexOf(widget) < 0) {
-        this.widgets.push(widget);
-        widget.workspace(this.workspaceId());
-        widget.parentList(this.uid());
-        widget.save();
-      }
+    linkToSelf: function(widget) {
+      widget.parentList(this.uid());
+      widget.workspace(this.workspaceId());
     },
 
     workspaceId: function() {

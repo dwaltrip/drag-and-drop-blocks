@@ -102,6 +102,7 @@ export function buildWidgetInputClass(opts) {
           widget.parentWidget(null);
           widget.save();
         } else if (inputListIds.indexOf(widget.parentList()) > -1) {
+          console.log('---- fooooooo');
           var input = this.widgetListInputs.find(input => {
             return this.getInputList(input.name).uid() === widget.parentList();
           });
