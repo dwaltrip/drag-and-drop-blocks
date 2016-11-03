@@ -7,19 +7,19 @@ import { widgetLayout, widgetSlotLayout, widgetListLayout } from 'components/wid
 var viewFunctionLookup = {
   [WidgetTypes.WIDGET1]: () => null,
   [WidgetTypes.WIDGET2]: ()=> widgetSlotLayout(null),
-  [WidgetTypes.WIDGET3]: ()=> {
-    return m('.widget-slots', [
-      widgetSlotLayout(null), 
-      widgetSlotLayout(null), 
-    ]);
-  },
+  [WidgetTypes.WIDGET3]: ()=> m('.widget-slots', [
+    widgetSlotLayout(null),
+    widgetSlotLayout(null)
+  ]),
   [WidgetTypes.WIDGET4]: ()=> widgetListLayout(null),
-  [WidgetTypes.WIDGET5]: ()=> {
-    return m('.widget-list-row', [
-      widgetListLayout(null),
-      widgetListLayout(null),
-    ])
-  }
+  [WidgetTypes.WIDGET5]: ()=> m('.widget-list-row', [
+    widgetListLayout(null),
+    widgetListLayout(null)
+  ]),
+  [WidgetTypes.WIDGET6]: ()=> m('.widget-list-row', [
+    widgetListLayout(null),
+    m('.widget-slots.vert', [widgetSlotLayout(null), widgetSlotLayout(null)])
+  ])
 };
 
 export default {

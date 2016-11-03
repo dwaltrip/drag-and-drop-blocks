@@ -160,7 +160,16 @@ $highlight-color: #ffd639;
 
 .widget {
   .widget-slots {
-    align-self: stretch;display: flex;
+    align-self: stretch;
+    display: flex;
+
+    &.vert {
+      flex-direction: column;
+
+      > .widget-slot:not(:last-child) {
+        margin-bottom: 4px;
+      }
+    }
   }
 
   .widget-slot, .nested-widget-list {
@@ -171,6 +180,7 @@ $highlight-color: #ffd639;
     margin-left: 10px;
     border: 1px solid $lighter-border-color;
     align-self: stretch;
+    margin-right: auto;
   }
 
   .widget-slot {
@@ -208,6 +218,7 @@ $highlight-color: #ffd639;
 .widget-3 { background-color: #e8a28d; }
 .widget-4 { background-color: #f3ec9c; }
 .widget-5 { background-color: #eaba89; }
+.widget-6 { background-color: #bbc; }
 
 .no-text-select {
   user-select: none;

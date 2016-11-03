@@ -17,6 +17,11 @@ const WIDGET_INPUTS = {
     name: 'widget5Inputs',
     widgetListNames: ['list1', 'list2']
   }),
+  widget6: defInputsTable({
+    name: 'widget6Inputs',
+    widgetNames: ['top', 'bottom'],
+    widgetListNames: ['someList']
+  })
 };
 
 var TABLE_FIELDS = {
@@ -27,7 +32,8 @@ var TABLE_FIELDS = {
   widget2Inputs:  WIDGET_INPUTS.widget2.fields,
   widget3Inputs:  WIDGET_INPUTS.widget3.fields,
   widget4Inputs:  WIDGET_INPUTS.widget4.fields,
-  widget5Inputs:  WIDGET_INPUTS.widget5.fields
+  widget5Inputs:  WIDGET_INPUTS.widget5.fields,
+  widget6Inputs:  WIDGET_INPUTS.widget6.fields
 };
 
 var TABLES = mapValues(TABLE_FIELDS, (name, fields)=> new Object({ name, fields }));
