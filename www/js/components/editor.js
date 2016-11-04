@@ -210,7 +210,7 @@ function eventHandlerDecorator(eventName, handler) {
 }
 
 function isMultiSelectEvent(event) {
-  return !!event.shiftKey;
+  return !event.shiftKey;
 }
 
 function withRedraw(fn) {

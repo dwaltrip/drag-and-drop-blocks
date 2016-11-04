@@ -25,7 +25,7 @@ var WidgetSlot = {
         if (dragItem.group === TOOLBOX_WIDGETS) { return true; }
         var dragWidget = dragItem.getItemData('widget')
         var slotWidget = self.parentWidget.getInput(self.inputName);
-        return !params.selectionDetails().isMultiSelect &&
+        return params.selectionDetails().widgets.length === 1 &&
           dragWidget !== slotWidget &&
           dragWidget !== self.parentWidget &&
           !dragWidget.isAncestorOf(self.parentWidget);
