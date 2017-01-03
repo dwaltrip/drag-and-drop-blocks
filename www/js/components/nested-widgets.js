@@ -1,3 +1,4 @@
+import dnd from 'drag-n-drop';
 import m from 'mithril';
 
 import { TOOLBOX_WIDGETS, WORKSPACE_WIDGETS, MOVE_WIDGET } from 'app-constants';
@@ -18,10 +19,10 @@ var WidgetSlot = {
     this.parentWidget = params.parentWidget;
     this.inputName = params.inputName;
 
-    this.dropzone = params.metalDragon.createDropzone({
+    this.dropzone = dnd.createDropzone({
       group: 'widget-slot',
       itemData: { parentWidget: this.parentWidget },
-      canDrop: function(dragItem) {
+      canAcceptDrop: function(dragItem) {
         if (dragItem.group === TOOLBOX_WIDGETS) { return true; }
         var dragWidget = dragItem.getItemData('widget')
         var slotWidget = self.parentWidget.getInput(self.inputName);
@@ -62,9 +63,9 @@ var WidgetList = {
     this.parentWidget = params.parentWidget;
     this.list = this.parentWidget.getInputList(params.listName);
 
-    this.dropzone = params.metalDragon.createDropzone({
+    this.dropzone = dnd.createDropzone({
       group: 'widget-list',
-      canDrop: ()=> {
+      canAcceptDrop: ()=> {
         var parentWidget = this.list.getParentWidget();
         var selectedIds = params.selectionDetails().widgetUIDs;
         var parentWidgetIsSelected = parentWidget && (
@@ -101,8 +102,7 @@ function nestedWidget(widget, params) {
     key: widget.uid(),
     widget,
     selectionDetails: params.selectionDetails,
-    createDragItem: params.createDragItem,
-    metalDragon: params.metalDragon
+    createDragItem: params.createDragItem
   });
 }
 

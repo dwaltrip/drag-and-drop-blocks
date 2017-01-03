@@ -1,3 +1,4 @@
+import dnd from 'drag-n-drop';
 import m from 'mithril';
 
 import { TOOLBOX_WIDGETS, WORKSPACE_WIDGETS, MOVE_WIDGET } from 'app-constants';
@@ -16,11 +17,11 @@ export default {
     this.dragItem = params.createDragItem(widget);
 
     if (widget.isInList()) {
-      this.dropzone = params.metalDragon.createDropzone({
+      this.dropzone = dnd.createDropzone({
         group: MOVE_WIDGET,
         itemData: { widget },
         useDragElementOverlap: true,
-        canDrop: function(dragItem) {
+        canAcceptDrop: function(dragItem) {
           if (dragItem.group === TOOLBOX_WIDGETS) { return true; }
           return !(
             self.isSelected(params.selectionDetails) ||
@@ -68,8 +69,8 @@ export default {
       isDragging ? '.is-dragging' : ''
     ].join('');
 
-    var selectedWidget = params.metalDragon.activeDragItem &&
-      params.metalDragon.activeDragItem.getItemData('widget', null);
+    var selectedWidget = dnd.activeDragItem &&
+      dnd.activeDragItem.getItemData('widget', null);
 
     var selectedWidget = params.selectionDetails().widgets[0]
     var isRootLevelMultiSelect = (
@@ -78,7 +79,7 @@ export default {
       params.selectionDetails().isMultiSelect
     );
     var isTargetingWorkspaceMargin = !isRootLevelMultiSelect &&
-      params.metalDragon.isTargetingDropzoneGroup('bottom-of-workspace');
+      dnd.isTargetingDropzoneGroup('bottom-of-workspace');
     var isLastWorkspaceWidget = widget === widget.getWorkspace().widgets().slice(-1).pop();
 
     var isTargetRow = controller.isDropTarget() ||
@@ -97,8 +98,7 @@ export default {
       m('.widget-title', viewDetails.title),
       viewFn(widget, {
         selectionDetails: params.selectionDetails,
-        createDragItem: params.createDragItem,
-        metalDragon: params.metalDragon
+        createDragItem: params.createDragItem
       })
     ];
 

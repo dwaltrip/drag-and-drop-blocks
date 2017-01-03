@@ -1,3 +1,4 @@
+import dnd from 'drag-n-drop';
 import m from 'mithril';
 
 import createOrMoveWidgets from 'components/create-or-move-widgets';
@@ -9,10 +10,10 @@ export default {
   controller: function(params) {
     this.workspace = params.workspace;
 
-    this.bottomOfWorkspaceDropzone = params.metalDragon.createDropzone({
+    this.bottomOfWorkspaceDropzone = dnd.createDropzone({
       accepts: [WORKSPACE_WIDGETS, TOOLBOX_WIDGETS],
       group: 'bottom-of-workspace',
-      canDrop: (dragItem)=> {
+      canAcceptDrop: (dragItem)=> {
         if (dragItem.group === TOOLBOX_WIDGETS) { return true; }
         var dragWidget = dragItem.getItemData('widget');
         if (dragWidget.isRoot()) {
@@ -38,8 +39,7 @@ export default {
           key: widget.uid(),
           widget,
           selectionDetails: params.selectionDetails,
-          createDragItem: params.createDragItem,
-          metalDragon:    params.metalDragon
+          createDragItem: params.createDragItem
         });
       })),
 

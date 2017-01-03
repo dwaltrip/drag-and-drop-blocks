@@ -1,12 +1,10 @@
+import dnd from 'drag-n-drop';
 import m from 'mithril';
-import MetalDragon from 'metal-dragon';
-import { mithrilifyMetalDragon } from 'lib/m-utils/metal-dragon-helpers';
 import Mousetrap from 'mousetrap';
 
 import Widget from 'models/widget'
 import Workspace from 'models/workspace';
 
-import handleWithRedraw from 'lib/m-utils/handle-with-redraw';
 import { merge } from 'lib/utils';
 
 import createOrMoveWidgets from 'components/create-or-move-widgets';
@@ -45,9 +43,7 @@ export default {
       }
     };
 
-    this.metalDragon = mithrilifyMetalDragon(MetalDragon.create({ eventHandlerDecorator }));
-
-    this.createToolboxWidgetDragItem = (widgetType)=> this.metalDragon.createDragItem({
+    this.createToolboxWidgetDragItem = (widgetType)=> dnd.createDragItem({
       group: TOOLBOX_WIDGETS,
       itemData: { widgetType },
       dragHandle: 'widget-title',
@@ -58,7 +54,7 @@ export default {
       }
     });
 
-    this.createWorkspaceWidgetDragItem = (widget)=> this.metalDragon.createDragItem({
+    this.createWorkspaceWidgetDragItem = (widget)=> dnd.createDragItem({
       group: WORKSPACE_WIDGETS,
       itemData: { widget },
       dragHandle: 'widget-title',
@@ -89,7 +85,7 @@ export default {
       }
     });
 
-    this.toolboxDropzone = this.metalDragon.createDropzone({
+    this.toolboxDropzone = dnd.createDropzone({
       accepts: WORKSPACE_WIDGETS,
       group: 'trashcan',
       // TODO: this doesnt allow us to trash toolbox widgets
@@ -155,22 +151,25 @@ export default {
       Mousetrap.unbind('command+z', this.undo);
       Mousetrap.unbind('command+y', this.redo);
     };
+
+    document.addEventListener('keyup', (event)=> {
+      if (event.shiftKey && event.keyCode === 27) { dnd.startDebug(); }
+    }, false);
   },
 
   view: function(controller) {
     var workspace = controller.workspace;
-    var md = controller.metalDragon;
 
-    var selectedWidget = md.activeDragItem && md.activeDragItem.getItemData('widget', null);
+    var selectedWidget = dnd.activeDragItem && dnd.activeDragItem.getItemData('widget', null);
     var isLastWorkspaceWidgetDraggingOverBottomOfWorkspace = (
       !!selectedWidget && selectedWidget === workspace.widgets().slice(-1).pop() &&
-      md.isTargetingDropzoneGroup('bottom-of-workspace')
+      dnd.isTargetingDropzoneGroup('bottom-of-workspace')
     );
-    var doesTargetDropzoneDisplaceWidget = md.hasTargetDropzone() &&
+    var doesTargetDropzoneDisplaceWidget = dnd.hasTargetDropzone() &&
       !isLastWorkspaceWidgetDraggingOverBottomOfWorkspace;
 
     var widgetEditorClassList = [
-      md.isMidDrag() ? '.is-dragging' : '',
+      dnd.isMidDrag() ? '.is-dragging' : '',
       doesTargetDropzoneDisplaceWidget ? '.will-target-dropzone-displace-widget' : ''
     ].join('')
 
@@ -187,7 +186,6 @@ export default {
 
       m(WorkspaceComponent, {
         workspace,
-        metalDragon: controller.metalDragon,
         createDragItem: controller.createWorkspaceWidgetDragItem,
         selectWidgets: controller.selectWidgets,
         selectionDetails: controller.selectionDetails
@@ -195,19 +193,6 @@ export default {
     ]);
   }
 };
-
-// TODO: this still isn't ideal, as it requires that the user of metal-dragon
-// knows how the library implementation makes use of the low level mouse events.
-// Perhaps creating higher level names like 'dragmove', 'dragover', 'dragend', etc would solve this?
-function eventHandlerDecorator(eventName, handler) {
-  if (['mousedown', 'mouseup', 'mouseenter', 'mouseleave'].indexOf(eventName) > -1) {
-    return handleWithRedraw(handler);
-  } else if (eventName === 'mousemove') {
-    return handleWithRedraw(handler, { throttleDelayAmount: 100 });
-  } else {
-    throw new Error('mouseEventHandlerDecorator -- invalid event:', eventName)
-  }
-}
 
 function isMultiSelectEvent(event) {
   return !event.shiftKey;
