@@ -117,10 +117,11 @@ export default extendModel(Base, {
 
     findAncestorWidget: function(filterFn) {
       var ancestor = this.getContainingWidget();
-      while(ancestor) {
+      while (ancestor) {
         if (filterFn(ancestor)) { return ancestor; }
         ancestor = ancestor.getContainingWidget();
       }
+      if (ancestor && filterFn(ancestor)) { return ancestor; }
     },
 
     _getInputsContainer: function() {

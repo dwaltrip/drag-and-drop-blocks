@@ -69,7 +69,7 @@ var WidgetList = {
         var selectedIds = params.selectionDetails().widgetUIDs;
         var parentWidgetIsSelected = parentWidget && (
           parentWidget.uid() in selectedIds ||
-          parentWidget.findAncestorWidget(parent => parent in selectedIds)
+          parentWidget.findAncestorWidget(parent => parent.uid() in selectedIds)
         );
         return this.list.isEmpty() && !parentWidgetIsSelected;
       },
